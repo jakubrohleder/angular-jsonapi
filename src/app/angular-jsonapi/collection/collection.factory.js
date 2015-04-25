@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('angular-jsonapi')
+  angular.module('angularJsonapi')
   .factory('$$AngularJsonAPICollection', AngularJsonAPICollectionFactory);
 
   function AngularJsonAPICollectionFactory ($rootScope, uuid4) {

@@ -1,6 +1,11 @@
 'use strict';
 
-angular.module('angular-jsonapi-example', ['ui.router', 'ui.bootstrap', 'angular-jsonapi'])
+angular.module('angular-jsonapi-example', [
+    'ui.router',
+    'ui.bootstrap',
+    'angularJsonapi',
+    'jsonFormatter'
+  ])
   .config(function ($stateProvider, $urlRouterProvider) {
     $stateProvider
       .state('home', {

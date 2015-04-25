@@ -1,6 +1,6 @@
 (function() {
   'use strict';
 
-  angular.module('angular-jsonapi', ['uuid4']);
+  angular.module('angularJsonapi', ['uuid4']);
 
 })();

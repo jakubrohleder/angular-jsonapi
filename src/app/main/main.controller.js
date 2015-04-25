@@ -1,64 +1,42 @@
 'use strict';
 
 angular.module('angularJsonapi')
-  .controller('MainCtrl', function ($scope) {
-    $scope.awesomeThings = [
-      {
-        'title': 'AngularJS',
-        'url': 'https://angularjs.org/',
-        'description': 'HTML enhanced for web apps!',
-        'logo': 'angular.png'
-      },
-      {
-        'title': 'BrowserSync',
-        'url': 'http://browsersync.io/',
-        'description': 'Time-saving synchronised browser testing.',
-        'logo': 'browsersync.png'
-      },
-      {
-        'title': 'GulpJS',
-        'url': 'http://gulpjs.com/',
-        'description': 'The streaming build system.',
-        'logo': 'gulp.png'
-      },
-      {
-        'title': 'Jasmine',
-        'url': 'http://jasmine.github.io/',
-        'description': 'Behavior-Driven JavaScript.',
-        'logo': 'jasmine.png'
-      },
-      {
-        'title': 'Karma',
-        'url': 'http://karma-runner.github.io/',
-        'description': 'Spectacular Test Runner for JavaScript.',
-        'logo': 'karma.png'
-      },
-      {
-        'title': 'Protractor',
-        'url': 'https://github.com/angular/protractor',
-        'description': 'End to end test framework for AngularJS applications built on top of WebDriverJS.',
-        'logo': 'protractor.png'
-      },
-      {
-        'title': 'Bootstrap',
-        'url': 'http://getbootstrap.com/',
-        'description': 'Bootstrap is the most popular HTML, CSS, and JS framework for developing responsive, mobile first projects on the web.',
-        'logo': 'bootstrap.png'
-      },
-      {
-        'title': 'Angular UI Bootstrap',
-        'url': 'http://angular-ui.github.io/bootstrap/',
-        'description': 'Bootstrap components written in pure AngularJS by the AngularUI Team.',
-        'logo': 'ui-bootstrap.png'
-      },
-      {
-        'title': 'Sass (Node)',
-        'url': 'https://github.com/sass/node-sass',
-        'description': 'Node.js binding to libsass, the C version of the popular stylesheet preprocessor, Sass.',
-        'logo': 'node-sass.png'
+  .controller('MainCtrl', function ($scope, $$AngularJsonAPIAbstractDataFactory) {
+    var schema = {
+      'type': 'novels',
+      'id': 'uuid4',
+      'title': 'string',
+      'links': {
+        'author': 'hasOne',
+        'dieties': 'hasMany'
       }
-    ];
-    angular.forEach($scope.awesomeThings, function(awesomeThing) {
-      awesomeThing.rank = Math.random();
-    });
+    };
+    var linkGetters = {
+      'author': function(id){return {id: id, name: 'Howard Phillips Lovecraft'};},
+      'dieties': function(ids){return [{id: ids[0], name: 'Shub-Niggurath'}, {id: ids[1], name: 'Evil twins Nug and Yeb'}];}
+    };
+    var data = {
+      'type': 'novels',
+      'title': 'An Epicure in the Terrible',
+      'links': {
+        'self': 'http://example.com/novels/1',
+        'author': {
+          'self': 'http://example.com/novels/1/links/author',
+          'related': 'http://example.com/novels/1/author',
+          'linkage': { 'type': 'people', 'id': '873edec0-5266-463f-9fd4-24365637b4f4' }
+        },
+        'dieties': {
+          'self': 'http://example.com/novels/1/links/dieties',
+          'related': 'http://example.com/novels/1/dieties',
+          'linkage': [
+            { 'type': 'dieties', 'id': '0214cffb-3269-47df-a910-13088d3344cb' },
+            { 'type': 'dieties', 'id': '1d75c7bc-4c4f-4923-98d4-a53caa137c09' }
+          ]
+        }
+      }
+    };
+    var Novels = $$AngularJsonAPIAbstractDataFactory.model(schema, linkGetters);
+    $scope.novel = new Novels(data);
+    $scope.author = $scope.novel.links.author();
+    $scope.dieties = $scope.novel.links.dieties();
   });
