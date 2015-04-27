@@ -2,55 +2,76 @@
 
 
   <div class="jumbotron text-center">
-    <h1>'Allo, 'Allo!</h1>
+    <h1>Wow Hi!</h1>
     <p class="lead">
-      Always a pleasure scaffolding your apps.
+      Nice to see you! Check this demo out.
     </p>
-    <p><a class="btn btn-lg btn-success" ng-href="#">Splendid!</a></p>
   </div>
 
-  <tabset>
-    <tab heading="New">
-      <form>
-        <div class="form-group">
-          <label for="title">Title</label>
-          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="title" ng-model="newNovel.form.data.title" placeholder="Title">
-          <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.title" class="help-block">{{error}}</span>
-        </div>
-        <div class="form-group">
-          <label for="part">Part</label>
-          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="part" ng-model="newNovel.form.data.part" placeholder="Part">
-          <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.part" class="help-block">{{error}}</span>
-        </div>
-        <button ng-click="newNovel.form.save()" class="btn btn-primary">Update</button>
-        <button ng-click="newNovel.remove()" class="btn btn-danger">Remove</button>
-        <button ng-click="newNovel.refresh()" class="btn btn-default">Refresh</button>
-      </form>
-    </tab>
+  <h3>Novels</h3>
+  <div class="row">
+    <div class="col-md-8">
+      <tabset>
+        <tab heading="New">
+          <form>
+            <div class="form-group">
+              <label for="title">Title</label>
+              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="title" ng-model="newNovel.form.data.title" placeholder="Title">
+              <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.title" class="help-block">{{error}}</span>
+            </div>
+            <div class="form-group">
+              <label for="part">Part</label>
+              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="part" ng-model="newNovel.form.data.part" placeholder="Part">
+              <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.part" class="help-block">{{error}}</span>
+            </div>
+            <button ng-click="newNovel.form.save()" class="btn btn-primary">Add</button>
+            <button ng-click="newNovel.remove()" class="btn btn-danger">Remove</button>
+            <button ng-click="newNovel.refresh()" class="btn btn-default">Refresh</button>
+          </form>
+        </tab>
 
-    <tab heading="{{novel.data.title}}" ng-repeat="novel in novels.data" ng-hide="novel.pristine">
-      <json-formatter json="novel" open="1"></json-formatter>
-      <form>
-        <div class="form-group">
-          <label for="title">Title</label>
-          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="title" ng-model="novel.form.data.title" placeholder="Title">
-          <span id="helpBlock" ng-repeat="error in novel.form.errors.validation.title" class="help-block">{{error}}</span>
-        </div>
-        <div class="form-group">
-          <label for="part">Part</label>
-          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="part" ng-model="novel.form.data.part" placeholder="Part">
-          <span id="helpBlock" ng-repeat="error in novel.form.errors.validation.part" class="help-block">{{error}}</span>
-        </div>
-        <button ng-click="novel.form.save()" class="btn btn-primary">Update</button>
-        <button ng-click="novel.remove()" class="btn btn-danger">Remove</button>
-        <button ng-click="novel.refresh()" class="btn btn-default">Refresh</button>
-      </form>
-    </tab>
+        <tab heading="{{novel.data.title}}" ng-repeat="novel in novels.data" ng-hide="novel.pristine">
+          <json-formatter json="novel" open="1"></json-formatter>
+          <form>
+            <div class="form-group">
+              <label for="title">Title</label>
+              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="title" ng-model="novel.form.data.title" placeholder="Title">
+              <span id="helpBlock" ng-repeat="error in novel.form.errors.validation.title" class="help-block">{{error}}</span>
+            </div>
+            <div class="form-group">
+              <label for="part">Part</label>
+              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="part" ng-model="novel.form.data.part" placeholder="Part">
+              <span id="helpBlock" ng-repeat="error in novel.form.errors.validation.part" class="help-block">{{error}}</span>
+            </div>
+            <button ng-click="novel.form.save()" class="btn btn-primary">Update</button>
+            <button ng-click="novel.remove()" class="btn btn-danger">Remove</button>
+            <button ng-click="novel.refresh()" class="btn btn-default">Refresh</button>
+          </form>
+        </tab>
 
-  </tabset>
-
+      </tabset>
+    </div>
+    <div class="col-md-4">
+      <json-formatter json="novels" open="1"></json-formatter>
+    </div>
+  </div>
   <hr>
 
-  <json-formatter json="novels" open="1"></json-formatter>
+<!--   <form>
+    <div class="form-group">
+      <label for="title">Get</label>
+      <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="title" ng-model="newNovel.form.data.title" placeholder="Title">
+      <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.title" class="help-block">{{error}}</span>
+    </div>
+    <div class="form-group">
+      <label for="part">Part</label>
+      <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="part" ng-model="newNovel.form.data.part" placeholder="Part">
+      <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.part" class="help-block">{{error}}</span>
+    </div>
+    <button ng-click="newNovel.form.save()" class="btn btn-primary">Update</button>
+    <button ng-click="newNovel.remove()" class="btn btn-danger">Remove</button>
+    <button ng-click="newNovel.refresh()" class="btn btn-default">Refresh</button>
+  </form> -->
+
 
 </div>

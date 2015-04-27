@@ -44,8 +44,8 @@ angular.module('angularJsonapi')
       }
     };
     $scope.novels = new AngularJsonAPICollection(schema, {}, linkGetters);
-    $scope.validNovel = $scope.novels.add(data);
-    $scope.newNovel = $scope.novels.fresh;
+    $scope.validNovel = $scope.novels.__add(data);
+    $scope.newNovel = $scope.novels.dummy;
 
     $scope.$watch('newNovel.form.data.title', function() {
       $scope.newNovel.form.validateField('title');

@@ -23,13 +23,13 @@
 
     function save() {
       var _this = this;
-      var promise = _this.parent.__update(_this.data);
+      var errors = _this.validate();
 
-      promise.catch(function(errors) {
-        _this.errors.validation = errors.validation;
-      });
+      if (errors !== {}) {
+        $log.error('Errors in form: ', errors);
+      }
 
-      return promise;
+      _this.parent.__update(_this.data);
     }
 
     function reset() {

@@ -30,7 +30,7 @@
         validation: {}
       };
 
-      _this.pristine = data.id === undefined;
+      _this.dummy = data.id === undefined;
 
       _this.__setData(schema, data);
       _this.__setLinks(schema, data.links);
@@ -59,37 +59,21 @@
       _this.__synchronize('remove', synchronizations);
     }
 
-    function __update(schema, synchronizations, data) {
+    function __update(schema, synchronizations, validatedData) {
       var _this = this;
-      var errors;
-      var deferred = $q.defer();
 
-      if (data.id) {
+      if (validatedData.id) {
         $log.error('Cannot change id of ', _this);
-        delete data.id;
+        delete validatedData.id;
       }
 
-      if (data.type) {
+      if (validatedData.type) {
         $log.error('Cannot change type of ', _this);
-        delete data.type;
+        delete validatedData.type;
       }
 
-      errors = _this.__validateData(schema, data);
-      if (angular.equals(errors, {})) {
-        if (_this.pristine) {
-          _this.pristine = false;
-          _this.__synchronize('add', synchronizations);
-        } else {
-          _this.__setData(schema, data);
-          _this.__synchronize('update', synchronizations);
-        }
-
-        deferred.resolve(_this);
-      } else {
-        deferred.reject({validation: errors});
-      }
-
-      return deferred.promise;
+      _this.__setData(schema, validatedData);
+      _this.__synchronize('update', synchronizations);
     }
 
     function __setLink(linkObj, key, type) {
@@ -146,7 +130,6 @@
     function __setData(schema, data) {
       var _this = this;
       var safeData = angular.copy(data);
-
       _this.errors.validation = _this.__validateData(schema, data);
 
       angular.forEach(schema, function(validator, key) {
@@ -193,7 +176,7 @@
     }
 
     function __synchronize(key, synchronizations) {
-      $log.log(key, synchronizations);
+      $log.log('Synchro', key, synchronizations);
     }
 
   }

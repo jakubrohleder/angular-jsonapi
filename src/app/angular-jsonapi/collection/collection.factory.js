@@ -6,13 +6,11 @@
 
   function AngularJsonAPICollectionWrapper(JsonAPIModelFactory, $log, $rootScope, uuid4) {
 
-    AngularJsonAPICollection.prototype.add = add;
+    AngularJsonAPICollection.prototype.__add = __add;
     AngularJsonAPICollection.prototype.get = get;
     AngularJsonAPICollection.prototype.all = all;
     AngularJsonAPICollection.prototype.several = several;
     AngularJsonAPICollection.prototype.remove = remove;
-
-    AngularJsonAPICollection.prototype.__prepare = __prepare;
 
     return AngularJsonAPICollection;
 
@@ -23,50 +21,28 @@
         schema,
         synchronizations,
         linkGetters,
-      _this);
+        _this
+      );
 
       _this.data = {};
       _this.removed = {};
 
-      _this.__prepare();
+      _this.dummy = new _this.Model({type: schema.type});
+      _this.dummy.form.save = __saveDummy.bind(_this.dummy);
     }
 
-    function add(data) {
+    function __add(validatedData) {
       var _this = this;
-
-      if (_this.data[data.id] === undefined) {
-        _this.data[data.id] = new this.Model(data);
-      } else {
-        $log.error('Model with id already exists!', data.id);
+      if (validatedData.id === undefined) {
+        $log.error('Can\'t add data without id!', validatedData);
+        return;
+      } else if (_this.data[validatedData.id] !== undefined) {
+        $log.error('Model with id already exists!', validatedData.id);
+        return;
       }
 
-      return _this.data[data.id];
-    }
+      _this.data[validatedData.id] = new this.Model(validatedData);
 
-    function __prepare() {
-      var _this = this;
-
-      var fresh = new _this.Model({
-        type: _this.Model.prototype.schema.type
-      });
-      _this.fresh = fresh;
-
-      $rootScope.$watch(function() {
-        return fresh.pristine;
-      }, function(pristine) {
-
-        if (pristine === false) {
-          var id = uuid4.generate();
-          _this.data[id] = angular.copy(fresh);
-          _this.data[id].data.id = id;
-          _this.data[id].form.save();
-          fresh.form.reset();
-          fresh.pristine = true;
-        }
-
-      });
-
-      return _this.fresh;
     }
 
     function get(id) {
@@ -111,6 +87,20 @@
       if (_this.data[id] !== undefined) {
         _this.removed[id] = _this.data[id];
         delete _this.data[id];
+      }
+    }
+
+    function __saveDummy() {
+      var _this = this;
+      var errors = _this.form.validate();
+
+      if (angular.equals(errors, {})) {
+        var data = angular.copy(_this.form.data);
+        data.id = uuid4.generate();
+        data.type = _this.schema.type;
+        _this.collection.__add(data);
+        _this.form.reset();
+        _this.__synchronize('add', _this.synchronizations);
       }
     }
   }
