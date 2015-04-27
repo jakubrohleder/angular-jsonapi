@@ -6,7 +6,7 @@ angular.module('angular-jsonapi-example', [
     'angularJsonapi',
     'jsonFormatter'
   ])
-  .config(function ($stateProvider, $urlRouterProvider) {
+  .config(function($stateProvider, $urlRouterProvider) {
     $stateProvider
       .state('home', {
         url: '/',
@@ -15,5 +15,4 @@ angular.module('angular-jsonapi-example', [
       });
 
     $urlRouterProvider.otherwise('/');
-  })
-;
+  });

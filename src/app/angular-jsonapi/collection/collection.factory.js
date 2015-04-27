@@ -4,16 +4,16 @@
   angular.module('angularJsonapi')
   .factory('$$AngularJsonAPICollection', AngularJsonAPICollectionFactory);
 
-  function AngularJsonAPICollectionFactory ($rootScope, uuid4) {
+  function AngularJsonAPICollectionFactory($rootScope, uuid4) {
     return AngularJsonAPICollection;
 
-    function AngularJsonAPICollection(Model){
-      var self = this;
-      self.Model = Model;
-      self.data = {};
-      self.removed = {};
+    function AngularJsonAPICollection(Model) {
+      var _this = this;
+      _this.Model = Model;
+      _this.data = {};
+      _this.removed = {};
 
-      $rootScope.$broadcast('angular-json:initialize', self);
+      $rootScope.$broadcast('angular-json:initialize', _this);
     }
 
     AngularJsonAPICollection.prototype.add = create;
@@ -21,10 +21,11 @@
     AngularJsonAPICollection.prototype.all = all;
     AngularJsonAPICollection.prototype.several = several;
 
-    function create(links, id){
+    function create(links, id) {
       if (id === undefined) {
         id = uuid4.generate();
       }
+
       var model = new this.Model({
         id: id,
         links: links
@@ -35,33 +36,38 @@
 
       return model;
     }
-    function get(id){
-      var self = this;
-      if(self.data[id] === undefined){
-        self.create([], id);
+
+    function get(id) {
+      var _this = this;
+      if (_this.data[id] === undefined) {
+        _this.create([], id);
       }
 
-      $rootScope.$broadcast('angular-json:get', self.data[id]);
+      $rootScope.$broadcast('angular-json:get', _this.data[id]);
 
-      return self.data[id];
+      return _this.data[id];
     }
-    function several(ids){
-      var self = this, datas = [];
-      angular.forEach(ids, function(id){
-        if(self.data[id] === undefined){
-          self.create([], id);
+
+    function several(ids) {
+      var _this = this;
+      var datas = [];
+      angular.forEach(ids, function(id) {
+        if (_this.data[id] === undefined) {
+          _this.create([], id);
         }
-        datas.push(self.data[id]);
+
+        datas.push(_this.data[id]);
       });
 
       $rootScope.$broadcast('angular-json:several', datas);
 
-      return self.datas;
+      return _this.datas;
     }
-    function all(){
-      var self = this;
 
-      $rootScope.$broadcast('angular-json:all', self);
+    function all() {
+      var _this = this;
+
+      $rootScope.$broadcast('angular-json:all', _this);
 
       return this;
     }

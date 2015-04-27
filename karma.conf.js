@@ -2,13 +2,8 @@ module.exports = function(config) {
   'use strict';
   var configuration = {
     basePath: '',
-    frameworks: ['mocha', 'chai'],
+    frameworks: ['mocha', 'chai-as-promised', 'chai'],
 
-    files: [
-      'node_modules/chai/chai.js',
-      'bower_components/angular-uuid4/angular-uuid4.js',
-      'src/**/*.js'
-    ],
     reporters: ['progress'],
 
     port: 9876,
@@ -16,14 +11,17 @@ module.exports = function(config) {
     autoWatch: false,
     singleRun: false,
 
+    // logLevel: config.LOG_DEBUG,
 
-    browsers : ['PhantomJS'],
+    browsers: ['PhantomJS'],
 
-    plugins : [
+    plugins: [
       'karma-phantomjs-launcher',
+      'karma-chrome-launcher',
       'karma-mocha',
+      'karma-chai-as-promised',
       'karma-chai'
-    ],
+    ]
 
   };
 

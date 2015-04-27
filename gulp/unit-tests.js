@@ -25,6 +25,9 @@ module.exports = function(options) {
     var htmlFiles = [
       options.src + '/**/*.html'
     ];
+    var extraFiles = [
+      'node_modules/phantomjs-polyfill/bind-polyfill.js'
+    ];
 
     var srcFiles = [
       options.src + '/app/**/*.js'
@@ -38,7 +41,8 @@ module.exports = function(options) {
         callback(bowerDeps.js
           .concat(_.pluck(files, 'path'))
           .concat(htmlFiles)
-          .concat(specFiles));
+          .concat(specFiles)
+          .concat(extraFiles));
       }));
   }
 
