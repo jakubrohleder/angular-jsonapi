@@ -52,7 +52,7 @@ describe('JsonAPIModelFactory factory', function() {
 
   beforeEach(inject(function(_JsonAPIModelFactory_) {
     var invalidData = angular.copy(data);
-    Novel = _JsonAPIModelFactory_.model(schema, linkGetters);
+    Novel = _JsonAPIModelFactory_.model(schema, linkGetters).model;
     validNovel = new Novel(data);
 
     invalidData.id = 'adsad';

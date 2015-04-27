@@ -10,8 +10,7 @@
       model: modelFactory
     };
 
-    function modelFactory(schema, linkGetters) {
-      var name = schema.type.charAt(0).toUpperCase();
+    function modelFactory(schema, synchronizations, linkGetters, collection) {
       var Model = function(data) {
         var _this = this;
 
@@ -26,21 +25,24 @@
 
       Model.prototype = Object.create(AngularJsonAPIAbstractData.prototype);
       Model.prototype.constructor = Model;
-      Model.prototype.schema = schema;
-      Model.prototype.linkGetters = linkGetters;
-      Model.prototype.factoryName = name;
 
-      Model.prototype.update = function(data) {
-        return AngularJsonAPIAbstractData.prototype.update.call(this, schema, data);
+      Model.prototype.schema = schema;
+      Model.prototype.synchronizations = synchronizations;
+      Model.prototype.linkGetters = linkGetters;
+
+      Model.prototype.collection = collection;
+
+      Model.prototype.__update = function(data) {
+        return AngularJsonAPIAbstractData.prototype.__update.call(this, schema, synchronizations, data);
       };
 
-      // Model.prototype.validateData = function(data) {
-      //   return AngularJsonAPIAbstractData.prototype.__validateData.call(this, schema, data);
-      // };
+      Model.prototype.refresh = function() {
+        return AngularJsonAPIAbstractData.prototype.refresh.call(this, synchronizations);
+      };
 
-      // Model.prototype.validateField = function(data, key) {
-      //   return AngularJsonAPIAbstractData.prototype.__validateField.call(this, schema, data, key);
-      // };
+      Model.prototype.remove = function() {
+        return AngularJsonAPIAbstractData.prototype.remove.call(this, collection, synchronizations);
+      };
 
       return Model;
     }

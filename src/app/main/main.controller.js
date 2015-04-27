@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('angularJsonapi')
-  .controller('MainCtrl', function($scope, JsonAPIModelFactory, $log) {
+  .controller('MainCtrl', function($scope, AngularJsonAPICollection) {
     var schema = {
       type: 'novels',
       id: 'uuid4',
@@ -43,27 +43,19 @@ angular.module('angularJsonapi')
         }
       }
     };
-    var Novels = JsonAPIModelFactory.model(schema, linkGetters);
-    $scope.validNovel = new Novels(data);
-    $log.log($scope.validNovel);
-    $log.log($scope.validNovel.serialize());
-    $scope.data = data;
-    $scope.$watch('validNovel.form.data.title', function() {
-      $scope.validNovel.form.validateField('title');
+    $scope.novels = new AngularJsonAPICollection(schema, {}, linkGetters);
+    $scope.validNovel = $scope.novels.add(data);
+    $scope.newNovel = $scope.novels.fresh;
+
+    $scope.$watch('newNovel.form.data.title', function() {
+      $scope.newNovel.form.validateField('title');
     });
 
-    $scope.$watch('validNovel.form.data.part', function() {
-      $scope.validNovel.form.validateField('part');
+    $scope.$watch('newNovel.form.data.part', function() {
+      $scope.newNovel.form.validateField('part');
     });
 
-    $scope.$watch('validNovel.form.data.id', function() {
-      $scope.validNovel.form.validateField('id');
+    $scope.$watch('newNovel.form.data.id', function() {
+      $scope.newNovel.form.validateField('id');
     });
-
-    data.id = 'adsad';
-    data.title = 34;
-    data.part = 'asdasds';
-    $scope.invalidNovel = new Novels(data);
-    $scope.author = $scope.validNovel.links.author();
-    $scope.dieties = $scope.validNovel.links.dieties();
   });

@@ -10,47 +10,47 @@
   </div>
 
   <tabset>
-    <tab heading="Valid Novel Form">
-      <json-formatter json="validNovel.errors" open="1"></json-formatter>
-      <json-formatter json="validNovel.form.errors" open="1"></json-formatter>
-      <form ng-submit="validNovel.form.save()">
-        <div class="form-group">
-          <label for="id">Id</label>
-          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="id" ng-model="validNovel.form.data.id" placeholder="Id">
-          <span id="helpBlock" ng-repeat="error in validNovel.form.errors.validation.id" class="help-block">{{error}}</span>
-        </div>
+    <tab heading="New">
+      <form>
         <div class="form-group">
           <label for="title">Title</label>
-          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="title" ng-model="validNovel.form.data.title" placeholder="Title">
-          <span id="helpBlock" ng-repeat="error in validNovel.form.errors.validation.title" class="help-block">{{error}}</span>
+          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="title" ng-model="newNovel.form.data.title" placeholder="Title">
+          <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.title" class="help-block">{{error}}</span>
         </div>
         <div class="form-group">
           <label for="part">Part</label>
-          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="part" ng-model="validNovel.form.data.part" placeholder="Part">
-          <span id="helpBlock" ng-repeat="error in validNovel.form.errors.validation.part" class="help-block">{{error}}</span>
+          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="part" ng-model="newNovel.form.data.part" placeholder="Part">
+          <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.part" class="help-block">{{error}}</span>
         </div>
-        <button type="submit" class="btn btn-default">Submit</button>
+        <button ng-click="newNovel.form.save()" class="btn btn-primary">Update</button>
+        <button ng-click="newNovel.remove()" class="btn btn-danger">Remove</button>
+        <button ng-click="newNovel.refresh()" class="btn btn-default">Refresh</button>
       </form>
     </tab>
 
-    <tab heading="Valid Novel">
-      <json-formatter json="validNovel" open="1"></json-formatter>
-      <hr>
-      <h5>Serialize</h5>
-      <pre>{{validNovel.serialize()}}</pre>
-      <h5>Form</h5>
-      <!-- <pre>{{validNovel.form}}</pre> -->
-      <h5>Dieties</h5>
-      <json-formatter json="author" open="1"></json-formatter>
-      <h5>Author</h5>
-      <json-formatter json="author" open="1"></json-formatter>
-    </tab>
-
-    <tab heading="Invalid Novel">
-      <json-formatter json="invalidNovel" open="1"></json-formatter>
+    <tab heading="{{novel.data.title}}" ng-repeat="novel in novels.data" ng-hide="novel.pristine">
+      <json-formatter json="novel" open="1"></json-formatter>
+      <form>
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="title" ng-model="novel.form.data.title" placeholder="Title">
+          <span id="helpBlock" ng-repeat="error in novel.form.errors.validation.title" class="help-block">{{error}}</span>
+        </div>
+        <div class="form-group">
+          <label for="part">Part</label>
+          <input ng-model-options="{ debounce: 300 }" type="text" class="form-control" id="part" ng-model="novel.form.data.part" placeholder="Part">
+          <span id="helpBlock" ng-repeat="error in novel.form.errors.validation.part" class="help-block">{{error}}</span>
+        </div>
+        <button ng-click="novel.form.save()" class="btn btn-primary">Update</button>
+        <button ng-click="novel.remove()" class="btn btn-danger">Remove</button>
+        <button ng-click="novel.refresh()" class="btn btn-default">Refresh</button>
+      </form>
     </tab>
 
   </tabset>
 
+  <hr>
+
+  <json-formatter json="novels" open="1"></json-formatter>
 
 </div>

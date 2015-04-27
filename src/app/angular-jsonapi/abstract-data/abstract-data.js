@@ -11,11 +11,13 @@
     AngularJsonAPIAbstractData.prototype.__setLink = __setLink;
     AngularJsonAPIAbstractData.prototype.__validateData = __validateData;
     AngularJsonAPIAbstractData.prototype.__validateField = __validateField;
+    AngularJsonAPIAbstractData.prototype.__synchronize = __synchronize;
+    AngularJsonAPIAbstractData.prototype.__update = __update;
 
     AngularJsonAPIAbstractData.prototype.refresh = refresh;
-    AngularJsonAPIAbstractData.prototype.serialize = serialize;
     AngularJsonAPIAbstractData.prototype.remove = remove;
-    AngularJsonAPIAbstractData.prototype.update = update;
+
+    AngularJsonAPIAbstractData.prototype.serialize = serialize;
 
     return AngularJsonAPIAbstractData;
 
@@ -28,48 +30,39 @@
         validation: {}
       };
 
-      if (data.id === undefined) {
-        data.id = uuid4.generate();
-      }
+      _this.pristine = data.id === undefined;
 
       _this.__setData(schema, data);
       _this.__setLinks(schema, data.links);
       _this.form = new AngularJsonAPIAbstractDataForm(_this);
     }
 
-    function refresh() {
+    function refresh(synchronizations) {
       var _this = this;
-      var deferred = $q.defer();
 
-      $rootScope.$broadcast('angular-jsonapi:refresh', _this);
-
-      return deferred.promise;
+      _this.__synchronize('refresh', synchronizations);
     }
 
     function serialize() {
       var _this = this;
-      return angular.toJson(_this.data);
+
+      return {
+        data:angular.toJson(_this.data)
+      };
     }
 
-    function remove() {
+    function remove(collection, synchronizations) {
       var _this = this;
-      var deferred = $q.defer();
 
-      delete _this.collection.data[_this.id];
-      _this.collection.removed[_this.id] = _this;
+      collection.remove(_this.data.id);
 
-      $rootScope.$broadcast('angular-jsonapi:remove', _this);
-
-      return deferred.promise;
+      _this.__synchronize('remove', synchronizations);
     }
 
-    function update(schema, data) {
-
+    function __update(schema, synchronizations, data) {
       var _this = this;
       var errors;
       var deferred = $q.defer();
-
-      $rootScope.$broadcast('angular-jsonapi:update', [_this, data]);
 
       if (data.id) {
         $log.error('Cannot change id of ', _this);
@@ -83,7 +76,14 @@
 
       errors = _this.__validateData(schema, data);
       if (angular.equals(errors, {})) {
-        _this.__setData(schema, data);
+        if (_this.pristine) {
+          _this.pristine = false;
+          _this.__synchronize('add', synchronizations);
+        } else {
+          _this.__setData(schema, data);
+          _this.__synchronize('update', synchronizations);
+        }
+
         deferred.resolve(_this);
       } else {
         deferred.reject({validation: errors});
@@ -112,7 +112,9 @@
       var _this = this;
 
       angular.forEach(schema.links, function(type, key) {
-        _this.__setLink(links[key].linkage, key, type);
+        if (links !== undefined && links[key] !== undefined) {
+          _this.__setLink(links[key].linkage, key, type);
+        }
       });
     }
 
@@ -188,6 +190,10 @@
       }
 
       return errors;
+    }
+
+    function __synchronize(key, synchronizations) {
+      $log.log(key, synchronizations);
     }
 
   }

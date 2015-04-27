@@ -26,7 +26,7 @@
       return name;
     }
 
-    function jsonapiFactory($$AngularJsonAPICollection, $injector, $log) {
+    function jsonapiFactory($injector, $log) {
       var memory = {};
       angular.forEach(models, initialize);
       return {

@@ -16,16 +16,15 @@
     function AngularJsonAPIAbstractDataForm(parent) {
       var _this = this;
 
-      _this.data = angular.copy(parent.data);
+      _this.data = {};
       _this.parent = parent;
-      _this.errors = {
-        validation: {}
-      };
+      _this.reset();
     }
 
     function save() {
       var _this = this;
-      var promise = _this.parent.update(_this.data);
+      var promise = _this.parent.__update(_this.data);
+
       promise.catch(function(errors) {
         _this.errors.validation = errors.validation;
       });
@@ -36,7 +35,21 @@
     function reset() {
       var _this = this;
 
-      angular.extend(this.data, _this.parent.data);
+      angular.forEach(_this.parent.data, function(data, key) {
+        _this.data[key] = _this.parent.data[key];
+      });
+
+      angular.forEach(_this.data, function(data, key) {
+        if (_this.parent.data[key]) {
+          _this.data[key] = _this.parent.data[key];
+        } else {
+          delete _this.data[key];
+        }
+      });
+
+      delete (_this.data).id;
+      delete (_this.data).type;
+
       _this.errors = {
         validation: {}
       };
