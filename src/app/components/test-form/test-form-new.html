@@ -1,0 +1,12 @@
+<div>
+  <h3>New</h3>
+  <hr>
+  <form>
+    <div ng-repeat="(attribute, value) in object.form.data" class="form-group">
+      <label for="{{attribute}}">{{attribute}}</label>
+      <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="{{attribute}}" ng-model="object.form.data[attribute]" placeholder="{{attribute}}">
+      <span id="helpBlock" ng-repeat="error in object.form.errors.validation[attribute]" class="help-block">{{error}}</span>
+    </div>
+    <button ng-click="object.form.save()" class="btn btn-primary">Add</button>
+  </form>
+</div>

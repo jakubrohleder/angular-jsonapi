@@ -8,172 +8,53 @@
     </p>
   </div>
 
-
   <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-4">
       <h3>Novels</h3>
       <tabset>
         <tab heading="New">
-          <form>
-            <div class="form-group">
-              <label for="title">Title</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="title" ng-model="newNovel.form.data.title" placeholder="Title">
-              <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.title" class="help-block">{{error}}</span>
-            </div>
-            <div class="form-group">
-              <label for="part">Part</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="part" ng-model="newNovel.form.data.part" placeholder="Part">
-              <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.part" class="help-block">{{error}}</span>
-            </div>
-            <button ng-click="newNovel.form.save()" class="btn btn-primary">Add</button>
-          </form>
+          <test-form-new object="newNovel"></test-form-new>
         </tab>
 
         <tab heading="{{novel.data.title}}" ng-repeat="novel in novels.data" ng-hide="novel.pristine">
-          <json-formatter json="novel" open="1"></json-formatter>
-          <h3>Edit</h3>
-          <hr>
-          <form>
-            <div class="form-group">
-              <label for="title">Title</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="title" ng-model="novel.form.data.title" placeholder="Title">
-              <span id="helpBlock" ng-repeat="error in novel.form.errors.validation.title" class="help-block">{{error}}</span>
-            </div>
-            <div class="form-group">
-              <label for="part">Part</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="part" ng-model="novel.form.data.part" placeholder="Part">
-              <span id="helpBlock" ng-repeat="error in novel.form.errors.validation.part" class="help-block">{{error}}</span>
-            </div>
-            <button ng-click="novel.form.save()" class="btn btn-primary">Update</button>
-            <button ng-click="novel.remove()" class="btn btn-danger">Remove</button>
-            <button ng-click="novel.refresh()" class="btn btn-default">Refresh</button>
-          </form>
-
-          <h3>Links</h3>
-          <hr ng-if="novel.links.author">
-          <div ng-if="novel.links.author" class="row">
-            <div class="col-md-12">
-              <p class="pull-left">{{novel.links.author.data.firstName}}</p>
-              <button ng-click="novel.removeLink('author', novel.links.author)" class="btn btn-danger btn-xs pull-right">Remove</button>
-            </div>
-          </div>
-          <hr>
-          <div class="row" ng-repeat="link in novel.links.dieties">
-            <div class="col-md-12">
-              <p class="pull-left">{{link.data.name}}</p>
-              <button ng-click="novel.removeLink('dieties', link)" class="btn btn-danger btn-xs pull-right">Remove</button>
-            </div>
-          </div>
-          <hr>
+          <test-form object="novel"></test-form>
         </tab>
-
       </tabset>
-      <h3>Dieties</h3>
-      <tabset>
-        <tab heading="New">
-          <form>
-            <div class="form-group">
-              <label for="name">Name</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="name" ng-model="newDiety.form.data.name" placeholder="Name">
-              <span id="helpBlock" ng-repeat="error in newDiety.form.errors.validation.name" class="help-block">{{error}}</span>
-            </div>
-            <div class="form-group">
-              <label for="power">Power</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="power" ng-model="newDiety.form.data.power" placeholder="Power">
-              <span id="helpBlock" ng-repeat="error in newDiety.form.errors.validation.part" class="help-block">{{error}}</span>
-            </div>
-            <button ng-click="newDiety.form.save()" class="btn btn-primary">Add</button>
-          </form>
-        </tab>
+    </div>
 
-        <tab heading="{{diety.data.name}}" ng-repeat="diety in dieties.data" ng-hide="diety.pristine">
-          <json-formatter json="diety" open="1"></json-formatter>
-          <h3>Edit</h3>
-          <hr>
-          <form>
-            <div class="form-group">
-              <label for="name">Name</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="name" ng-model="diety.form.data.name" placeholder="Name">
-              <span id="helpBlock" ng-repeat="error in diety.form.errors.validation.name" class="help-block">{{error}}</span>
-            </div>
-            <div class="form-group">
-              <label for="power">Power</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="power" ng-model="diety.form.data.power" placeholder="Power">
-              <span id="helpBlock" ng-repeat="error in diety.form.errors.validation.part" class="help-block">{{error}}</span>
-            </div>
-            <button ng-click="diety.form.save()" class="btn btn-primary">Add</button>
-          </form>
-
-          <h3>Links</h3>
-          <hr>
-          <div class="row" ng-repeat="link in diety.links.apearences">
-            <div class="col-md-12">
-              <p class="pull-left">{{link.data.title}} {{link.data.part}}</p>
-              <button ng-click="diety.removeLink('apearences', link)" class="btn btn-danger btn-xs pull-right">Remove</button>
-            </div>
-          </div>
-          <hr>
-        </tab>
-
-      </tabset>
-
+    <div class="col-md-4">
       <h3>People</h3>
       <tabset>
         <tab heading="New">
-          <form>
-            <div class="form-group">
-              <label for="firstName">First Name</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="firstName" ng-model="newPerson.form.data.firstName" placeholder="First Name">
-              <span id="helpBlock" ng-repeat="error in newPerson.form.errors.validation.firstName" class="help-block">{{error}}</span>
-            </div>
-            <div class="form-group">
-              <label for="lastName">Last Name</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="lastName" ng-model="newPerson.form.data.lastName" placeholder="Last Name">
-              <span id="helpBlock" ng-repeat="error in newPerson.form.errors.validation.lastName" class="help-block">{{error}}</span>
-            </div>
-            <button ng-click="newPerson.form.save()" class="btn btn-primary">Add</button>
-          </form>
+          <test-form-new object="newPerson"></test-form-new>
         </tab>
 
-        <tab heading="{{person.data.firstName + '  ' + person.data.lastName}}" ng-repeat="person in people.data" ng-hide="person.pristine">
-          <json-formatter json="person" open="1"></json-formatter>
-          <h3>Edit</h3>
-          <hr>
-          <form>
-            <div class="form-group">
-              <label for="firstName">First Name</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="firstName" ng-model="person.form.data.firstName" placeholder="First Name">
-              <span id="helpBlock" ng-repeat="error in person.form.errors.validation.firstName" class="help-block">{{error}}</span>
-            </div>
-            <div class="form-group">
-              <label for="lastName">Last Name</label>
-              <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="lastName" ng-model="person.form.data.lastName" placeholder="Last Name">
-              <span id="helpBlock" ng-repeat="error in person.form.errors.validation.lastName" class="help-block">{{error}}</span>
-            </div>
-            <button ng-click="person.form.save()" class="btn btn-primary">Add</button>
-          </form>
-
-          <h3>Links</h3>
-          <hr>
-          <div class="row" ng-repeat="link in person.links.novels">
-            <div class="col-md-12">
-              <p class="pull-left">{{link.data.title}} {{link.data.part}}</p>
-              <button ng-click="person.removeLink('novels', link)" class="btn btn-danger btn-xs pull-right">Remove</button>
-            </div>
-          </div>
-          <hr>
+        <tab heading="{{person.data.firstName}} {{person.data.lastName}}" ng-repeat="person in people.data" ng-hide="person.pristine">
+          <test-form object="person"></test-form>
         </tab>
-
       </tabset>
     </div>
+
     <div class="col-md-4">
-      <json-formatter json="novels" open="1"></json-formatter>
-      <json-formatter json="people" open="1"></json-formatter>
-      <json-formatter json="dieties" open="1"></json-formatter>
+      <h3>Dieties</h3>
+      <tabset>
+        <tab heading="New">
+          <test-form-new object="newDiety"></test-form-new>
+        </tab>
+
+        <tab heading="{{diety.data.name}}" ng-repeat="diety in dieties.data" ng-hide="diety.pristine">
+          <test-form object="diety"></test-form>
+        </tab>
+      </tabset>
     </div>
+
   </div>
   <hr>
-
+  <div class="well">
+    <json-formatter json="novels" open="1"></json-formatter>
+    <json-formatter json="people" open="1"></json-formatter>
+    <json-formatter json="dieties" open="1"></json-formatter>
+  </div>
 <!--   <form>
     <div class="form-group">
       <label for="title">Get</label>

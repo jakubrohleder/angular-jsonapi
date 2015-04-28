@@ -56,6 +56,12 @@
         );
       };
 
+      Model.prototype.addLinkById = function(linkKey, linkModelName, id) {
+        return AngularJsonAPIAbstractData.prototype.addLinkById.call(
+          this, schema, synchronizationHooks, linkedCollections, linkKey, linkModelName, id
+        );
+      };
+
       Model.prototype.removeLink = function(linkKey, linkedObject, reflection) {
         return AngularJsonAPIAbstractData.prototype.removeLink.call(
           this, schema, synchronizationHooks, linkedCollections, linkKey, linkedObject, reflection

@@ -16,6 +16,7 @@
 
     AngularJsonAPIAbstractData.prototype.refresh = refresh;
     AngularJsonAPIAbstractData.prototype.remove = remove;
+    AngularJsonAPIAbstractData.prototype.addLinkById = addLinkById;
     AngularJsonAPIAbstractData.prototype.addLink = addLink;
     AngularJsonAPIAbstractData.prototype.removeLink = removeLink;
     AngularJsonAPIAbstractData.prototype.toLink = toLink;
@@ -66,6 +67,26 @@
       return {type: this.data.type, id: this.data.id};
     }
 
+    function addLinkById(schema, synchronizationHooks, linkedCollections, linkKey, linkModelName, id) {
+      var _this = this;
+
+      if (linkedCollections[linkModelName] === undefined) {
+        $log.error('Cannot add link of not existing type: ' + linkModelName);
+        return;
+      }
+
+      if (!uuid4.validate(id)) {
+        $log.error('Wrong link id, not uuid4: ' + id);
+        return;
+      }
+
+      _this.addLink(
+        linkKey,
+        linkedCollections[linkModelName].get(id)
+      );
+
+    }
+
     function addLink(schema, synchronizationHooks, linkedCollections, linkKey, linkedObject) {
       var _this = this;
       var linkType;
@@ -73,7 +94,7 @@
       var linkAttributes;
 
       if (schema.links[linkKey] === undefined) {
-        $log.error('Can\'t add link not present in schema');
+        $log.error('Can\'t add link not present in schema: ', linkKey);
         return;
       }
 
@@ -104,8 +125,6 @@
       var linkAttributes;
       var reflectionType;
       var removed = false;
-
-      console.log('Remove link ' + linkKey + ' ' + linkedObject.schema.type, reflection);
 
       if (schema.links[linkKey] === undefined) {
         $log.error('Can\'t remove link not present in schema');
@@ -188,11 +207,12 @@
 
       if (linkAttributes === null) {
         delete _this.links[linkKey];
+        _this.links[linkKey] = undefined;
       } else if (linkType === 'hasMany' && angular.isArray(linkAttributes)) {
         var getAll = function() {
-          var result = {};
+          var result = [];
           angular.forEach(linkAttributes, function(link) {
-            result[link.id] = (_this.linkedCollections[link.type].get(link.id));
+            result.push(_this.linkedCollections[link.type].get(link.id));
           });
 
           return result;

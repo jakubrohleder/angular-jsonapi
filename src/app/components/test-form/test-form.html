@@ -1,0 +1,59 @@
+<div>
+  <br>
+  <span class="h3" ng-init="collapsedEdit=true" style="margin-right:15px;">Edit</span>
+  <span ng-show="collapsedEdit" ng-click="collapsedEdit=false" class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+  <span ng-hide="collapsedEdit" ng-click="collapsedEdit=true" class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+
+  <form collapse="collapsedEdit">
+    <div ng-repeat="(attribute, value) in object.form.data" class="form-group">
+      <label for="{{attribute}}">{{attribute}}</label>
+      <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="{{attribute}}" ng-model="value" placeholder="{{attribute}}">
+      <span id="helpBlock" ng-repeat="error in object.form.errors.validation[attribute]" class="help-block">{{error}}</span>
+    </div>
+    <button ng-click="object.form.save()" class="btn btn-primary">Update</button>
+    <button ng-click="object.remove()" class="btn btn-danger">Remove</button>
+    <button ng-click="object.refresh()" class="btn btn-default">Refresh</button>
+  </form>
+  <hr>
+
+  <span class="h3" ng-init="collapsedLinks=false" style="margin-right:15px;">Links</span>
+  <span ng-show="collapsedLinks" ng-click="collapsedLinks=false" class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+  <span ng-hide="collapsedLinks" ng-click="collapsedLinks=true" class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+
+  <div collapse="collapsedLinks">
+    <div ng-repeat="(link, value) in object.links">
+      <div ng-if="isArray(value)">
+        <h4>{{link}} hasMany</h4>
+        <div class="row" ng-repeat="link in value">
+          <div class="col-md-12">
+            <p class="pull-left">{{link.data.id}}</p>
+            <button ng-click="object.removeLink(link, value)" class="btn btn-danger btn-xs pull-right">Remove</button>
+          </div>
+        </div>
+      </div>
+      <div ng-if="!isArray(value)">
+        <h4>{{link}} hasOne</h4>
+        <div ng-if="value" class="row">
+          <div class="col-md-12">
+            <p class="pull-left">{{value.data.id}}</p>
+            <button ng-click="object.removeLink(link, value)" class="btn btn-danger btn-xs pull-right">Remove</button>
+          </div>
+        </div>
+      </div>
+      <form class="form-inline">
+        <div class="form-group">
+          <input type="text" class="form-control input-sm" ng-model="models[link]" placeholder="model">
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-control input-sm" ng-model="uuids[link]" placeholder="uuid4">
+        </div>
+        <button class="btn btn-primary btn-sm" ng-click="object.addLinkById(link, models[link], uuids[link])" type="button">Add</button>
+      </form>
+    </div>
+  </div>
+  <hr>
+
+  <h3>Json</h3>
+  <json-formatter json="object" open="0"></json-formatter>
+  <hr>
+</div>

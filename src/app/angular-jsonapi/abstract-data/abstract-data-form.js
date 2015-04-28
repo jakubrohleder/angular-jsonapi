@@ -35,20 +35,13 @@
     function reset() {
       var _this = this;
 
-      angular.forEach(_this.parent.data, function(data, key) {
-        _this.data[key] = _this.parent.data[key];
-      });
-
-      angular.forEach(_this.data, function(data, key) {
-        if (_this.parent.data[key]) {
-          _this.data[key] = _this.parent.data[key];
-        } else {
-          delete _this.data[key];
-        }
+      angular.forEach(_this.parent.schema, function(data, key) {
+        _this.data[key] = _this.parent.data[key] || undefined;
       });
 
       delete (_this.data).id;
       delete (_this.data).type;
+      delete (_this.data).links;
 
       _this.errors = {
         validation: {}

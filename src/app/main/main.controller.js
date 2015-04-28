@@ -134,18 +134,8 @@
     $scope.dieties.__add(diety3Data);
 
     $scope.newNovel = $scope.novels.dummy;
-
-    $scope.$watch('newNovel.form.data.title', function() {
-      $scope.newNovel.form.validateField('title');
-    });
-
-    $scope.$watch('newNovel.form.data.part', function() {
-      $scope.newNovel.form.validateField('part');
-    });
-
-    $scope.$watch('newNovel.form.data.id', function() {
-      $scope.newNovel.form.validateField('id');
-    });
+    $scope.newPerson = $scope.people.dummy;
+    $scope.newDiety = $scope.dieties.dummy;
 
   }
 })();
