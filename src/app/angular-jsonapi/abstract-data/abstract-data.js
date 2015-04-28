@@ -25,26 +25,27 @@
 
     return AngularJsonAPIAbstractData;
 
-    function AngularJsonAPIAbstractData(schema, linkedCollections, data) {
+    function AngularJsonAPIAbstractData(data) {
       var _this = this;
 
       _this.data = {};
       _this.links = {};
+
       _this.errors = {
         validation: {}
       };
 
       _this.dummy = data.id === undefined;
 
-      _this.__setData(schema, data);
-      _this.__setLinks(schema, linkedCollections, data.links);
+      _this.__setData(data);
+      _this.__setLinks(data.links);
       _this.form = new AngularJsonAPIAbstractDataForm(_this);
     }
 
-    function refresh(synchronizationHooks) {
+    function refresh() {
       var _this = this;
 
-      _this.__synchronize('refresh', synchronizationHooks);
+      _this.__synchronize('refresh');
     }
 
     function serialize() {
@@ -55,22 +56,22 @@
       };
     }
 
-    function remove(parentCollection, synchronizationHooks) {
+    function remove() {
       var _this = this;
 
-      parentCollection.remove(_this.data.id);
+      _this.parentCollection.remove(_this.data.id);
 
-      _this.__synchronize('remove', synchronizationHooks);
+      _this.__synchronize('remove');
     }
 
     function toLink() {
       return {type: this.data.type, id: this.data.id};
     }
 
-    function addLinkById(schema, synchronizationHooks, linkedCollections, linkKey, linkModelName, id) {
+    function addLinkById(linkKey, linkModelName, id) {
       var _this = this;
 
-      if (linkedCollections[linkModelName] === undefined) {
+      if (_this.linkedCollections[linkModelName] === undefined) {
         $log.error('Cannot add link of not existing type: ' + linkModelName);
         return;
       }
@@ -82,28 +83,28 @@
 
       _this.addLink(
         linkKey,
-        linkedCollections[linkModelName].get(id)
+        _this.linkedCollections[linkModelName].get(id)
       );
 
     }
 
-    function addLink(schema, synchronizationHooks, linkedCollections, linkKey, linkedObject) {
+    function addLink(linkKey, linkedObject) {
       var _this = this;
       var linkType;
       var reflectionType;
       var linkAttributes;
 
-      if (schema.links[linkKey] === undefined) {
+      if (_this.schema.links[linkKey] === undefined) {
         $log.error('Can\'t add link not present in schema: ', linkKey);
         return;
       }
 
-      if (angular.isString(schema.links[linkKey])) {
-        linkType = schema.links[linkKey];
-        reflectionType = schema.type;
+      if (angular.isString(_this.schema.links[linkKey])) {
+        linkType = _this.schema.links[linkKey];
+        reflectionType = _this.schema.type;
       } else {
-        linkType = schema.links[linkKey].type;
-        reflectionType = schema.links[linkKey].reflection;
+        linkType = _this.schema.links[linkKey].type;
+        reflectionType = _this.schema.links[linkKey].reflection;
       }
 
       linkAttributes = _this.data.links[linkKey].linkage;
@@ -114,29 +115,29 @@
         _this.data.links[linkKey].linkage.push(linkedObject.toLink());
       }
 
-      _this.__synchronize('addLink', synchronizationHooks);
+      _this.__synchronize('addLink');
 
-      _this.__setLink(linkedCollections, linkAttributes, linkKey, linkType);
+      _this.__setLink(linkAttributes, linkKey, linkType);
     }
 
-    function removeLink(schema, synchronizationHooks, linkedCollections, linkKey, linkedObject, reflection) {
+    function removeLink(linkKey, linkedObject, reflection) {
       var _this = this;
       var linkType;
       var linkAttributes;
       var reflectionType;
       var removed = false;
 
-      if (schema.links[linkKey] === undefined) {
+      if (_this.schema.links[linkKey] === undefined) {
         $log.error('Can\'t remove link not present in schema');
         return;
       }
 
-      if (angular.isString(schema.links[linkKey])) {
-        linkType = schema.links[linkKey];
-        reflectionType = schema.type;
+      if (angular.isString(_this.schema.links[linkKey])) {
+        linkType = _this.schema.links[linkKey];
+        reflectionType = _this.schema.type;
       } else {
-        linkType = schema.links[linkKey].type;
-        reflectionType = schema.links[linkKey].reflection;
+        linkType = _this.schema.links[linkKey].type;
+        reflectionType = _this.schema.links[linkKey].reflection;
       }
 
       linkAttributes = _this.data.links[linkKey].linkage;
@@ -176,16 +177,16 @@
 
       if (removed === true) {
         if (reflection !== true) {
-          _this.__synchronize('removeLink', synchronizationHooks);
+          _this.__synchronize('removeLink');
         } else {
-          _this.__synchronize('removeLink reflection', synchronizationHooks);
+          _this.__synchronize('removeLink reflection');
         }
 
-        _this.__setLink(linkedCollections, linkAttributes, linkKey, linkType);
+        _this.__setLink(linkAttributes, linkKey, linkType);
       }
     }
 
-    function __update(schema, synchronizationHooks, validatedData) {
+    function __update(validatedData) {
       var _this = this;
 
       if (validatedData.id) {
@@ -198,11 +199,11 @@
         delete validatedData.type;
       }
 
-      _this.__setData(schema, validatedData);
-      _this.__synchronize('update', synchronizationHooks);
+      _this.__setData(validatedData);
+      _this.__synchronize('update');
     }
 
-    function __setLink(linkedCollections, linkAttributes, linkKey, linkType) {
+    function __setLink(linkAttributes, linkKey, linkType) {
       var _this = this;
 
       if (linkAttributes === null) {
@@ -221,43 +222,44 @@
         lazyProperty(_this.links, linkKey, getAll);
       } else if (linkType === 'hasOne' && linkAttributes.id) {
         var getSingle = function() {
-          return linkedCollections[linkAttributes.type].get(linkAttributes.id);
+          return _this.linkedCollections[linkAttributes.type].get(linkAttributes.id);
         };
 
         lazyProperty(_this.links, linkKey, getSingle);
       }
     }
 
-    function __setLinks(schema, linkedCollections, links) {
+    function __setLinks(links) {
       var _this = this;
 
-      angular.forEach(schema.links, function(typeObj, key) {
+      angular.forEach(_this.schema.links, function(typeObj, key) {
         if (links !== undefined && links[key] !== undefined) {
           if (angular.isString(typeObj)) {
-            _this.__setLink(linkedCollections, links[key].linkage, key, typeObj);
+            _this.__setLink(links[key].linkage, key, typeObj);
           } else {
-            _this.__setLink(linkedCollections, links[key].linkage, key, typeObj.type);
+            _this.__setLink(links[key].linkage, key, typeObj.type);
           }
         }
       });
     }
 
-    function __validateField(schema, data, key) {
+    function __validateField(data, key) {
+      var _this = this;
       var error = [];
 
       if (key !== 'links' && key !== 'type' && data !== undefined) {
-        error = __validate(schema[key], data, key);
+        error = __validate(_this.schema[key], data, key);
       }
 
       return error;
     }
 
-    function __validateData(schema, data) {
+    function __validateData(data) {
       var _this = this;
       var errors = {};
 
-      angular.forEach(schema, function(validator, key) {
-        var error = _this.__validateField(schema, data[key], key);
+      angular.forEach(_this.schema, function(validator, key) {
+        var error = _this.__validateField(data[key], key);
         if (error.length > 0) {
           errors[key] = error;
           $log.warn('Erorrs when validating ', data[key], errors);
@@ -267,13 +269,13 @@
       return errors;
     }
 
-    function __setData(schema, data) {
+    function __setData(data) {
       var _this = this;
       var safeData = angular.copy(data);
-      _this.errors.validation = _this.__validateData(schema, data);
+      _this.errors.validation = _this.__validateData(data);
 
       safeData.links = safeData.links || {};
-      angular.forEach(schema.links, function(type, key) {
+      angular.forEach(_this.schema.links, function(type, key) {
         if (type === 'hasOne') {
           safeData.links[key] = safeData.links[key] || null;
         } else {
@@ -281,7 +283,7 @@
         }
       });
 
-      angular.forEach(schema, function(validator, key) {
+      angular.forEach(_this.schema, function(validator, key) {
         if (data[key]) {
           _this.data[key] = safeData[key];
         }

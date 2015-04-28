@@ -52,10 +52,7 @@
       var _this = this;
       var errors;
 
-      errors = _this.parent.__validateData(
-        this.parent.schema,
-        _this.data
-      );
+      errors = _this.parent.__validateData(_this.data);
 
       _this.errors.validation = errors;
 
@@ -66,7 +63,6 @@
       var _this = this;
       var errors;
       errors = _this.parent.__validateField(
-        this.parent.schema,
         _this.data[key],
         key
       );

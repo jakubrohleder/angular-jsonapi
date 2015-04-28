@@ -18,7 +18,7 @@
           $log.error('Data type other then declared in schema: ', data.type, ' instead of ', _this.schema.type);
         }
 
-        AngularJsonAPIAbstractData.call(_this, _this.schema, linkedCollections, data);
+        AngularJsonAPIAbstractData.call(_this, data);
 
         _this.form.parent = _this;
       };
@@ -29,44 +29,7 @@
       Model.prototype.schema = schema;
       Model.prototype.synchronizationHooks = synchronizationHooks;
       Model.prototype.linkedCollections = linkedCollections;
-
       Model.prototype.parentCollection = parentCollection;
-
-      Model.prototype.__update = function(data) {
-        return AngularJsonAPIAbstractData.prototype.__update.call(
-          this, schema, synchronizationHooks, data
-        );
-      };
-
-      Model.prototype.refresh = function() {
-        return AngularJsonAPIAbstractData.prototype.refresh.call(
-          this, synchronizationHooks
-        );
-      };
-
-      Model.prototype.remove = function() {
-        return AngularJsonAPIAbstractData.prototype.remove.call(
-          this, parentCollection, synchronizationHooks
-        );
-      };
-
-      Model.prototype.addLink = function(linkKey, linkedObject) {
-        return AngularJsonAPIAbstractData.prototype.addLink.call(
-          this, schema, synchronizationHooks, linkedCollections, linkKey, linkedObject
-        );
-      };
-
-      Model.prototype.addLinkById = function(linkKey, linkModelName, id) {
-        return AngularJsonAPIAbstractData.prototype.addLinkById.call(
-          this, schema, synchronizationHooks, linkedCollections, linkKey, linkModelName, id
-        );
-      };
-
-      Model.prototype.removeLink = function(linkKey, linkedObject, reflection) {
-        return AngularJsonAPIAbstractData.prototype.removeLink.call(
-          this, schema, synchronizationHooks, linkedCollections, linkKey, linkedObject, reflection
-        );
-      };
 
       return Model;
     }
