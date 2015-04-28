@@ -50,6 +50,18 @@
         );
       };
 
+      Model.prototype.addLink = function(linkKey, linkedObject) {
+        return AngularJsonAPIAbstractData.prototype.addLink.call(
+          this, schema, synchronizationHooks, linkedCollections, linkKey, linkedObject
+        );
+      };
+
+      Model.prototype.removeLink = function(linkKey, linkedObject, reflection) {
+        return AngularJsonAPIAbstractData.prototype.removeLink.call(
+          this, schema, synchronizationHooks, linkedCollections, linkKey, linkedObject, reflection
+        );
+      };
+
       return Model;
     }
 

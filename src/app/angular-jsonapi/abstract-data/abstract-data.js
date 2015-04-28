@@ -16,6 +16,9 @@
 
     AngularJsonAPIAbstractData.prototype.refresh = refresh;
     AngularJsonAPIAbstractData.prototype.remove = remove;
+    AngularJsonAPIAbstractData.prototype.addLink = addLink;
+    AngularJsonAPIAbstractData.prototype.removeLink = removeLink;
+    AngularJsonAPIAbstractData.prototype.toLink = toLink;
 
     AngularJsonAPIAbstractData.prototype.serialize = serialize;
 
@@ -59,6 +62,110 @@
       _this.__synchronize('remove', synchronizationHooks);
     }
 
+    function toLink() {
+      return {type: this.data.type, id: this.data.id};
+    }
+
+    function addLink(schema, synchronizationHooks, linkedCollections, linkKey, linkedObject) {
+      var _this = this;
+      var linkType;
+      var reflectionType;
+      var linkAttributes;
+
+      if (schema.links[linkKey] === undefined) {
+        $log.error('Can\'t add link not present in schema');
+        return;
+      }
+
+      if (angular.isString(schema.links[linkKey])) {
+        linkType = schema.links[linkKey];
+        reflectionType = schema.type;
+      } else {
+        linkType = schema.links[linkKey].type;
+        reflectionType = schema.links[linkKey].reflection;
+      }
+
+      linkAttributes = _this.data.links[linkKey].linkage;
+
+      if (linkType === 'hasOne') {
+        _this.data.links[linkKey].linkage = linkedObject.toLink();
+      } else {
+        _this.data.links[linkKey].linkage.push(linkedObject.toLink());
+      }
+
+      _this.__synchronize('addLink', synchronizationHooks);
+
+      _this.__setLink(linkedCollections, linkAttributes, linkKey, linkType);
+    }
+
+    function removeLink(schema, synchronizationHooks, linkedCollections, linkKey, linkedObject, reflection) {
+      var _this = this;
+      var linkType;
+      var linkAttributes;
+      var reflectionType;
+      var removed = false;
+
+      console.log('Remove link ' + linkKey + ' ' + linkedObject.schema.type, reflection);
+
+      if (schema.links[linkKey] === undefined) {
+        $log.error('Can\'t remove link not present in schema');
+        return;
+      }
+
+      if (angular.isString(schema.links[linkKey])) {
+        linkType = schema.links[linkKey];
+        reflectionType = schema.type;
+      } else {
+        linkType = schema.links[linkKey].type;
+        reflectionType = schema.links[linkKey].reflection;
+      }
+
+      linkAttributes = _this.data.links[linkKey].linkage;
+
+      if (linkType === 'hasOne') {
+        if (linkedObject === undefined || linkedObject.data.id === linkAttributes.id) {
+          _this.data.links[linkKey].linkage = null;
+          linkAttributes = null;
+          removed = true;
+          if (reflection !== true) {
+            _this.links[linkKey].removeLink(reflectionType, _this, true);
+          }
+        }
+      } else {
+        if (linkedObject === undefined) {
+          _this.data.links[linkKey].linkage = [];
+          linkAttributes = [];
+          removed = true;
+          if (reflection !== true) {
+            angular.forEach(_this.links[linkKey], function(link) {
+              link.removeLink(reflectionType, _this, true);
+            });
+          }
+        } else {
+          angular.forEach(linkAttributes, function(link, index) {
+            if (link.id === linkedObject.data.id) {
+              if (reflection !== true) {
+                linkedObject.removeLink(reflectionType, _this, true);
+              }
+
+              linkAttributes.splice(index, 1);
+              removed = true;
+            }
+          });
+        }
+      }
+
+      if (removed === true) {
+        if (reflection !== true) {
+          _this.__synchronize('removeLink', synchronizationHooks);
+        } else {
+          _this.__synchronize('removeLink reflection', synchronizationHooks);
+        }
+
+        _this.__setLink(linkedCollections, linkAttributes, linkKey, linkType);
+      }
+    }
+
     function __update(schema, synchronizationHooks, validatedData) {
       var _this = this;
 
@@ -76,10 +183,12 @@
       _this.__synchronize('update', synchronizationHooks);
     }
 
-    function __setLink(linkedCollections, linkAttributes, key, type) {
+    function __setLink(linkedCollections, linkAttributes, linkKey, linkType) {
       var _this = this;
 
-      if (type === 'hasMany' && angular.isArray(linkAttributes)) {
+      if (linkAttributes === null) {
+        delete _this.links[linkKey];
+      } else if (linkType === 'hasMany' && angular.isArray(linkAttributes)) {
         var getAll = function() {
           var result = {};
           angular.forEach(linkAttributes, function(link) {
@@ -89,13 +198,13 @@
           return result;
         };
 
-        lazyProperty(_this.links, key, getAll);
-      } else if (type === 'hasOne' && linkAttributes.id) {
+        lazyProperty(_this.links, linkKey, getAll);
+      } else if (linkType === 'hasOne' && linkAttributes.id) {
         var getSingle = function() {
           return linkedCollections[linkAttributes.type].get(linkAttributes.id);
         };
 
-        lazyProperty(_this.links, key, getSingle);
+        lazyProperty(_this.links, linkKey, getSingle);
       }
     }
 
@@ -104,7 +213,11 @@
 
       angular.forEach(schema.links, function(typeObj, key) {
         if (links !== undefined && links[key] !== undefined) {
-          _this.__setLink(linkedCollections, links[key].linkage, key, typeObj);
+          if (angular.isString(typeObj)) {
+            _this.__setLink(linkedCollections, links[key].linkage, key, typeObj);
+          } else {
+            _this.__setLink(linkedCollections, links[key].linkage, key, typeObj.type);
+          }
         }
       });
     }
@@ -138,6 +251,15 @@
       var _this = this;
       var safeData = angular.copy(data);
       _this.errors.validation = _this.__validateData(schema, data);
+
+      safeData.links = safeData.links || {};
+      angular.forEach(schema.links, function(type, key) {
+        if (type === 'hasOne') {
+          safeData.links[key] = safeData.links[key] || null;
+        } else {
+          safeData.links[key] = safeData.links[key] || [];
+        }
+      });
 
       angular.forEach(schema, function(validator, key) {
         if (data[key]) {

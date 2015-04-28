@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('angular-jsonapi-example', [
+angular.module('angularJsonapiExample', [
     'ui.router',
     'ui.bootstrap',
     'angularJsonapi',

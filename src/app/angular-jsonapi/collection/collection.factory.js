@@ -24,6 +24,8 @@
         _this
       );
 
+      _this.synchronizations = synchronizations;
+
       _this.data = {};
       _this.removed = {};
 

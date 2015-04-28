@@ -1,7 +1,10 @@
-'use strict';
+(function() {
+  'use strict';
 
-angular.module('angularJsonapi')
-  .controller('MainCtrl', function($scope, AngularJsonAPICollection, lazyProperty) {
+  angular.module('angularJsonapiExample')
+    .controller('MainCtrl', mainCtrl);
+
+  function mainCtrl($scope, AngularJsonAPICollection) {
     var novelsSchema = {
       type: 'novels',
       id: 'uuid4',
@@ -9,7 +12,10 @@ angular.module('angularJsonapi')
       part: 'integer',
       links: {
         author: 'hasOne',
-        dieties: 'hasMany'
+        dieties: {
+          type: 'hasMany',
+          reflection: 'apearences'
+        }
       }
     };
     var peopleSchema = {
@@ -18,7 +24,10 @@ angular.module('angularJsonapi')
       firstName: ['required', 'string'],
       lastName: ['required', 'string'],
       links: {
-        novels: 'hasMany'
+        novels: {
+          type: 'hasMany',
+          reflection: 'author'
+        }
       }
     };
     var dietiesSchema = {
@@ -99,14 +108,30 @@ angular.module('angularJsonapi')
       }
     };
 
+    var diety3Data = {
+      type: 'dieties',
+      id: '0b8aff27-f8cc-4393-8fbf-34e97bb8f7cd',
+      name: 'Cthulhu',
+      power: 12,
+      links: {
+        self: 'http://example.com/dieties/1',
+        apearences: {
+          self: 'http://example.com/dieties/1/links/apearences',
+          related: 'http://example.com/dieties/1/apearences',
+          linkage: []
+        }
+      }
+    };
+
     $scope.novels = new AngularJsonAPICollection(novelsSchema, {});
     $scope.people = new AngularJsonAPICollection(peopleSchema, {});
     $scope.dieties = new AngularJsonAPICollection(dietiesSchema, {});
 
-    var novel = $scope.novels.__add(novelData);
+    $scope.novels.__add(novelData);
     $scope.people.__add(personData);
     $scope.dieties.__add(diety1Data);
     $scope.dieties.__add(diety2Data);
+    $scope.dieties.__add(diety3Data);
 
     $scope.newNovel = $scope.novels.dummy;
 
@@ -122,7 +147,5 @@ angular.module('angularJsonapi')
       $scope.newNovel.form.validateField('id');
     });
 
-    console.log(novel.links.author);
-    console.log(novel.links.dieties);
-
-  });
+  }
+})();
