@@ -25,8 +25,6 @@
               <span id="helpBlock" ng-repeat="error in newNovel.form.errors.validation.part" class="help-block">{{error}}</span>
             </div>
             <button ng-click="newNovel.form.save()" class="btn btn-primary">Add</button>
-            <button ng-click="newNovel.remove()" class="btn btn-danger">Remove</button>
-            <button ng-click="newNovel.refresh()" class="btn btn-default">Refresh</button>
           </form>
         </tab>
 
@@ -53,6 +51,8 @@
     </div>
     <div class="col-md-4">
       <json-formatter json="novels" open="1"></json-formatter>
+      <json-formatter json="people" open="1"></json-formatter>
+      <json-formatter json="dieties" open="1"></json-formatter>
     </div>
   </div>
   <hr>

@@ -9,18 +9,18 @@
     AngularJsonAPICollection.prototype.__add = __add;
     AngularJsonAPICollection.prototype.get = get;
     AngularJsonAPICollection.prototype.all = all;
-    AngularJsonAPICollection.prototype.several = several;
     AngularJsonAPICollection.prototype.remove = remove;
+    AngularJsonAPICollection.prototype.all = {};
 
     return AngularJsonAPICollection;
 
-    function AngularJsonAPICollection(schema, synchronizations, linkGetters) {
+    function AngularJsonAPICollection(schema, synchronizations) {
       var _this = this;
 
       _this.Model = JsonAPIModelFactory.model(
         schema,
         synchronizations,
-        linkGetters,
+        _this.all,
         _this
       );
 
@@ -29,6 +29,7 @@
 
       _this.dummy = new _this.Model({type: schema.type});
       _this.dummy.form.save = __saveDummy.bind(_this.dummy);
+      _this.all[schema.type] = _this;
     }
 
     function __add(validatedData) {
@@ -43,10 +44,19 @@
 
       _this.data[validatedData.id] = new this.Model(validatedData);
 
+      return _this.data[validatedData.id];
     }
 
     function get(id) {
       var _this = this;
+      if (angular.isArray(id)) {
+        var result = [];
+        angular.forEach(id, function(id) {
+          result.push(get(id));
+        });
+
+        return result;
+      }
 
       if (_this.data[id] === undefined) {
         _this.create([], id);
@@ -55,22 +65,6 @@
       $rootScope.$broadcast('angular-json:get', _this.data[id]);
 
       return _this.data[id];
-    }
-
-    function several(ids) {
-      var _this = this;
-      var datas = [];
-      angular.forEach(ids, function(id) {
-        if (_this.data[id] === undefined) {
-          _this.create([], id);
-        }
-
-        datas.push(_this.data[id]);
-      });
-
-      $rootScope.$broadcast('angular-json:several', datas);
-
-      return _this.datas;
     }
 
     function all() {

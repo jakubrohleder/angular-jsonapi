@@ -72,14 +72,11 @@
     function validateField(key) {
       var _this = this;
       var errors;
-      $log.debug('Validating: ', _this.data[key], key);
       errors = _this.parent.__validateField(
         this.parent.schema,
         _this.data[key],
         key
       );
-
-      $log.debug('Erorrs: ', errors);
 
       _this.errors.validation[key] = errors;
 

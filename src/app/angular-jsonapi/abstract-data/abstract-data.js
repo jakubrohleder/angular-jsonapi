@@ -4,7 +4,7 @@
   angular.module('angularJsonapi')
   .factory('AngularJsonAPIAbstractData', AngularJsonAPIAbstractDataWrapper);
 
-  function AngularJsonAPIAbstractDataWrapper($q, $rootScope, $log, uuid4, AngularJsonAPIAbstractDataForm) {
+  function AngularJsonAPIAbstractDataWrapper($q, $rootScope, $log, uuid4, AngularJsonAPIAbstractDataForm, lazyProperty) {
 
     AngularJsonAPIAbstractData.prototype.__setData = __setData;
     AngularJsonAPIAbstractData.prototype.__setLinks   = __setLinks;
@@ -21,7 +21,7 @@
 
     return AngularJsonAPIAbstractData;
 
-    function AngularJsonAPIAbstractData(schema, data) {
+    function AngularJsonAPIAbstractData(schema, linkedCollections, data) {
       var _this = this;
 
       _this.data = {};
@@ -33,14 +33,14 @@
       _this.dummy = data.id === undefined;
 
       _this.__setData(schema, data);
-      _this.__setLinks(schema, data.links);
+      _this.__setLinks(schema, linkedCollections, data.links);
       _this.form = new AngularJsonAPIAbstractDataForm(_this);
     }
 
-    function refresh(synchronizations) {
+    function refresh(synchronizationHooks) {
       var _this = this;
 
-      _this.__synchronize('refresh', synchronizations);
+      _this.__synchronize('refresh', synchronizationHooks);
     }
 
     function serialize() {
@@ -51,15 +51,15 @@
       };
     }
 
-    function remove(collection, synchronizations) {
+    function remove(parentCollection, synchronizationHooks) {
       var _this = this;
 
-      collection.remove(_this.data.id);
+      parentCollection.remove(_this.data.id);
 
-      _this.__synchronize('remove', synchronizations);
+      _this.__synchronize('remove', synchronizationHooks);
     }
 
-    function __update(schema, synchronizations, validatedData) {
+    function __update(schema, synchronizationHooks, validatedData) {
       var _this = this;
 
       if (validatedData.id) {
@@ -73,31 +73,38 @@
       }
 
       _this.__setData(schema, validatedData);
-      _this.__synchronize('update', synchronizations);
+      _this.__synchronize('update', synchronizationHooks);
     }
 
-    function __setLink(linkObj, key, type) {
+    function __setLink(linkedCollections, linkAttributes, key, type) {
       var _this = this;
 
-      if (type === 'hasMany' && angular.isArray(linkObj)) {
-        var ids = [];
+      if (type === 'hasMany' && angular.isArray(linkAttributes)) {
+        var getAll = function() {
+          var result = {};
+          angular.forEach(linkAttributes, function(link) {
+            result[link.id] = (_this.linkedCollections[link.type].get(link.id));
+          });
 
-        angular.forEach(linkObj, function(link) {
-          ids.push(link.id);
-        });
+          return result;
+        };
 
-        _this.links[key] = _this.linkGetters[key].bind(_this, ids);
-      } else if (type === 'hasOne' && linkObj.id) {
-        _this.links[key] = _this.linkGetters[key].bind(_this, linkObj.id);
+        lazyProperty(_this.links, key, getAll);
+      } else if (type === 'hasOne' && linkAttributes.id) {
+        var getSingle = function() {
+          return linkedCollections[linkAttributes.type].get(linkAttributes.id);
+        };
+
+        lazyProperty(_this.links, key, getSingle);
       }
     }
 
-    function __setLinks(schema, links) {
+    function __setLinks(schema, linkedCollections, links) {
       var _this = this;
 
-      angular.forEach(schema.links, function(type, key) {
+      angular.forEach(schema.links, function(typeObj, key) {
         if (links !== undefined && links[key] !== undefined) {
-          _this.__setLink(links[key].linkage, key, type);
+          _this.__setLink(linkedCollections, links[key].linkage, key, typeObj);
         }
       });
     }
@@ -183,8 +190,8 @@
       return errors;
     }
 
-    function __synchronize(key, synchronizations) {
-      $log.log('Synchro', key, synchronizations);
+    function __synchronize(key, synchronizationHooks) {
+      $log.log('Synchro', key, synchronizationHooks);
     }
 
   }

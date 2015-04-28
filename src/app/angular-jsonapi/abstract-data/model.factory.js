@@ -10,7 +10,7 @@
       model: modelFactory
     };
 
-    function modelFactory(schema, synchronizations, linkGetters, collection) {
+    function modelFactory(schema, synchronizationHooks, linkedCollections, parentCollection) {
       var Model = function(data) {
         var _this = this;
 
@@ -18,7 +18,7 @@
           $log.error('Data type other then declared in schema: ', data.type, ' instead of ', _this.schema.type);
         }
 
-        AngularJsonAPIAbstractData.call(_this, _this.schema, data);
+        AngularJsonAPIAbstractData.call(_this, _this.schema, linkedCollections, data);
 
         _this.form.parent = _this;
       };
@@ -27,21 +27,27 @@
       Model.prototype.constructor = Model;
 
       Model.prototype.schema = schema;
-      Model.prototype.synchronizations = synchronizations;
-      Model.prototype.linkGetters = linkGetters;
+      Model.prototype.synchronizationHooks = synchronizationHooks;
+      Model.prototype.linkedCollections = linkedCollections;
 
-      Model.prototype.collection = collection;
+      Model.prototype.parentCollection = parentCollection;
 
       Model.prototype.__update = function(data) {
-        return AngularJsonAPIAbstractData.prototype.__update.call(this, schema, synchronizations, data);
+        return AngularJsonAPIAbstractData.prototype.__update.call(
+          this, schema, synchronizationHooks, data
+        );
       };
 
       Model.prototype.refresh = function() {
-        return AngularJsonAPIAbstractData.prototype.refresh.call(this, synchronizations);
+        return AngularJsonAPIAbstractData.prototype.refresh.call(
+          this, synchronizationHooks
+        );
       };
 
       Model.prototype.remove = function() {
-        return AngularJsonAPIAbstractData.prototype.remove.call(this, collection, synchronizations);
+        return AngularJsonAPIAbstractData.prototype.remove.call(
+          this, parentCollection, synchronizationHooks
+        );
       };
 
       return Model;
