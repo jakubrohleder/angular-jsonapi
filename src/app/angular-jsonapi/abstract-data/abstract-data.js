@@ -142,7 +142,11 @@
     // todo refactor, enable arrays of validators and validators as objects like {maxlength: 3}
     function __validate(validator, value, key) {
       var errors = [];
-      if (angular.isFunction(validator)) {
+      if (angular.isArray(validator)) {
+        angular.forEach(validator, function(element) {
+          errors = errors.concat(__validate(element, value, key));
+        });
+      } else if (angular.isFunction(validator)) {
         var err = validator(value);
         if (angular.isArray(err)) {
           errors.concat(err);
@@ -164,6 +168,10 @@
         } else if (validator === 'uuid4') {
           if (!uuid4.validate(value)) {
             errors.push(key + ' is not a uuid4');
+          }
+        } else if (validator === 'required') {
+          if (value.toString().length === 0) {
+            errors.push(key + ' is empty');
           }
         } else {
           $log.error('Wrong validator type: ' + validator.toString());

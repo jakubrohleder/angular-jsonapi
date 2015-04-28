@@ -5,7 +5,7 @@ angular.module('angularJsonapi')
     var schema = {
       type: 'novels',
       id: 'uuid4',
-      title: 'string',
+      title: ['required', 'string'],
       part: 'integer',
       links: {
         author: 'hasOne',
