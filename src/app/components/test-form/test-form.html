@@ -1,12 +1,17 @@
 <div>
   <br>
-  <span class="h3" ng-init="collapsedEdit=true" style="margin-right:15px;">Edit</span>
-  <span ng-show="collapsedEdit" ng-click="collapsedEdit=false" class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-  <span ng-hide="collapsedEdit" ng-click="collapsedEdit=true" class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+  <small clip-copy="object.data.id">{{object.data.id}}</small>
+  <button class="btn btn-default btn-xs" clip-copy="object.data.id">copy id</button>
 
+  <hr>
+  <div ng-init="collapsedEdit=true" ng-click="collapsedEdit=!collapsedEdit">
+    <span class="h3"  style="margin-right:15px;">Edit</span>
+    <span ng-show="collapsedEdit" class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+    <span ng-hide="collapsedEdit" class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+  </div>
   <form collapse="collapsedEdit">
+    <br>
     <div ng-repeat="(attribute, value) in object.form.data" class="form-group">
-      <label for="{{attribute}}">{{attribute}}</label>
       <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="{{attribute}}" ng-model="value" placeholder="{{attribute}}">
       <span id="helpBlock" ng-repeat="error in object.form.errors.validation[attribute]" class="help-block">{{error}}</span>
     </div>
@@ -16,17 +21,20 @@
   </form>
   <hr>
 
-  <span class="h3" ng-init="collapsedLinks=false" style="margin-right:15px;">Links</span>
-  <span ng-show="collapsedLinks" ng-click="collapsedLinks=false" class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-  <span ng-hide="collapsedLinks" ng-click="collapsedLinks=true" class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+  <div ng-init="collapsedLinks=false" ng-click="collapsedLinks=!collapsedLinks">
+    <span class="h3" style="margin-right:15px;">Links</span>
+    <span ng-show="collapsedLinks" class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+    <span ng-hide="collapsedLinks" class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+  </div>
 
   <div collapse="collapsedLinks">
     <div ng-repeat="(link, value) in object.links">
       <div ng-if="isArray(value)">
         <h4>{{link}} hasMany</h4>
-        <div class="row" ng-repeat="link in value">
+        <div class="row" ng-repeat="value in value">
           <div class="col-md-12">
-            <p class="pull-left">{{link.data.id}}</p>
+            <p clip-copy="value.data.id" class="pull-left">{{value.toString()}}</p>
+            <button clip-copy="value.data.id" class="btn btn-default btn-xs">copy id</button>
             <button ng-click="object.removeLink(link, value)" class="btn btn-danger btn-xs pull-right">Remove</button>
           </div>
         </div>
@@ -35,19 +43,17 @@
         <h4>{{link}} hasOne</h4>
         <div ng-if="value" class="row">
           <div class="col-md-12">
-            <p class="pull-left">{{value.data.id}}</p>
+            <p clip-copy="value.data.id" class="pull-left">{{value.toString()}}</p>
+            <button clip-copy="value.data.id" class="btn btn-default btn-xs">copy id</button>
             <button ng-click="object.removeLink(link, value)" class="btn btn-danger btn-xs pull-right">Remove</button>
           </div>
         </div>
       </div>
       <form class="form-inline">
         <div class="form-group">
-          <input type="text" class="form-control input-sm" ng-model="models[link]" placeholder="model">
-        </div>
-        <div class="form-group">
           <input type="text" class="form-control input-sm" ng-model="uuids[link]" placeholder="uuid4">
         </div>
-        <button class="btn btn-primary btn-sm" ng-click="object.addLinkById(link, models[link], uuids[link])" type="button">Add</button>
+        <button class="btn btn-primary btn-sm pull-right" ng-click="object.addLinkById(link, object.schema.links[link].model, uuids[link])" type="button">Add</button>
       </form>
     </div>
   </div>

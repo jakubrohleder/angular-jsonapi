@@ -4,7 +4,7 @@
   angular.module('angularJsonapi')
   .factory('JsonAPIModelFactory', JsonAPIModelFactory);
 
-  function JsonAPIModelFactory(AngularJsonAPIAbstractData, $log) {
+  function JsonAPIModelFactory(AngularJsonAPIAbstractData, AngularJsonAPISchema, $log) {
 
     return {
       model: modelFactory
@@ -26,10 +26,16 @@
       Model.prototype = Object.create(AngularJsonAPIAbstractData.prototype);
       Model.prototype.constructor = Model;
 
-      Model.prototype.schema = schema;
+      Model.prototype.schema = new AngularJsonAPISchema(schema);
       Model.prototype.synchronizationHooks = synchronizationHooks;
       Model.prototype.linkedCollections = linkedCollections;
       Model.prototype.parentCollection = parentCollection;
+
+      angular.forEach(schema.meta, function(metaFunction, metaFunctionName) {
+        Model.prototype[metaFunctionName] = function() {
+          return metaFunction.call(this);
+        };
+      });
 
       return Model;
     }

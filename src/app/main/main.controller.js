@@ -11,10 +11,18 @@
       title: ['required', 'string'],
       part: 'integer',
       links: {
-        author: 'hasOne',
+        author: {
+          type: 'hasOne',
+          model: 'people'
+        },
         dieties: {
           type: 'hasMany',
           reflection: 'apearences'
+        }
+      },
+      meta: {
+        toString: function() {
+          return this.data.title;
         }
       }
     };
@@ -28,6 +36,11 @@
           type: 'hasMany',
           reflection: 'author'
         }
+      },
+      meta: {
+        toString: function() {
+          return this.data.firstName + ' ' + this.data.lastName;
+        }
       }
     };
     var dietiesSchema = {
@@ -36,7 +49,15 @@
       name: ['required', 'string'],
       power: ['required', 'integer'],
       links: {
-        apearences: 'hasMany'
+        apearences: {
+          type: 'hasMany',
+          polymorphic: true
+        }
+      },
+      meta: {
+        toString: function() {
+          return this.data.name;
+        }
       }
     };
 
@@ -63,7 +84,7 @@
       }
     };
 
-    var personData = {
+    var person1Data = {
       type: 'people',
       id: '873edec0-5266-463f-9fd4-24365637b4f4',
       firstName: 'Howard Phillips',
@@ -74,6 +95,21 @@
           self: 'http://example.com/people/1/links/novels',
           related: 'http://example.com/people/1/novels',
           linkage: [{ type: 'novels', id: '975fe66c-43c6-46cb-98fe-1cac46370de2' }]
+        }
+      }
+    };
+
+    var person2Data = {
+      type: 'people',
+      id: '322a6ce3-0993-42cd-9327-0af7e29244b5',
+      firstName: 'Stephan',
+      lastName: 'King',
+      links: {
+        self: 'http://example.com/people/1',
+        novels: {
+          self: 'http://example.com/people/1/links/novels',
+          related: 'http://example.com/people/1/novels',
+          linkage: []
         }
       }
     };
@@ -128,7 +164,8 @@
     $scope.dieties = new AngularJsonAPICollection(dietiesSchema, {});
 
     $scope.novels.__add(novelData);
-    $scope.people.__add(personData);
+    $scope.people.__add(person2Data);
+    $scope.people.__add(person1Data);
     $scope.dieties.__add(diety1Data);
     $scope.dieties.__add(diety2Data);
     $scope.dieties.__add(diety3Data);

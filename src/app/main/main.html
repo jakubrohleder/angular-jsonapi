@@ -29,7 +29,7 @@
           <test-form-new object="newPerson"></test-form-new>
         </tab>
 
-        <tab heading="{{person.data.firstName}} {{person.data.lastName}}" ng-repeat="person in people.data" ng-hide="person.pristine">
+        <tab heading="{{person.toString()}}" ng-repeat="person in people.data" ng-hide="person.pristine">
           <test-form object="person"></test-form>
         </tab>
       </tabset>

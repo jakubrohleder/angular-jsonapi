@@ -79,9 +79,10 @@
 
     function remove(id) {
       var _this = this;
+      var object = _this.data[id];
 
-      if (_this.data[id] !== undefined) {
-        _this.removed[id] = _this.data[id];
+      if (object !== undefined) {
+        _this.removed[id] = object;
         delete _this.data[id];
       }
     }
@@ -92,9 +93,17 @@
 
       if (angular.equals(errors, {})) {
         var data = angular.copy(_this.form.data);
-        data.id = uuid4.generate();
+        if (data.id === undefined) {
+          data.id = uuid4.generate();
+        } else if (!uuid4.validate(data.id)) {
+          $log.error('Wrong id of dummy data!');
+          return;
+        }
+
+        data.links = {};
+
         data.type = _this.schema.type;
-        _this.collection.__add(data);
+        _this.parentCollection.__add(data);
         _this.form.reset();
         _this.__synchronize('add', _this.synchronizations);
       }

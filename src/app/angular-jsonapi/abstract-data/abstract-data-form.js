@@ -11,6 +11,8 @@
     AngularJsonAPIAbstractDataForm.prototype.validate = validate;
     AngularJsonAPIAbstractDataForm.prototype.validateField = validateField;
 
+    AngularJsonAPIAbstractDataForm.prototype.__synchronize = __synchronize;
+
     return AngularJsonAPIAbstractDataForm;
 
     function AngularJsonAPIAbstractDataForm(parent) {
@@ -42,6 +44,7 @@
       delete (_this.data).id;
       delete (_this.data).type;
       delete (_this.data).links;
+      delete (_this.data).meta;
 
       _this.errors = {
         validation: {}
@@ -70,6 +73,10 @@
       _this.errors.validation[key] = errors;
 
       return errors;
+    }
+
+    function __synchronize(key) {
+      $log.log('Synchro Collection ' + this.Model.prototype.schema.type, key);
     }
 
   }
