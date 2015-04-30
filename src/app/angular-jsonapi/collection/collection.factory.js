@@ -18,17 +18,17 @@
 
     return AngularJsonAPICollection;
 
-    function AngularJsonAPICollection(schema, synchronizations) {
+    function AngularJsonAPICollection(schema, synchronizationHooks) {
       var _this = this;
 
       _this.Model = JsonAPIModelFactory.model(
         schema,
-        synchronizations,
+        synchronizationHooks,
         _this.all,
         _this
       );
 
-      _this.synchronizations = synchronizations;
+      _this.synchronizationHooks = synchronizationHooks;
 
       _this.data = {};
       _this.removed = {};
@@ -129,7 +129,12 @@
     }
 
     function __synchronize(key, extra) {
-      $log.log('Synchro Collection', this.Model.prototype.schema.type, key);
+      var _this = this;
+
+      if (!_this.removed) {
+        $log.log('Synchro Collection', this.Model.prototype.schema.type, key, extra);
+        $log.log(_this.synchronizationHooks[key]);
+      }
     }
   }
 })();

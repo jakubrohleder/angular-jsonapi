@@ -388,8 +388,11 @@
     }
 
     function __synchronize(key) {
-      if (!this.removed) {
-        $log.log('Synchro', this.schema.type, this.toString(), key);
+      var _this = this;
+
+      if (!_this.removed) {
+        $log.log('Synchro', _this.schema.type, _this.toString(), key);
+        $log.log(_this.synchronizationHooks[key]);
       }
     }
 
