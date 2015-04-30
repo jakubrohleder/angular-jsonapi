@@ -82,6 +82,7 @@
 
     function addLinkById(linkKey, linkModelName, id) {
       var _this = this;
+      var linkedObject = _this.linkedCollections[linkModelName].__get(id);
 
       if (_this.schema.links[linkKey] === undefined) {
         $log.error('Cannot add link not specified in schema: ' + linkKey);
@@ -98,9 +99,14 @@
         return;
       }
 
+      if (linkedObject === undefined) {
+        $log.error('Cant find', linkModelName, 'with', id);
+        return;
+      }
+
       _this.addLink(
         linkKey,
-        _this.linkedCollections[linkModelName].__get(id)
+        linkedObject
       );
 
     }
@@ -111,6 +117,11 @@
       var linkType;
       var reflectionKey;
       var linkAttributes;
+
+      if (linkedObject === undefined) {
+        $log.error('Can\'t add non existing object');
+        return;
+      }
 
       if (linkSchema === undefined) {
         $log.error('Can\'t add link not present in schema: ', linkKey, _this, reflection);
