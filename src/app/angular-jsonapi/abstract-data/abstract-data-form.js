@@ -38,7 +38,7 @@
       var _this = this;
 
       angular.forEach(_this.parent.schema, function(data, key) {
-        _this.data[key] = _this.parent.data[key] || undefined;
+        _this.data[key] = _this.parent.data[key] || '';
       });
 
       delete (_this.data).id;

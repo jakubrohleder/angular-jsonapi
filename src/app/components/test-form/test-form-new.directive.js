@@ -13,8 +13,10 @@
       },
       controller: function($scope) {
         angular.forEach($scope.object.form.data, function(val, attribute) {
-          $scope.$watch('object.form.data.' + attribute, function() {
-            $scope.object.form.validateField(attribute);
+          $scope.$watch('object.form.data.' + attribute, function(nv, ov) {
+            if (nv !== ov) {
+              $scope.object.form.validateField(attribute);
+            }
           });
         });
       }

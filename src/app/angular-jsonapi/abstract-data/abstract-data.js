@@ -354,6 +354,22 @@
         } else {
           $log.error('Wrong validator type: ' + validator.toString());
         }
+      } else if (angular.isObject(validator)) {
+        if (validator.maxlength !== undefined && attributeValue.length > validator.maxlength) {
+          errors.push(attributeName + ' is too long max ' + validator.maxlength);
+        }
+
+        if (validator.minlength !== undefined && attributeValue.length < validator.minlength) {
+          errors.push(attributeName + ' is too short max ' + validator.minlength);
+        }
+
+        if (validator.maxvalue !== undefined && parseInt(attributeValue) > validator.maxvalue) {
+          errors.push(attributeName + ' is too big max ' + validator.maxvalue);
+        }
+
+        if (validator.minvalue !== undefined && parseInt(attributeValue) < validator.minvalue) {
+          errors.push(attributeName + ' is too small max ' + validator.minvalue);
+        }
       } else {
         $log.error('Wrong validator type: ' + validator.toString());
       }

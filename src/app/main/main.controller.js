@@ -8,8 +8,8 @@
     var novelsSchema = {
       type: 'novels',
       id: 'uuid4',
-      title: ['required', 'string'],
-      part: 'integer',
+      title: ['required', 'string', {minlength: 3}, {maxlength: 12}],
+      part: ['integer', {maxvalue: 10, minvalue: 2}],
       links: {
         author: {
           type: 'hasOne',
