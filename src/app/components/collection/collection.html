@@ -1,0 +1,13 @@
+<div ng-repeat="object in collection.data" class="row" style="margin-bottom: 5px">
+  <div class="col-md-6">
+    <small clip-copy="object.data.id">{{object.toString()}}</small>
+  </div>
+  <div class="col-md-6">
+    <button class="btn btn-default btn-xs pull-left" clip-copy="object.data.id">Copy ID</button>
+    <button
+      class="btn btn-danger btn-xs pull-left"
+      ng-click="collection.remove(object.data.id)"
+      style="margin-left: 5px"
+    >Remove</button>
+  </div>
+</div>

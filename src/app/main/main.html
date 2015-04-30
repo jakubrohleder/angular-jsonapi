@@ -1,13 +1,25 @@
-<div class="container">
+<div style="margin: 0 100px;">
 
 
-  <div class="jumbotron text-center">
-    <h1>Wow Hi!</h1>
-    <p class="lead">
-      Nice to see you! Check this demo out.
-    </p>
+  <h1>Collections</h1>
+  <hr>
+  <div class="row">
+    <div class="col-md-4">
+      <h3>Novels</h3>
+      <collection collection="novels"></collection>
+    </div>
+    <div class="col-md-4">
+      <h3>People</h3>
+      <collection collection="people"></collection>
+    </div>
+    <div class="col-md-4">
+      <h3>Dieties</h3>
+      <collection collection="dieties"></collection>
+    </div>
   </div>
 
+  <h1>Objects</h1>
+  <hr>
   <div class="row">
     <div class="col-md-4">
       <h3>Novels</h3>
@@ -49,7 +61,9 @@
     </div>
 
   </div>
+
   <hr>
+
   <div class="well">
     <json-formatter json="novels" open="1"></json-formatter>
     <json-formatter json="people" open="1"></json-formatter>

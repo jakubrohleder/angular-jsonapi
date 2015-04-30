@@ -13,6 +13,7 @@
     AngularJsonAPIAbstractData.prototype.__validateField = __validateField;
     AngularJsonAPIAbstractData.prototype.__synchronize = __synchronize;
     AngularJsonAPIAbstractData.prototype.__update = __update;
+    AngularJsonAPIAbstractData.prototype.__remove = __remove;
 
     AngularJsonAPIAbstractData.prototype.refresh = refresh;
     AngularJsonAPIAbstractData.prototype.remove = remove;
@@ -59,14 +60,20 @@
       };
     }
 
-    function remove() {
+    function __remove() {
       var _this = this;
-
-      _this.__synchronize('remove');
 
       _this.removed = true;
       _this.removeAllLinks();
+    }
+
+    function remove() {
+      var _this = this;
+
+      _this.__remove();
       _this.parentCollection.remove(_this.data.id);
+
+      _this.__synchronize('remove');
     }
 
     function toLink() {
@@ -75,8 +82,7 @@
 
     function addLinkById(linkKey, linkModelName, id) {
       var _this = this;
-      console.log(linkKey);
-      console.log(linkModelName);
+
       if (_this.schema.links[linkKey] === undefined) {
         $log.error('Cannot add link not specified in schema: ' + linkKey);
         return;
@@ -94,7 +100,7 @@
 
       _this.addLink(
         linkKey,
-        _this.linkedCollections[linkModelName].get(id)
+        _this.linkedCollections[linkModelName].__get(id)
       );
 
     }
@@ -122,7 +128,7 @@
 
       if (linkType === 'hasOne') {
         if (linkAttributes !== undefined && linkAttributes !== null) {
-          $log.warn('Swaping hasOne ' + linkKey + ' of ' + _this.schema.type);
+          $log.warn('Swaping hasOne', linkKey, 'of', _this.toString());
           _this.removeLink(linkKey);
         }
 
@@ -238,7 +244,7 @@
         var getAll = function() {
           var result = [];
           angular.forEach(linkAttributes, function(link) {
-            result.push(_this.linkedCollections[link.type].get(link.id));
+            result.push(_this.linkedCollections[link.type].__get(link.id));
           });
 
           return result;
@@ -247,7 +253,7 @@
         lazyProperty(_this.links, linkKey, getAll);
       } else if (linkType === 'hasOne' && linkAttributes.id) {
         var getSingle = function() {
-          return _this.linkedCollections[linkAttributes.type].get(linkAttributes.id);
+          return _this.linkedCollections[linkAttributes.type].__get(linkAttributes.id);
         };
 
         lazyProperty(_this.links, linkKey, getSingle);
@@ -357,7 +363,7 @@
 
     function __synchronize(key) {
       if (!this.removed) {
-        $log.log('Synchro ' + this.schema.type, key);
+        $log.log('Synchro', this.schema.type, this.toString(), key);
       }
     }
 

@@ -7,10 +7,14 @@
   function AngularJsonAPICollectionWrapper(JsonAPIModelFactory, $log, $rootScope, uuid4) {
 
     AngularJsonAPICollection.prototype.__add = __add;
+    AngularJsonAPICollection.prototype.__synchronize = __synchronize;
+    AngularJsonAPICollection.prototype.__get = __get;
+    AngularJsonAPICollection.prototype.__remove = __remove;
+
     AngularJsonAPICollection.prototype.get = get;
     AngularJsonAPICollection.prototype.all = all;
     AngularJsonAPICollection.prototype.remove = remove;
-    AngularJsonAPICollection.prototype.all = {};
+    AngularJsonAPICollection.prototype.all = all;
 
     return AngularJsonAPICollection;
 
@@ -49,32 +53,42 @@
       return _this.data[validatedData.id];
     }
 
+    function __get(id) {
+      var _this = this;
+
+      return _this.data[id];
+    }
+
     function get(id) {
       var _this = this;
       if (angular.isArray(id)) {
         var result = [];
         angular.forEach(id, function(id) {
-          result.push(get(id));
+          result.push(_this.__get(id));
         });
 
         return result;
       }
 
-      if (_this.data[id] === undefined) {
-        _this.create([], id);
-      }
+      _this.__synchronize('get', id);
 
-      $rootScope.$broadcast('angular-json:get', _this.data[id]);
-
-      return _this.data[id];
+      return _this.__get(id);
     }
 
     function all() {
       var _this = this;
 
-      $rootScope.$broadcast('angular-json:all', _this);
+      _this.__synchronize('all');
 
       return this;
+    }
+
+    function __remove(id) {
+      var _this = this;
+      var object = _this.data[id];
+
+      _this.removed[id] = object;
+      delete _this.data[id];
     }
 
     function remove(id) {
@@ -82,14 +96,19 @@
       var object = _this.data[id];
 
       if (object !== undefined) {
-        _this.removed[id] = object;
-        delete _this.data[id];
+        _this.__remove(id);
+        object.__remove(id);
+      } else {
+        $log.error('Object with this id does not exist');
       }
+
+      _this.__synchronize('remove');
     }
 
     function __saveDummy() {
       var _this = this;
       var errors = _this.form.validate();
+      var newModel;
 
       if (angular.equals(errors, {})) {
         var data = angular.copy(_this.form.data);
@@ -103,10 +122,14 @@
         data.links = {};
 
         data.type = _this.schema.type;
-        _this.parentCollection.__add(data);
+        newModel = _this.parentCollection.__add(data);
         _this.form.reset();
-        _this.__synchronize('add', _this.synchronizations);
+        newModel.__synchronize('add');
       }
+    }
+
+    function __synchronize(key, extra) {
+      $log.log('Synchro Collection', this.Model.prototype.schema.type, key);
     }
   }
 })();
