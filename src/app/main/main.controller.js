@@ -20,7 +20,7 @@
           reflection: 'apearences'
         }
       },
-      meta: {
+      functions: {
         toString: function() {
           return this.data.title;
         }
@@ -37,7 +37,7 @@
           reflection: 'author'
         }
       },
-      meta: {
+      functions: {
         toString: function() {
           return this.data.firstName + ' ' + this.data.lastName;
         }
@@ -54,7 +54,7 @@
           polymorphic: true
         }
       },
-      meta: {
+      functions: {
         toString: function() {
           return this.data.name;
         }

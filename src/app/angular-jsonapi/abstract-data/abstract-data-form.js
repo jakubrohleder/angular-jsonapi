@@ -44,7 +44,7 @@
       delete (_this.data).id;
       delete (_this.data).type;
       delete (_this.data).links;
-      delete (_this.data).meta;
+      delete (_this.data).functions;
 
       _this.errors = {
         validation: {}

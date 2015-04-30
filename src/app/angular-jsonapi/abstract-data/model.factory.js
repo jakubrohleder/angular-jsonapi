@@ -31,7 +31,7 @@
       Model.prototype.linkedCollections = linkedCollections;
       Model.prototype.parentCollection = parentCollection;
 
-      angular.forEach(schema.meta, function(metaFunction, metaFunctionName) {
+      angular.forEach(schema.functions, function(metaFunction, metaFunctionName) {
         Model.prototype[metaFunctionName] = function() {
           return metaFunction.call(this);
         };
