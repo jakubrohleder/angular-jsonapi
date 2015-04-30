@@ -317,7 +317,6 @@
       });
     }
 
-    // todo refactor, enable arrays of validators and validators as objects like {maxlength: 3}
     function __validate(validator, attributeValue, attributeName) {
       var errors = [];
       if (angular.isArray(validator)) {
