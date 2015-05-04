@@ -185,17 +185,13 @@
     var peopleSynchro = new AngularJsonAPISynchronizationRest('/people');
     var dietiesSynchro = new AngularJsonAPISynchronizationRest('/dieties');
 
-    // novelsSynchro.extend(localeSynchro);
-    // peopleSynchro.extend(localeSynchro);
-    // dietiesSynchro.extend(localeSynchro);
+    novelsSynchro.extend(localeSynchro);
+    peopleSynchro.extend(localeSynchro);
+    dietiesSynchro.extend(localeSynchro);
 
     $scope.novels = new AngularJsonAPICollection(novelsSchema, novelsSynchro);
     $scope.people = new AngularJsonAPICollection(peopleSchema, peopleSynchro);
     $scope.dieties = new AngularJsonAPICollection(dietiesSchema, dietiesSynchro);
-    //
-    // $scope.novels = new AngularJsonAPICollection(novelsSchema, localeSynchro);
-    // $scope.people = new AngularJsonAPICollection(peopleSchema, localeSynchro);
-    // $scope.dieties = new AngularJsonAPICollection(dietiesSchema, localeSynchro);
 
     $scope.newNovel = $scope.novels.dummy;
     $scope.newPerson = $scope.people.dummy;
@@ -207,12 +203,12 @@
       $scope.dieties.clear();
 
       $timeout(function() {
-        $scope.novels.__add(novelData);
-        $scope.people.__add(person2Data);
-        $scope.people.__add(person1Data);
-        $scope.dieties.__add(diety1Data);
-        $scope.dieties.__add(diety2Data);
-        $scope.dieties.__add(diety3Data);
+        $scope.novels.addOrUpdate(novelData);
+        $scope.people.addOrUpdate(person2Data);
+        $scope.people.addOrUpdate(person1Data);
+        $scope.dieties.addOrUpdate(diety1Data);
+        $scope.dieties.addOrUpdate(diety2Data);
+        $scope.dieties.addOrUpdate(diety3Data);
 
         localeSynchro.__updateStorage($scope.novels);
         localeSynchro.__updateStorage($scope.people);

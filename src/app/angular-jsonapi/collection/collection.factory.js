@@ -10,7 +10,6 @@
     JsonAPIModelFactory
   ) {
 
-    AngularJsonAPICollection.prototype.__add = __add;
     AngularJsonAPICollection.prototype.__synchronize = __synchronize;
     AngularJsonAPICollection.prototype.__get = __get;
     AngularJsonAPICollection.prototype.__remove = __remove;
@@ -21,6 +20,7 @@
     AngularJsonAPICollection.prototype.clear = clear;
     AngularJsonAPICollection.prototype.fromJson = fromJson;
     AngularJsonAPICollection.prototype.toJson = toJson;
+    AngularJsonAPICollection.prototype.addOrUpdate = addOrUpdate;
 
     return AngularJsonAPICollection;
 
@@ -55,7 +55,7 @@
 
         angular.forEach(collection.data, function(objectData) {
           var data = objectData.data;
-          _this.__add(data, objectData.updatedAt);
+          _this.addOrUpdate(data, objectData.updatedAt);
         });
       }
     }
@@ -74,7 +74,7 @@
       return angular.toJson(json);
     }
 
-    function __add(validatedData, updatedAt) {
+    function addOrUpdate(validatedData, updatedAt) {
       var _this = this;
       if (validatedData.id === undefined) {
         $log.error('Can\'t add data without id!', validatedData);
@@ -176,7 +176,7 @@
         data.links = {};
 
         data.type = _this.schema.type;
-        newModel = _this.parentCollection.__add(data);
+        newModel = _this.parentCollection.addOrUpdate(data);
         _this.form.reset();
         _this.parentCollection.__synchronize('add', _this);
       }

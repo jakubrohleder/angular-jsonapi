@@ -42,7 +42,7 @@
           var indexedData = {};
           angular.forEach(rawData, function(data) {
             indexedData[data.id] = data;
-            collection.__add(data);
+            collection.addOrUpdate(data);
           });
 
           angular.forEach(collection.data, function(data) {
@@ -56,7 +56,7 @@
       function afterGet(collection, object, linkSchema, linkedObject, results) {
         var data = results[0].value.data;
         if (results[0].success === true && data !== undefined) {
-          collection.__add(data);
+          collection.addOrUpdate(data);
         }
       }
 
