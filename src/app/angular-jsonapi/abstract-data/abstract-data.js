@@ -4,14 +4,18 @@
   angular.module('angularJsonapi')
   .factory('AngularJsonAPIAbstractData', AngularJsonAPIAbstractDataWrapper);
 
-  function AngularJsonAPIAbstractDataWrapper($q, $rootScope, $log, uuid4, AngularJsonAPIAbstractDataForm, lazyProperty) {
+  function AngularJsonAPIAbstractDataWrapper(
+    $log,
+    uuid4,
+    lazyProperty,
+    AngularJsonAPIAbstractDataForm
+  ) {
 
     AngularJsonAPIAbstractData.prototype.__setData = __setData;
     AngularJsonAPIAbstractData.prototype.__setLinks   = __setLinks;
     AngularJsonAPIAbstractData.prototype.__setLink = __setLink;
     AngularJsonAPIAbstractData.prototype.__validateData = __validateData;
     AngularJsonAPIAbstractData.prototype.__validateField = __validateField;
-    AngularJsonAPIAbstractData.prototype.__synchronize = __synchronize;
     AngularJsonAPIAbstractData.prototype.__update = __update;
     AngularJsonAPIAbstractData.prototype.__remove = __remove;
 
@@ -49,7 +53,7 @@
     function refresh() {
       var _this = this;
 
-      _this.__synchronize('refresh');
+      _this.parentCollection.__synchronize('refresh', _this);
     }
 
     function serialize() {
@@ -72,8 +76,6 @@
 
       _this.__remove();
       _this.parentCollection.remove(_this.data.id);
-
-      _this.__synchronize('remove');
     }
 
     function toLink() {
@@ -150,10 +152,10 @@
       }
 
       if (reflection === true) {
-        _this.__synchronize('addLinkReflection');
+        _this.parentCollection.__synchronize('addLinkReflection', _this);
       } else {
         linkedObject.addLink(reflectionKey, _this, true);
-        _this.__synchronize('addLink');
+        _this.parentCollection.__synchronize('addLink', _this);
       }
 
       _this.__setLink(linkAttributes, linkKey, linkType);
@@ -189,7 +191,7 @@
           _this.data.links[linkKey].linkage = null;
           linkAttributes = null;
           removed = true;
-          if (reflection !== true) {
+          if (reflection !== true && _this.links[linkKey] !== undefined) {
             _this.links[linkKey].removeLink(reflectionKey, _this, true);
           }
         }
@@ -219,9 +221,9 @@
 
       if (removed === true) {
         if (reflection !== true) {
-          _this.__synchronize('removeLink');
+          _this.parentCollection.__synchronize('removeLink', _this);
         } else {
-          _this.__synchronize('removeLinkReflection');
+          _this.parentCollection.__synchronize('removeLinkReflection', _this);
         }
 
         _this.__setLink(linkAttributes, linkKey, linkType);
@@ -242,7 +244,7 @@
       }
 
       _this.__setData(validatedData);
-      _this.__synchronize('update');
+      _this.parentCollection.__synchronize('update', _this);
     }
 
     function __setLink(linkAttributes, linkKey, linkType) {
@@ -385,15 +387,6 @@
       }
 
       return errors;
-    }
-
-    function __synchronize(key) {
-      var _this = this;
-
-      if (!_this.removed) {
-        $log.log('Synchro', _this.schema.type, _this.toString(), key);
-        $log.log(_this.synchronizationHooks[key]);
-      }
     }
 
   }

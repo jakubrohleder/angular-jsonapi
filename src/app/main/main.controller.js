@@ -8,8 +8,8 @@
     var novelsSchema = {
       type: 'novels',
       id: 'uuid4',
-      title: ['required', 'string', {minlength: 3}, {maxlength: 12}],
-      part: ['integer', {maxvalue: 10, minvalue: 2}],
+      title: ['required', 'string', {minlength: 3}, {maxlength: 50}],
+      part: ['integer', {maxvalue: 10, minvalue: 1}],
       links: {
         author: {
           type: 'hasOne',
@@ -159,9 +159,9 @@
       }
     };
 
-    $scope.novels = new AngularJsonAPICollection(novelsSchema, {});
-    $scope.people = new AngularJsonAPICollection(peopleSchema, {});
-    $scope.dieties = new AngularJsonAPICollection(dietiesSchema, {});
+    $scope.novels = new AngularJsonAPICollection(novelsSchema);
+    $scope.people = new AngularJsonAPICollection(peopleSchema);
+    $scope.dieties = new AngularJsonAPICollection(dietiesSchema);
 
     $scope.novels.__add(novelData);
     $scope.people.__add(person2Data);

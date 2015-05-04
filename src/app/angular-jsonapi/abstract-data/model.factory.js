@@ -10,7 +10,7 @@
       model: modelFactory
     };
 
-    function modelFactory(schema, synchronizationHooks, linkedCollections, parentCollection) {
+    function modelFactory(schema, linkedCollections, parentCollection) {
       var Model = function(data) {
         var _this = this;
 
@@ -27,7 +27,6 @@
       Model.prototype.constructor = Model;
 
       Model.prototype.schema = new AngularJsonAPISchema(schema);
-      Model.prototype.synchronizationHooks = synchronizationHooks;
       Model.prototype.linkedCollections = linkedCollections;
       Model.prototype.parentCollection = parentCollection;
 

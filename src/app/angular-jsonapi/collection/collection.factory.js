@@ -4,7 +4,12 @@
   angular.module('angularJsonapi')
   .factory('AngularJsonAPICollection', AngularJsonAPICollectionWrapper);
 
-  function AngularJsonAPICollectionWrapper(JsonAPIModelFactory, $log, $rootScope, uuid4) {
+  function AngularJsonAPICollectionWrapper(
+    $log,
+    uuid4,
+    JsonAPIModelFactory,
+    AngularJsonAPISynchronization
+  ) {
 
     AngularJsonAPICollection.prototype.__add = __add;
     AngularJsonAPICollection.prototype.__synchronize = __synchronize;
@@ -18,17 +23,16 @@
 
     return AngularJsonAPICollection;
 
-    function AngularJsonAPICollection(schema, synchronizationHooks) {
+    function AngularJsonAPICollection(schema) {
       var _this = this;
 
       _this.Model = JsonAPIModelFactory.model(
         schema,
-        synchronizationHooks,
         _this.all,
         _this
       );
 
-      _this.synchronizationHooks = synchronizationHooks;
+      _this.synchronization = new AngularJsonAPISynchronization(_this);
 
       _this.data = {};
       _this.removed = {};
@@ -61,18 +65,20 @@
 
     function get(id) {
       var _this = this;
+      var result;
+
       if (angular.isArray(id)) {
-        var result = [];
+        result = [];
         angular.forEach(id, function(id) {
           result.push(_this.__get(id));
         });
-
-        return result;
+      } else {
+        result = _this.__get(id);
       }
 
-      _this.__synchronize('get', id);
+      _this.__synchronize('get', result);
 
-      return _this.__get(id);
+      return result;
     }
 
     function all() {
@@ -128,13 +134,12 @@
       }
     }
 
-    function __synchronize(key, extra) {
+    function __synchronize(action, object) {
       var _this = this;
 
-      if (!_this.removed) {
-        $log.log('Synchro Collection', this.Model.prototype.schema.type, key, extra);
-        $log.log(_this.synchronizationHooks[key]);
-      }
+      $log.log('Synchro Collection', this.Model.prototype.schema.type, action, object);
+
+      _this.synchronization.synchronize(action, object);
     }
   }
 })();
