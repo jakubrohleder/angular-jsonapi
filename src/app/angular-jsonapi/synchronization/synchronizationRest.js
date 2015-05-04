@@ -54,7 +54,7 @@
       }
 
       function afterGet(collection, object, linkSchema, linkedObject, results) {
-        var data = results[0].value.data;
+        var data = results[0].value.data.data;
         if (results[0].success === true && data !== undefined) {
           collection.addOrUpdate(data);
         }

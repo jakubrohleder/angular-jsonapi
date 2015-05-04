@@ -48,6 +48,7 @@
       };
 
       _this.dummy = dummy || false;
+      _this.error = false;
 
       _this.__setUpdated(updatedAt);
       _this.__setData(data, updatedAt);
