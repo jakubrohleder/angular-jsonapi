@@ -2,6 +2,9 @@
   <br>
   <small clip-copy="object.data.id">Id: {{object.data.id}}</small>
   <button class="btn btn-default btn-xs" clip-copy="object.data.id">Copy ID</button>
+  <br>
+  <small>Updated {{updateDiff}} seconds from now</small>
+
 
   <hr>
   <div ng-init="collapsedEdit=true" ng-click="collapsedEdit=!collapsedEdit">
@@ -12,7 +15,7 @@
   <form collapse="collapsedEdit">
     <br>
     <div ng-repeat="(attribute, value) in object.form.data" class="form-group">
-      <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="{{attribute}}" ng-model="value" placeholder="{{attribute}}">
+      <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="{{attribute}}" ng-model="object.form.data[attribute]" placeholder="{{attribute}}">
       <span id="helpBlock" ng-repeat="error in object.form.errors.validation[attribute]" class="help-block">{{error}}</span>
     </div>
     <button ng-click="object.form.save()" class="btn btn-primary">Update</button>

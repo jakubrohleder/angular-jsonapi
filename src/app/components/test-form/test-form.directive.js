@@ -11,13 +11,18 @@
       scope: {
         object: '='
       },
-      controller: function($scope) {
-        $scope.isArray = angular.isArray;
+      controller: function($scope, $interval) {
         angular.forEach($scope.object.form.data, function(val, attribute) {
-          $scope.$watch(angular.identity(attribute), function() {
-            $scope.object.form.validateField(attribute);
+          $scope.$watch('object.form.data.' + attribute, function(nv, ov) {
+            if (nv !== ov) {
+              $scope.object.form.validateField(attribute);
+            }
           });
         });
+        $scope.isArray = angular.isArray;
+        $interval(function() {
+          $scope.updateDiff = (Date.now() - $scope.object.updatedAt) / 1000;
+        }, 100);
       }
     };
   }

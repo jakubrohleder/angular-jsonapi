@@ -11,7 +11,7 @@
       scope: {
         object: '='
       },
-      controller: function($scope) {
+      controller: function($scope, $interval) {
         angular.forEach($scope.object.form.data, function(val, attribute) {
           $scope.$watch('object.form.data.' + attribute, function(nv, ov) {
             if (nv !== ov) {
@@ -19,6 +19,10 @@
             }
           });
         });
+
+        $interval(function() {
+          $scope.updateDiff = (Date.now() - $scope.object.updatedAt) / 1000;
+        }, 100);
       }
     };
   }

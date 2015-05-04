@@ -4,6 +4,7 @@ angular.module('angularJsonapiExample', [
     'ui.router',
     'ui.bootstrap',
     'angularJsonapi',
+    'angularJsonapiLocal',
     'jsonFormatter',
     'ngClipboard'
   ])

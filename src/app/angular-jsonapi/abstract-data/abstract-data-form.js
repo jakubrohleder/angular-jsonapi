@@ -27,8 +27,9 @@
       var _this = this;
       var errors = _this.validate();
 
-      if (errors !== {}) {
+      if (angular.equals(errors, {}) === false) {
         $log.error('Errors in form: ', errors);
+        return;
       }
 
       _this.parent.__update(_this.data);

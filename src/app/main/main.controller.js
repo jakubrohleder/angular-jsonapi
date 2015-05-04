@@ -4,7 +4,14 @@
   angular.module('angularJsonapiExample')
     .controller('MainCtrl', mainCtrl);
 
-  function mainCtrl($scope, AngularJsonAPICollection) {
+  function mainCtrl(
+    $scope,
+    $timeout,
+    AngularJsonAPICollection,
+    AngularJsonAPISynchronization,
+    AngularJsonAPISynchronizationLocal
+  ) {
+
     var novelsSchema = {
       type: 'novels',
       id: 'uuid4',
@@ -159,20 +166,35 @@
       }
     };
 
-    $scope.novels = new AngularJsonAPICollection(novelsSchema);
-    $scope.people = new AngularJsonAPICollection(peopleSchema);
-    $scope.dieties = new AngularJsonAPICollection(dietiesSchema);
+    var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
 
-    $scope.novels.__add(novelData);
-    $scope.people.__add(person2Data);
-    $scope.people.__add(person1Data);
-    $scope.dieties.__add(diety1Data);
-    $scope.dieties.__add(diety2Data);
-    $scope.dieties.__add(diety3Data);
+    $scope.novels = new AngularJsonAPICollection(novelsSchema, localeSynchro);
+    $scope.people = new AngularJsonAPICollection(peopleSchema, localeSynchro);
+    $scope.dieties = new AngularJsonAPICollection(dietiesSchema, localeSynchro);
 
     $scope.newNovel = $scope.novels.dummy;
     $scope.newPerson = $scope.people.dummy;
     $scope.newDiety = $scope.dieties.dummy;
+
+    $scope.reset = function() {
+      $scope.novels.clear();
+      $scope.people.clear();
+      $scope.dieties.clear();
+
+      $timeout(function() {
+        $scope.novels.__add(novelData);
+        $scope.people.__add(person2Data);
+        $scope.people.__add(person1Data);
+        $scope.dieties.__add(diety1Data);
+        $scope.dieties.__add(diety2Data);
+        $scope.dieties.__add(diety3Data);
+
+        localeSynchro.__updateStorage($scope.novels);
+        localeSynchro.__updateStorage($scope.people);
+        localeSynchro.__updateStorage($scope.dieties);
+      }, 500);
+
+    };
 
   }
 })();

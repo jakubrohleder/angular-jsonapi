@@ -1,3 +1,15 @@
+<div class="row">
+  <div class="col-md-6">
+    <span class="h3">{{collection.Model.prototype.schema.type}}</span>
+  </div>
+  <div class="col-md-6">
+    <button
+      class="btn btn-primary btn-xs"
+      ng-click="collection.clear()"
+    >Clear</button>
+  </div>
+</div>
+<small>Updated {{updateDiff}} seconds from now</small>
 <div ng-repeat="object in collection.data" class="row" style="margin-bottom: 5px">
   <div class="col-md-6">
     <small clip-copy="object.data.id">{{object.toString()}}</small>

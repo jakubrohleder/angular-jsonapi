@@ -27,11 +27,11 @@
     AngularJsonAPIAbstractData.prototype.toLink = toLink;
     AngularJsonAPIAbstractData.prototype.removeAllLinks = removeAllLinks;
 
-    AngularJsonAPIAbstractData.prototype.serialize = serialize;
+    AngularJsonAPIAbstractData.prototype.toJson = toJson;
 
     return AngularJsonAPIAbstractData;
 
-    function AngularJsonAPIAbstractData(data) {
+    function AngularJsonAPIAbstractData(data, updatedAt, dummy) {
       var _this = this;
 
       _this.removed = false;
@@ -42,9 +42,9 @@
         validation: {}
       };
 
-      _this.dummy = data.id === undefined;
+      _this.dummy = dummy || false;
 
-      _this.__setData(data);
+      _this.__setData(data, updatedAt);
       data.links = data.links || {};
       _this.__setLinks(data.links);
       _this.form = new AngularJsonAPIAbstractDataForm(_this);
@@ -56,11 +56,12 @@
       _this.parentCollection.__synchronize('refresh', _this);
     }
 
-    function serialize() {
+    function toJson() {
       var _this = this;
 
       return {
-        data:angular.toJson(_this.data)
+        data: angular.toJson(_this.data),
+        updatedAt: _this.updatedAt
       };
     }
 
@@ -309,10 +310,12 @@
       return errors;
     }
 
-    function __setData(data) {
+    function __setData(data, updatedAt) {
       var _this = this;
       var safeData = angular.copy(data);
       _this.errors.validation = _this.__validateData(data);
+      _this.updatedAt = updatedAt || Date.now();
+      _this.parentCollection.updatedAt = _this.updatedAt;
 
       safeData.links = safeData.links || {};
       angular.forEach(_this.schema.links, function(linkSchema, linkName) {
