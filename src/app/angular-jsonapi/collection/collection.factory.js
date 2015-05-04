@@ -18,7 +18,6 @@
     AngularJsonAPICollection.prototype.get = get;
     AngularJsonAPICollection.prototype.all = all;
     AngularJsonAPICollection.prototype.remove = remove;
-    AngularJsonAPICollection.prototype.all = all;
     AngularJsonAPICollection.prototype.clear = clear;
     AngularJsonAPICollection.prototype.fromJson = fromJson;
     AngularJsonAPICollection.prototype.toJson = toJson;
@@ -52,12 +51,10 @@
       var collection = angular.fromJson(json);
 
       if (collection !== null && collection.data !== undefined) {
-        if (_this.updatedAt === undefined || _this.updatedAt < collection.updatedAt) {
-          _this.updatedAt = collection.updatedAt;
-        }
+        _this.updatedAt = collection.updatedAt;
 
         angular.forEach(collection.data, function(objectData) {
-          var data = angular.fromJson(objectData.data);
+          var data = objectData.data;
           _this.__add(data, objectData.updatedAt);
         });
       }
@@ -66,13 +63,12 @@
     function toJson() {
       var _this = this;
       var json = {
-        data: {}
+        data: {},
+        updatedAt: _this.updatedAt
       };
 
       angular.forEach(_this.data, function(object, key) {
-        if (object.dummy === false) {
-          json.data[key] = object.toJson();
-        }
+        json.data[key] = object.toJson();
       });
 
       return angular.toJson(json);
@@ -88,7 +84,8 @@
       if (_this.data[validatedData.id] === undefined) {
         _this.data[validatedData.id] = new this.Model(validatedData, updatedAt);
       } else {
-        _this.data[validatedData.id].__setData(validatedData);
+        _this.data[validatedData.id].__setData(validatedData, updatedAt);
+        _this.data[validatedData.id].__setLinks(validatedData.links);
       }
 
       return _this.data[validatedData.id];
@@ -98,7 +95,7 @@
       var _this = this;
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.Model({type: _this.Model.prototype.schema.type}, undefined, true);
+        _this.data[id] = new _this.Model({id: id, type: _this.Model.prototype.schema.type}, undefined, true);
       }
 
       return _this.data[id];
@@ -159,7 +156,7 @@
         $log.error('Object with this id does not exist');
       }
 
-      _this.__synchronize('remove');
+      _this.__synchronize('remove', object);
     }
 
     function __saveDummy() {
@@ -185,12 +182,11 @@
       }
     }
 
-    function __synchronize(action, object) {
+    function __synchronize(action, object, linkKey, linkedObject) {
       var _this = this;
-
       $log.log('Synchro Collection', this.Model.prototype.schema.type, action, object);
 
-      _this.synchronization.synchronize(action, _this, object);
+      _this.synchronization.synchronize(action, _this, object, linkKey, linkedObject);
     }
   }
 })();

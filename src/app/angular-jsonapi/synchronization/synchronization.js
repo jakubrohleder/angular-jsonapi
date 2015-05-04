@@ -7,13 +7,15 @@
   function AngularJsonAPISynchronizationWrapper($q) {
     AngularJsonAPISynchronization.prototype.before = beforeSynchro;
     AngularJsonAPISynchronization.prototype.after = afterSynchro;
+    AngularJsonAPISynchronization.prototype.begin = begin;
+    AngularJsonAPISynchronization.prototype.finish = finish;
     AngularJsonAPISynchronization.prototype.synchronization = synchronization;
     AngularJsonAPISynchronization.prototype.synchronize = synchronize;
     AngularJsonAPISynchronization.prototype.extend = extend;
 
     return AngularJsonAPISynchronization;
 
-    function AngularJsonAPISynchronization(options) {
+    function AngularJsonAPISynchronization() {
       var _this = this;
       var allHooks = [
         'add',
@@ -31,37 +33,56 @@
       ];
 
       _this.state = {};
+
+      _this.beginHooks = {};
       _this.beforeHooks = {};
       _this.synchronizationHooks = {};
       _this.afterHooks = {};
+      _this.finishHooks = {};
+
+      _this.options = {};
 
       angular.forEach(allHooks, function(hookName) {
+        _this.beginHooks[hookName] = [];
         _this.beforeHooks[hookName] = [];
         _this.synchronizationHooks[hookName] = [];
         _this.afterHooks[hookName] = [];
+        _this.finishHooks[hookName] = [];
         _this.state[hookName] = {
           loading: false,
           success: true
         };
       });
-
-      _this.options = options;
     }
 
     function extend(synchronization) {
       var _this = this;
 
+      extendHooks('beginHooks');
       extendHooks('beforeHooks');
       extendHooks('synchronizationHooks');
       extendHooks('afterHooks');
+      extendHooks('finishHooks');
 
       function extendHooks(hooksKey) {
         angular.forEach(synchronization[hooksKey], function(hooks, key) {
-          _this[hooksKey][key].concat(hooks);
+          _this[hooksKey][key] = _this[hooksKey][key].concat(hooks);
         });
       }
 
       angular.extend(_this.options, synchronization.options);
+    }
+
+    function begin(action, callback) {
+      var _this = this;
+
+      _this.beginHooks[action].push(callback);
+    }
+
+    function finish(action, callback) {
+      var _this = this;
+
+      _this.finishHooks[action].push(callback);
     }
 
     function beforeSynchro(action, callback) {
@@ -82,16 +103,26 @@
       _this.synchronizationHooks[action].push(callback);
     }
 
-    function synchronize(action, collection, object) {
+    function synchronize(action, collection, object, linkSchema, linkedObject) {
       var _this = this;
+      var promises = [];
 
       _this.state[action].loading = true;
-      angular.forEach(_this.beforeHooks[action], function(hook) {
-        hook.call(_this, collection, object);
+
+      angular.forEach(_this.beginHooks[action], function(hook) {
+        hook.call(_this, collection, object, linkSchema, linkedObject);
       });
 
-      $q.allSettled(_this.synchronizationHooks[action]).then(function(results) {
+      angular.forEach(_this.beforeHooks[action], function(hook) {
+        hook.call(_this, collection, object, linkSchema, linkedObject);
+      });
 
+      angular.forEach(_this.synchronizationHooks[action], function(hook) {
+        promises.push(hook.call(_this, collection, object, linkSchema, linkedObject));
+      });
+
+      $q.allSettled(promises).then(function(results) {
+        console.log('Action: ' + action, results);
         _this.state[action].success = true;
         angular.forEach(results, function(result) {
           if (result.success === false) {
@@ -100,7 +131,11 @@
         });
 
         angular.forEach(_this.afterHooks[action], function(hook) {
-          hook.call(_this, collection, object, results);
+          hook.call(_this, collection, object, linkSchema, linkedObject, results);
+        });
+
+        angular.forEach(_this.finishHooks[action], function(hook) {
+          hook.call(_this, collection, object, linkSchema, linkedObject);
         });
 
         _this.state[action].loading = false;

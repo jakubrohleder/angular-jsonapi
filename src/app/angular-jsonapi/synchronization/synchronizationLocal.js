@@ -8,71 +8,52 @@
 
     AngularJsonAPISynchronizationLocal.prototype = Object.create(AngularJsonAPISynchronization.prototype);
     AngularJsonAPISynchronizationLocal.prototype.constructor = AngularJsonAPISynchronizationLocal;
-    AngularJsonAPISynchronizationLocal.prototype.__updateStorage = __updateStorage;
 
     return AngularJsonAPISynchronizationLocal;
 
     function AngularJsonAPISynchronizationLocal(prefix) {
       var _this = this;
 
+      _this.__updateStorage = updateStorage;
+
       AngularJsonAPISynchronization.call(_this);
-      _this.options = {
-        storagePrefix: prefix || ''
-      };
 
-      _this.before('init', init);
-      _this.before('clear', clear);
-      _this.before('remove', _this.__updateStorage);
-      _this.before('removeLink', _this.__updateStorage);
-      _this.before('removeLinkReflection', _this.__updateStorage);
-      _this.before('addLink', _this.__updateStorage);
-      _this.before('addLinkReflection', _this.__updateStorage);
-      _this.before('update', _this.__updateStorage);
-      _this.before('add', _this.__updateStorage);
+      _this.begin('init', init);
+      _this.begin('clear', clear);
+      _this.begin('remove', updateStorage);
+      _this.begin('removeLink', updateStorage);
+      _this.begin('removeLinkReflection', updateStorage);
+      _this.begin('addLink', updateStorage);
+      _this.begin('addLinkReflection', updateStorage);
+      _this.begin('update', updateStorage);
+      _this.begin('add', updateStorage);
+      _this.finish('get', updateStorage);
+      _this.finish('all', updateStorage);
 
-      _this.after('init', init);
-      _this.after('clear', clear);
-      _this.after('remove', _this.__updateStorage);
-      _this.after('removeLink', _this.__updateStorage);
-      _this.after('removeLinkReflection', _this.__updateStorage);
-      _this.after('addLink', _this.__updateStorage);
-      _this.after('addLinkReflection', _this.__updateStorage);
-      _this.after('update', _this.__updateStorage);
-      _this.after('add', _this.__updateStorage);
+      _this.finish('init', updateStorage);
+      _this.finish('clear', updateStorage);
+      _this.finish('remove', updateStorage);
+      _this.finish('removeLink', updateStorage);
+      _this.finish('removeLinkReflection', updateStorage);
+      _this.finish('addLink', updateStorage);
+      _this.finish('addLinkReflection', updateStorage);
+      _this.finish('update', updateStorage);
+      _this.finish('add', updateStorage);
+      _this.finish('get', updateStorage);
+      _this.finish('all', updateStorage);
 
+      function init(collection) {
+        var datas = $window.localStorage.getItem(prefix + '.' + collection.Model.prototype.schema.type);
+        collection.fromJson(datas);
+      }
+
+      function clear(collection) {
+        $window.localStorage.removeItem(prefix + '.' + collection.Model.prototype.schema.type);
+      }
+
+      function updateStorage(collection) {
+        $window.localStorage.setItem(prefix + '.' + collection.Model.prototype.schema.type, collection.toJson());
+      }
     }
-
-    function __get(prefix, collection) {
-      return $window.localStorage.getItem(prefix + '.' + collection.Model.prototype.schema.type);
-    }
-
-    function __set(prefix, collection) {
-      $window.localStorage.setItem(prefix + '.' + collection.Model.prototype.schema.type, collection.toJson());
-    }
-
-    function __remove(prefix, collection) {
-      $window.localStorage.removeItem(prefix + '.' + collection.Model.prototype.schema.type);
-    }
-
-    function init(collection) {
-      var _this = this;
-
-      var datas = __get(_this.options.storagePrefix, collection);
-
-      collection.fromJson(datas);
-    }
-
-    function clear(collection) {
-      var _this = this;
-
-      __remove(_this.options.storagePrefix, collection);
-    }
-
-    function __updateStorage(collection) {
-      var _this = this;
-
-      __set(_this.options.storagePrefix, collection);
-    }
-
   }
 })();

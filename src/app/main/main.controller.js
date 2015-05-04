@@ -7,8 +7,10 @@
   function mainCtrl(
     $scope,
     $timeout,
+    $http,
     AngularJsonAPICollection,
     AngularJsonAPISynchronization,
+    AngularJsonAPISynchronizationRest,
     AngularJsonAPISynchronizationLocal
   ) {
 
@@ -29,6 +31,10 @@
       },
       functions: {
         toString: function() {
+          if (!this.data.title) {
+            return this.data.id;
+          }
+
           return this.data.title;
         }
       }
@@ -46,6 +52,10 @@
       },
       functions: {
         toString: function() {
+          if (!this.data.firstName && !this.data.lastName) {
+            return this.data.id;
+          }
+
           return this.data.firstName + ' ' + this.data.lastName;
         }
       }
@@ -63,6 +73,10 @@
       },
       functions: {
         toString: function() {
+          if (!this.data.name) {
+            return this.data.id;
+          }
+
           return this.data.name;
         }
       }
@@ -167,10 +181,21 @@
     };
 
     var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
+    var novelsSynchro = new AngularJsonAPISynchronizationRest('/novels');
+    var peopleSynchro = new AngularJsonAPISynchronizationRest('/people');
+    var dietiesSynchro = new AngularJsonAPISynchronizationRest('/dieties');
 
-    $scope.novels = new AngularJsonAPICollection(novelsSchema, localeSynchro);
-    $scope.people = new AngularJsonAPICollection(peopleSchema, localeSynchro);
-    $scope.dieties = new AngularJsonAPICollection(dietiesSchema, localeSynchro);
+    // novelsSynchro.extend(localeSynchro);
+    // peopleSynchro.extend(localeSynchro);
+    // dietiesSynchro.extend(localeSynchro);
+
+    $scope.novels = new AngularJsonAPICollection(novelsSchema, novelsSynchro);
+    $scope.people = new AngularJsonAPICollection(peopleSchema, peopleSynchro);
+    $scope.dieties = new AngularJsonAPICollection(dietiesSchema, dietiesSynchro);
+    //
+    // $scope.novels = new AngularJsonAPICollection(novelsSchema, localeSynchro);
+    // $scope.people = new AngularJsonAPICollection(peopleSchema, localeSynchro);
+    // $scope.dieties = new AngularJsonAPICollection(dietiesSchema, localeSynchro);
 
     $scope.newNovel = $scope.novels.dummy;
     $scope.newPerson = $scope.people.dummy;

@@ -18,6 +18,8 @@
     AngularJsonAPIAbstractData.prototype.__validateField = __validateField;
     AngularJsonAPIAbstractData.prototype.__update = __update;
     AngularJsonAPIAbstractData.prototype.__remove = __remove;
+    AngularJsonAPIAbstractData.prototype.__setUpdated = __setUpdated;
+    AngularJsonAPIAbstractData.prototype.__setLinkInternal = __setLinkInternal;
 
     AngularJsonAPIAbstractData.prototype.refresh = refresh;
     AngularJsonAPIAbstractData.prototype.remove = remove;
@@ -25,6 +27,7 @@
     AngularJsonAPIAbstractData.prototype.addLink = addLink;
     AngularJsonAPIAbstractData.prototype.removeLink = removeLink;
     AngularJsonAPIAbstractData.prototype.toLink = toLink;
+    AngularJsonAPIAbstractData.prototype.toPatchData = toPatchData;
     AngularJsonAPIAbstractData.prototype.removeAllLinks = removeAllLinks;
 
     AngularJsonAPIAbstractData.prototype.toJson = toJson;
@@ -33,6 +36,8 @@
 
     function AngularJsonAPIAbstractData(data, updatedAt, dummy) {
       var _this = this;
+
+      data.links = data.links || {};
 
       _this.removed = false;
       _this.data = {};
@@ -44,8 +49,9 @@
 
       _this.dummy = dummy || false;
 
+      _this.__setUpdated(updatedAt);
       _this.__setData(data, updatedAt);
-      data.links = data.links || {};
+
       _this.__setLinks(data.links);
       _this.form = new AngularJsonAPIAbstractDataForm(_this);
     }
@@ -53,6 +59,7 @@
     function refresh() {
       var _this = this;
 
+      _this.__setUpdated();
       _this.parentCollection.__synchronize('refresh', _this);
     }
 
@@ -60,14 +67,22 @@
       var _this = this;
 
       return {
-        data: angular.toJson(_this.data),
+        data: _this.data,
         updatedAt: _this.updatedAt
       };
+    }
+
+    function __setUpdated(updatedAt) {
+      var _this = this;
+
+      _this.updatedAt = updatedAt || Date.now();
+      _this.parentCollection.updatedAt = _this.updatedAt;
     }
 
     function __remove() {
       var _this = this;
 
+      _this.__setUpdated();
       _this.removed = true;
       _this.removeAllLinks();
     }
@@ -81,6 +96,18 @@
 
     function toLink() {
       return {type: this.data.type, id: this.data.id};
+    }
+
+    function toPatchData() {
+      var _this = this;
+      var res = {data: {}};
+      angular.forEach(_this.data, function(val, key) {
+        if (key !== 'links') {
+          res.data[key] = val;
+        }
+      });
+
+      return res;
     }
 
     function addLinkById(linkKey, linkModelName, id) {
@@ -141,6 +168,10 @@
       linkAttributes = _this.data.links[linkKey].linkage;
 
       if (linkType === 'hasOne') {
+        if (_this.data.links[linkKey].linkage.id === linkedObject.data.id) {
+          return;
+        }
+
         if (linkAttributes !== undefined && linkAttributes !== null) {
           $log.warn('Swaping hasOne', linkKey, 'of', _this.toString());
           _this.removeLink(linkKey);
@@ -149,17 +180,29 @@
         _this.data.links[linkKey].linkage = linkedObject.toLink();
         linkAttributes = linkedObject.toLink();
       } else {
+        var duplicate = false;
+        angular.forEach(_this.data.links[linkKey].linkage, function(link) {
+          if (link.id === linkedObject.data.id) {
+            duplicate = true;
+          }
+        });
+
+        if (duplicate === true) {
+          return;
+        }
+
         _this.data.links[linkKey].linkage.push(linkedObject.toLink());
       }
 
       if (reflection === true) {
-        _this.parentCollection.__synchronize('addLinkReflection', _this);
+        _this.parentCollection.__synchronize('addLinkReflection', _this, linkKey, linkedObject);
       } else {
         linkedObject.addLink(reflectionKey, _this, true);
-        _this.parentCollection.__synchronize('addLink', _this);
+        _this.parentCollection.__synchronize('addLink', _this, linkKey, linkedObject);
       }
 
-      _this.__setLink(linkAttributes, linkKey, linkType);
+      _this.__setUpdated();
+      _this.__setLinkInternal(linkAttributes, linkKey, linkSchema);
     }
 
     function removeAllLinks() {
@@ -177,6 +220,7 @@
       var linkAttributes;
       var reflectionKey;
       var removed = false;
+      console.log('Removing link', linkKey, linkedObject, reflection);
 
       if (_this.schema.links[linkKey] === undefined) {
         $log.error('Can\'t remove link not present in schema');
@@ -221,13 +265,15 @@
       }
 
       if (removed === true) {
+        _this.__setUpdated();
+
         if (reflection !== true) {
-          _this.parentCollection.__synchronize('removeLink', _this);
+          _this.parentCollection.__synchronize('removeLink', _this, linkKey, linkedObject);
         } else {
-          _this.parentCollection.__synchronize('removeLinkReflection', _this);
+          _this.parentCollection.__synchronize('removeLinkReflection',  _this, linkKey, linkedObject);
         }
 
-        _this.__setLink(linkAttributes, linkKey, linkType);
+        _this.__setLinkInternal(linkAttributes, linkKey, linkSchema);
       }
     }
 
@@ -244,12 +290,15 @@
         delete validatedData.type;
       }
 
+      _this.__setUpdated();
       _this.__setData(validatedData);
       _this.parentCollection.__synchronize('update', _this);
     }
 
-    function __setLink(linkAttributes, linkKey, linkType) {
+    function __setLinkInternal(linkAttributes, linkKey, linkSchema) {
       var _this = this;
+      var linkType = linkSchema.type;
+      var reflectionKey = linkSchema.reflection;
 
       if (linkAttributes === null) {
         delete _this.links[linkKey];
@@ -258,7 +307,10 @@
         var getAll = function() {
           var result = [];
           angular.forEach(linkAttributes, function(link) {
-            result.push(_this.linkedCollections[link.type].__get(link.id));
+            var linkedObject = _this.linkedCollections[link.type].__get(link.id);
+            linkedObject.addLink(reflectionKey, _this, true);
+
+            result.push(linkedObject);
           });
 
           return result;
@@ -266,12 +318,41 @@
 
         lazyProperty(_this.links, linkKey, getAll);
       } else if (linkType === 'hasOne' && linkAttributes.id) {
+
         var getSingle = function() {
-          return _this.linkedCollections[linkAttributes.type].__get(linkAttributes.id);
+          var linkedObject = _this.linkedCollections[linkAttributes.type].__get(linkAttributes.id);
+          linkedObject.addLink(reflectionKey, _this, true);
+
+          return linkedObject;
         };
 
         lazyProperty(_this.links, linkKey, getSingle);
       }
+    }
+
+    function __setLink(linkAttributes, linkKey, linkSchema) {
+      var _this = this;
+      var linkType = linkSchema.type;
+      var reflectionKey = linkSchema.reflection;
+
+      if (linkType === 'hasMany' && angular.isArray(linkAttributes)) {
+        var indexedLinks = {};
+        angular.forEach(linkAttributes, function(link) {
+          indexedLinks[link.id] = link;
+        });
+
+        angular.forEach(_this.links[linkKey], function(link) {
+          if (indexedLinks[link.data.id] === undefined) {
+            link.removeLink(reflectionKey, _this, true);
+          }
+        });
+      } else if (linkType === 'hasOne' && linkAttributes.id) {
+        if (_this.links[linkKey] !== undefined) {
+          _this.links[linkKey].removeLink(reflectionKey, _this, true);
+        }
+      }
+
+      _this.__setLinkInternal(linkAttributes, linkKey, linkSchema);
     }
 
     function __setLinks(links) {
@@ -279,7 +360,7 @@
 
       angular.forEach(_this.schema.links, function(linkSchema, linkKey) {
         if (links[linkKey] !== undefined) {
-          _this.__setLink(links[linkKey].linkage, linkKey, linkSchema.type);
+          _this.__setLink(links[linkKey].linkage, linkKey, linkSchema);
         }
       });
     }
@@ -310,12 +391,11 @@
       return errors;
     }
 
-    function __setData(data, updatedAt) {
+    function __setData(data) {
+      console.log('setting data', data, _this);
       var _this = this;
       var safeData = angular.copy(data);
       _this.errors.validation = _this.__validateData(data);
-      _this.updatedAt = updatedAt || Date.now();
-      _this.parentCollection.updatedAt = _this.updatedAt;
 
       safeData.links = safeData.links || {};
       angular.forEach(_this.schema.links, function(linkSchema, linkName) {

@@ -5,8 +5,10 @@ angular.module('angularJsonapiExample', [
     'ui.bootstrap',
     'angularJsonapi',
     'angularJsonapiLocal',
+    'angularJsonapiRest',
     'jsonFormatter',
-    'ngClipboard'
+    'ngClipboard',
+    'ngMockE2E'
   ])
   .config(function(ngClipProvider) {
     ngClipProvider.setPath('bower_components/zeroclipboard/dist/ZeroClipboard.swf');

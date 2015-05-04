@@ -52,7 +52,7 @@
           <test-form-new object="newDiety"></test-form-new>
         </tab>
 
-        <tab heading="{{diety.data.name}}" ng-repeat="diety in dieties.data" ng-hide="diety.pristine">
+        <tab heading="{{diety.toString()}}" ng-repeat="diety in dieties.data" ng-hide="diety.pristine">
           <test-form object="diety"></test-form>
         </tab>
       </tabset>
