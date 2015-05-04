@@ -1,3 +1,4 @@
+
 <div style="margin: 0 100px;">
 
 
@@ -26,7 +27,7 @@
           <test-form-new object="newNovel"></test-form-new>
         </tab>
 
-        <tab heading="{{novel.data.title}}" ng-repeat="novel in novels.data" ng-hide="novel.pristine">
+        <tab heading="{{novel.toString()}}" ng-repeat="novel in novels.data" ng-hide="novel.pristine">
           <test-form object="novel"></test-form>
         </tab>
       </tabset>

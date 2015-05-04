@@ -23,8 +23,10 @@
       _this.synchronization('add', add);
       _this.synchronization('all', all);
       _this.synchronization('get', get);
+      _this.synchronization('refresh', get);
       _this.after('all', afterAll);
       _this.after('get', afterGet);
+      _this.after('refresh', afterGet);
 
       function wrapResp(data, status, headers, config) {
         return {
@@ -37,6 +39,7 @@
 
       function afterAll(collection, object, linkSchema, linkedObject, results) {
         var rawData = results[0].value.data.data;
+        var included = results[0].value.data.included;
 
         if (results[0].success === true && rawData !== undefined) {
           var indexedData = {};
@@ -50,13 +53,29 @@
               collection.__remove(data.id);
             }
           });
+
+          angular.forEach(included, function(object) {
+            collection.allCollections[object.type].addOrUpdate(object);
+          });
         }
       }
 
       function afterGet(collection, object, linkSchema, linkedObject, results) {
-        var data = results[0].value.data.data;
-        if (results[0].success === true && data !== undefined) {
+        var data;
+        var included;
+
+        if (results[0].success === true) {
+          data = results[0].value.data.data;
+          included = results[0].value.data.included;
           collection.addOrUpdate(data);
+
+          angular.forEach(included, function(object) {
+            collection.allCollections[object.type].addOrUpdate(object);
+          });
+        } else {
+          object.error = true;
+          object.__remove();
+          collection.__remove(object.data.id);
         }
       }
 

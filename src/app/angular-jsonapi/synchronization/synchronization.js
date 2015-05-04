@@ -109,6 +109,14 @@
 
       _this.state[action].loading = true;
 
+      if (object !== undefined) {
+        object.loadingCount += 1;
+      }
+
+      if (collection !== undefined) {
+        collection.loadingCount += 1;
+      }
+
       angular.forEach(_this.beginHooks[action], function(hook) {
         hook.call(_this, collection, object, linkSchema, linkedObject);
       });
@@ -139,6 +147,14 @@
         });
 
         _this.state[action].loading = false;
+
+        if (object !== undefined) {
+          object.loadingCount -= 1;
+        }
+
+        if (collection !== undefined) {
+          collection.loadingCount -= 1;
+        }
       });
     }
 

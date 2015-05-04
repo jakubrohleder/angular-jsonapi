@@ -237,7 +237,10 @@
       }
     });
 
-    $httpBackend.whenDELETE(/\/people\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function() {
+    $httpBackend.whenDELETE(/\/people\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
+      var id = url.split('/')[2];
+      delete people[id];
+
       return [200, {}, {}];
     });
 
@@ -246,20 +249,23 @@
       angular.forEach(novels, function(novel) {
         res.push(novel);
       });
-
-      return [200, {data: res}, {}];
+      console.log({data: res, included: [dieties[diety1Data.id]]});
+      return [200, {data: res, included: [dieties[diety1Data.id]]}, {}];
     });
 
     $httpBackend.whenGET(/\/novels\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
       var id = url.split('/')[2];
-      if (people[id] === undefined) {
+      if (novels[id] === undefined) {
         return [404, [], {}];
       } else {
-        return [200, {data: people[id]}, {}];
+        return [200, {data: novels[id]}, {}];
       }
     });
 
-    $httpBackend.whenDELETE(/\/novels\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function() {
+    $httpBackend.whenDELETE(/\/novels\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
+      var id = url.split('/')[2];
+      delete novels[id];
+
       return [200, {}, {}];
     });
 
@@ -281,7 +287,10 @@
       }
     });
 
-    $httpBackend.whenDELETE(/\/dieties\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function() {
+    $httpBackend.whenDELETE(/\/dieties\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
+      var id = url.split('/')[2];
+      delete dieties[id];
+
       return [200, {}, {}];
     });
 

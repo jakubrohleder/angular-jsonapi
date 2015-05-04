@@ -40,6 +40,7 @@
       data.links = data.links || {};
 
       _this.removed = false;
+      _this.loadingCount = 0;
       _this.data = {};
       _this.links = {};
 
@@ -60,7 +61,6 @@
     function refresh() {
       var _this = this;
 
-      _this.__setUpdated();
       _this.parentCollection.__synchronize('refresh', _this);
     }
 
@@ -348,7 +348,7 @@
           }
         });
       } else if (linkType === 'hasOne' && linkAttributes.id) {
-        if (_this.links[linkKey] !== undefined) {
+        if (_this.links[linkKey] !== undefined && _this.links[linkKey].data.id !== linkAttributes.id) {
           _this.links[linkKey].removeLink(reflectionKey, _this, true);
         }
       }
@@ -393,9 +393,9 @@
     }
 
     function __setData(data) {
-      console.log('setting data', data, _this);
       var _this = this;
       var safeData = angular.copy(data);
+
       _this.errors.validation = _this.__validateData(data);
 
       safeData.links = safeData.links || {};

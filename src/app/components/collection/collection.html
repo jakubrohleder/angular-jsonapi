@@ -1,11 +1,20 @@
 <div class="row">
-  <div class="col-md-3">
+  <div class="col-md-4"
+    style="padding-left:0"
+    ng-class="{
+      'ok': !collection.error && collection.loadingCount === 0,
+      'error': collection.error && collection.loadingCount === 0,
+      'loading': collection.loadingCount !== 0
+  }">
+    <span class="glyphicon glyphicon-spin glyphicon-refresh show-loading" aria-hidden="true"></span>
+    <span class="glyphicon glyphicon-remove show-error" aria-hidden="true"></span>
+    <span class="glyphicon glyphicon-ok show-ok" aria-hidden="true"></span>&nbsp;
     <span class="h3">{{collection.Model.prototype.schema.type}}</span>
   </div>
   <div class="col-md-3">
     <input class="form-control" ng-model="getInput">
   </div>
-  <div class="col-md-6">
+  <div class="col-md-5">
     <button
       class="btn btn-danger btn-xs"
       ng-click="collection.clear()"
@@ -21,19 +30,31 @@
   </div>
 </div>
 <small>Updated {{updateDiff}} seconds from now</small>
-
-<div class="well" ng-if="equals(collection.data,{}) === false">
-  <div ng-repeat="object in collection.data" class="row" style="margin-bottom: 5px">
-    <div class="col-md-6">
-      <small clip-copy="object.data.id">{{object.toString()}}</small>
-    </div>
-    <div class="col-md-6">
-      <button class="btn btn-default btn-xs pull-left" clip-copy="object.data.id">Copy ID</button>
-      <button
-        class="btn btn-danger btn-xs pull-left"
-        ng-click="collection.remove(object.data.id)"
-        style="margin-left: 5px"
-      >Remove</button>
-    </div>
+<br>
+<br>
+<div ng-repeat="object in collection.data" class="row" style="margin-bottom: 5px"
+  ng-class="{
+    'ok': !object.error && object.loadingCount === 0,
+    'error': object.error && object.loadingCount === 0,
+    'loading': object.loadingCount !== 0
+}">
+  <div class="col-md-4" style="padding-left:0">
+    <span class="glyphicon glyphicon-spin glyphicon-refresh show-loading" aria-hidden="true"></span>
+    <span class="glyphicon glyphicon-remove show-error" aria-hidden="true"></span>
+    <span class="glyphicon glyphicon-ok show-ok" aria-hidden="true"></span>
+    <small clip-copy="object.data.id">{{object.toString()}}</small>
+  </div>
+  <div class="col-md-8">
+    <button class="btn btn-default btn-xs pull-left" clip-copy="object.data.id">Copy ID</button>
+    <button
+      class="btn btn-danger btn-xs pull-left"
+      ng-click="collection.remove(object.data.id)"
+      style="margin-left: 5px"
+    >Remove</button>
+    <button
+      class="btn btn-success btn-xs pull-left"
+      ng-click="object.refresh()"
+      style="margin-left: 5px"
+    >Refresh</button>
   </div>
 </div>

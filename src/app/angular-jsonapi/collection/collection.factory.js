@@ -9,6 +9,7 @@
     uuid4,
     JsonAPIModelFactory
   ) {
+    AngularJsonAPICollection.prototype.allCollections = {};
 
     AngularJsonAPICollection.prototype.__synchronize = __synchronize;
     AngularJsonAPICollection.prototype.__get = __get;
@@ -29,19 +30,20 @@
 
       _this.Model = JsonAPIModelFactory.model(
         schema,
-        _this.all,
+        _this.allCollections,
         _this
       );
 
       _this.synchronization = synchronization;
 
+      _this.loadingCount = 0;
       _this.data = {};
       _this.removed = {};
       _this.schema = schema;
 
       _this.dummy = new _this.Model({type: schema.type}, undefined, true);
       _this.dummy.form.save = __saveDummy.bind(_this.dummy);
-      _this.all[schema.type] = _this;
+      _this.allCollections[schema.type] = _this;
 
       _this.__synchronize('init');
     }
@@ -87,6 +89,8 @@
         _this.data[validatedData.id].__setData(validatedData, updatedAt);
         _this.data[validatedData.id].__setLinks(validatedData.links);
       }
+
+      _this.data[validatedData.id].__setUpdated(updatedAt);
 
       return _this.data[validatedData.id];
     }
