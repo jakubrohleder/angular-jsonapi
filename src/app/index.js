@@ -15,11 +15,25 @@ angular.module('angularJsonapiExample', [
   })
   .config(function($stateProvider, $urlRouterProvider) {
     $stateProvider
-      .state('home', {
+      .state('bm', {
         url: '/',
-        templateUrl: 'app/main/main.html',
-        controller: 'MainCtrl'
+        abstract: true,
+        templateUrl: 'app/frame/frame.html',
+        controller: 'FrameCtrl'
+      })
+      .state('bm.novels', {
+        url: 'novels',
+        views: {
+          stats: {
+            templateUrl: 'app/stats/stats.html',
+            controller: 'StatsCtrl'
+          },
+          site: {
+            templateUrl: 'app/site/site.html',
+            controller: 'SiteCtrl'
+          }
+        }
       });
 
-    $urlRouterProvider.otherwise('/');
+    $urlRouterProvider.otherwise('/novels');
   });

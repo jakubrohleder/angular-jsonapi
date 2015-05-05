@@ -2,10 +2,10 @@
   'use strict';
 
   angular.module('angularJsonapiExample')
-    .controller('MainCtrl', mainCtrl);
+    .controller('FrameCtrl', frameCtrl);
 
-  function mainCtrl(
-    $scope,
+  function frameCtrl(
+       $scope,
     $timeout,
     $http,
     AngularJsonAPICollection,
