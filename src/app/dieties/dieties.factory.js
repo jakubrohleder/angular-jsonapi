@@ -10,8 +10,10 @@
     var dietiesSchema = {
       type: 'dieties',
       id: 'uuid4',
-      name: ['required', 'string'],
-      power: ['required', 'integer'],
+      attributes: {
+        name: ['required', 'string'],
+        power: ['required', 'integer']
+      },
       links: {
         apearences: {
           type: 'hasMany',
@@ -20,11 +22,11 @@
       },
       functions: {
         toString: function() {
-          if (!this.data.name) {
+          if (!this.data.attributes.name) {
             return this.data.id;
           }
 
-          return this.data.name;
+          return this.data.attributes.name;
         }
       }
     };

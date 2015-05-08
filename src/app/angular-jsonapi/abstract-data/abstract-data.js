@@ -14,9 +14,10 @@
     AngularJsonAPIAbstractData.prototype.__setData = __setData;
     AngularJsonAPIAbstractData.prototype.__setLinks   = __setLinks;
     AngularJsonAPIAbstractData.prototype.__setLink = __setLink;
+    AngularJsonAPIAbstractData.prototype.__setAttributes = __setAttributes;
     AngularJsonAPIAbstractData.prototype.__validateData = __validateData;
     AngularJsonAPIAbstractData.prototype.__validateField = __validateField;
-    AngularJsonAPIAbstractData.prototype.__update = __update;
+    AngularJsonAPIAbstractData.prototype.__updateAttributes = __updateAttributes;
     AngularJsonAPIAbstractData.prototype.__remove = __remove;
     AngularJsonAPIAbstractData.prototype.__setUpdated = __setUpdated;
     AngularJsonAPIAbstractData.prototype.__setLinkInternal = __setLinkInternal;
@@ -41,7 +42,10 @@
 
       _this.removed = false;
       _this.loadingCount = 0;
-      _this.data = {};
+      _this.data = {
+        links: {},
+        attributes: {}
+      };
       _this.links = {};
 
       _this.errors = {
@@ -54,7 +58,6 @@
       _this.__setUpdated(updatedAt);
       _this.__setData(data, updatedAt);
 
-      _this.__setLinks(data.links);
       _this.form = new AngularJsonAPIAbstractDataForm(_this);
     }
 
@@ -221,7 +224,6 @@
       var linkAttributes;
       var reflectionKey;
       var removed = false;
-      console.log('Removing link', linkKey, linkedObject, reflection);
 
       if (_this.schema.links[linkKey] === undefined) {
         $log.error('Can\'t remove link not present in schema');
@@ -278,21 +280,11 @@
       }
     }
 
-    function __update(validatedData) {
+    function __updateAttributes(validatedAttributes) {
       var _this = this;
 
-      if (validatedData.id) {
-        $log.error('Cannot change id of ', _this);
-        delete validatedData.id;
-      }
-
-      if (validatedData.type) {
-        $log.error('Cannot change type of ', _this);
-        delete validatedData.type;
-      }
-
       _this.__setUpdated();
-      _this.__setData(validatedData);
+      _this.__setAttributes(validatedAttributes);
       _this.parentCollection.__synchronize('update', _this);
     }
 
@@ -359,6 +351,14 @@
     function __setLinks(links) {
       var _this = this;
 
+      angular.forEach(_this.schema.links, function(linkSchema, linkName) {
+        if (linkSchema.type === 'hasOne') {
+          _this.data.links[linkName] = links[linkName] || {linkage: null};
+        } else {
+          _this.data.links[linkName] = links[linkName] || {linkage: []};
+        }
+      });
+
       angular.forEach(_this.schema.links, function(linkSchema, linkKey) {
         if (links[linkKey] !== undefined) {
           _this.__setLink(links[linkKey].linkage, linkKey, linkSchema);
@@ -370,8 +370,8 @@
       var _this = this;
       var error = [];
 
-      if (key !== 'links' && key !== 'type' && data !== undefined) {
-        error = __validate(_this.schema[key], data, key);
+      if (data !== undefined) {
+        error = __validate(_this.schema.attributes[key], data, key);
       }
 
       return error;
@@ -381,7 +381,7 @@
       var _this = this;
       var errors = {};
 
-      angular.forEach(_this.schema, function(validator, key) {
+      angular.forEach(_this.schema.attributes, function(validator, key) {
         var error = _this.__validateField(data[key], key);
         if (error.length > 0) {
           errors[key] = error;
@@ -392,26 +392,30 @@
       return errors;
     }
 
+    function __setAttributes(attributes) {
+      var _this = this;
+
+      angular.forEach(_this.schema.attributes, function(validator, attributeName) {
+        if (attributes[attributeName]) {
+          _this.data.attributes[attributeName] = attributes[attributeName];
+        }
+      });
+    }
+
     function __setData(data) {
       var _this = this;
       var safeData = angular.copy(data);
 
-      _this.errors.validation = _this.__validateData(data);
+      _this.errors.validation = _this.__validateData(safeData);
 
       safeData.links = safeData.links || {};
-      angular.forEach(_this.schema.links, function(linkSchema, linkName) {
-        if (linkSchema.type === 'hasOne') {
-          safeData.links[linkName] = safeData.links[linkName] || {linkage: null};
-        } else {
-          safeData.links[linkName] = safeData.links[linkName] || {linkage: []};
-        }
-      });
+      safeData.attributes = safeData.attributes || {};
 
-      angular.forEach(_this.schema, function(validator, attributeName) {
-        if (data[attributeName]) {
-          _this.data[attributeName] = safeData[attributeName];
-        }
-      });
+      _this.data.id = safeData.id;
+      _this.data.type = safeData.type;
+
+      _this.__setAttributes(safeData.attributes);
+      _this.__setLinks(safeData.links);
     }
 
     function __validate(validator, attributeValue, attributeName) {
@@ -456,7 +460,7 @@
         }
 
         if (validator.minlength !== undefined && attributeValue.length < validator.minlength) {
-          errors.push(attributeName + ' is too short max ' + validator.minlength);
+          errors.push(attributeName + ' is too short min ' + validator.minlength);
         }
 
         if (validator.maxvalue !== undefined && parseInt(attributeValue) > validator.maxvalue) {
@@ -464,7 +468,7 @@
         }
 
         if (validator.minvalue !== undefined && parseInt(attributeValue) < validator.minvalue) {
-          errors.push(attributeName + ' is too small max ' + validator.minvalue);
+          errors.push(attributeName + ' is too small min ' + validator.minvalue);
         }
       } else {
         $log.error('Wrong validator type: ' + validator.toString());

@@ -73,8 +73,39 @@ angular.module('angularJsonapiExample', [
             controller: 'DietyCtrl',
             resolve: {
               diety: function($stateParams, Dieties) {
-                console.log(Dieties.get($stateParams.id));
                 return Dieties.get($stateParams.id);
+              }
+            }
+          }
+        }
+      })
+      .state('people', {
+        url: '/people',
+        views: {
+          'stats@': {
+            templateUrl: 'app/stats/stats.html',
+            controller: 'StatsCtrl'
+          },
+          'site@': {
+            templateUrl: 'app/site/people.html',
+            controller: 'PeopleCtrl',
+            resolve: {
+              people: function(People) {
+                return People.all();
+              }
+            }
+          }
+        }
+      })
+      .state('people.person', {
+        url: '/{id:[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}}',
+        views: {
+          'site@': {
+            templateUrl: 'app/site/person.html',
+            controller: 'PersonCtrl',
+            resolve: {
+              person: function($stateParams, People) {
+                return People.get($stateParams.id);
               }
             }
           }

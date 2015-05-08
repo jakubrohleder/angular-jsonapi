@@ -32,20 +32,15 @@
         return;
       }
 
-      _this.parent.__update(_this.data);
+      _this.parent.__updateAttributes(_this.data);
     }
 
     function reset() {
       var _this = this;
 
-      angular.forEach(_this.parent.schema, function(data, key) {
-        _this.data[key] = _this.parent.data[key] || '';
+      angular.forEach(_this.parent.schema.attributes, function(data, key) {
+        _this.data[key] = _this.parent.data.attributes[key] || '';
       });
-
-      delete (_this.data).id;
-      delete (_this.data).type;
-      delete (_this.data).links;
-      delete (_this.data).functions;
 
       _this.errors = {
         validation: {}

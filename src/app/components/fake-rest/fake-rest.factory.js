@@ -114,8 +114,10 @@
     var novelData = {
       type: 'novels',
       id: '975fe66c-43c6-46cb-98fe-1cac46370de2',
-      title: 'An Epicure in the Terrible',
-      part: 1,
+      attributes: {
+        title: 'An Epicure in the Terrible',
+        part: 1
+      },
       links: {
         self: 'http://example.com/novels/1',
         author: {
@@ -137,8 +139,10 @@
     var person1Data = {
       type: 'people',
       id: '873edec0-5266-463f-9fd4-24365637b4f4',
-      firstName: 'Howard Phillips',
-      lastName: 'Lovecraft',
+      attributes: {
+        firstName: 'Howard Phillips',
+        lastName: 'Lovecraft'
+      },
       links: {
         self: 'http://example.com/people/1',
         novels: {
@@ -152,8 +156,10 @@
     var person2Data = {
       type: 'people',
       id: '322a6ce3-0993-42cd-9327-0af7e29244b5',
-      firstName: 'Stephan',
-      lastName: 'King',
+      attributes: {
+        firstName: 'Stephan',
+        lastName: 'King'
+      },
       links: {
         self: 'http://example.com/people/1',
         novels: {
@@ -167,8 +173,10 @@
     var diety1Data = {
       type: 'dieties',
       id: '0214cffb-3269-47df-a910-13088d3344cb',
-      name: 'Shub-Niggurath',
-      power: 10,
+      attributes: {
+        name: 'Shub-Niggurath',
+        power: 10
+      },
       links: {
         self: 'http://example.com/dieties/1',
         apearences: {
@@ -182,8 +190,10 @@
     var diety2Data = {
       type: 'dieties',
       id: '1d75c7bc-4c4f-4923-98d4-a53caa137c09',
-      name: 'Evil twins Nug and Yeb',
-      power: 4,
+      attributes: {
+        name: 'Evil twins Nug and Yeb',
+        power: 4
+      },
       links: {
         self: 'http://example.com/dieties/1',
         apearences: {
@@ -197,8 +207,10 @@
     var diety3Data = {
       type: 'dieties',
       id: '0b8aff27-f8cc-4393-8fbf-34e97bb8f7cd',
-      name: 'Cthulhu',
-      power: 12,
+      attributes: {
+        name: 'Cthulhu',
+        power: 12
+      },
       links: {
         self: 'http://example.com/dieties/1',
         apearences: {
@@ -249,7 +261,7 @@
       angular.forEach(novels, function(novel) {
         res.push(novel);
       });
-      console.log({data: res, included: [dieties[diety1Data.id]]});
+
       return [200, {data: res, included: [dieties[diety1Data.id]]}, {}];
     });
 

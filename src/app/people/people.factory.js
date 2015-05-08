@@ -10,8 +10,10 @@
     var peopleSchema = {
       type: 'people',
       id: 'uuid4',
-      firstName: ['required', 'string'],
-      lastName: ['required', 'string'],
+      attributes: {
+        firstName: ['required', 'string'],
+        lastName: ['required', 'string']
+      },
       links: {
         novels: {
           type: 'hasMany',
@@ -20,11 +22,11 @@
       },
       functions: {
         toString: function() {
-          if (!this.data.firstName && !this.data.lastName) {
+          if (!this.data.attributes.firstName && !this.data.attributes.lastName) {
             return this.data.id;
           }
 
-          return this.data.firstName + ' ' + this.data.lastName;
+          return this.data.attributes.firstName + ' ' + this.data.attributes.lastName;
         }
       }
     };
@@ -40,6 +42,6 @@
   function People(
     $jsonapi
   ) {
-    return $jsonapi.getModel('novels');
+    return $jsonapi.getModel('people');
   }
 })();

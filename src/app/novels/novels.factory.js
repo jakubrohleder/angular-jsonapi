@@ -10,8 +10,10 @@
     var novelsSchema = {
       type: 'novels',
       id: 'uuid4',
-      title: ['required', 'string', {minlength: 3}, {maxlength: 50}],
-      part: ['integer', {maxvalue: 10, minvalue: 1}],
+      attributes: {
+        title: ['required', 'string', {minlength: 3}, {maxlength: 50}],
+        part: ['integer', {maxvalue: 10, minvalue: 1}]
+      },
       links: {
         author: {
           type: 'hasOne',
@@ -24,11 +26,11 @@
       },
       functions: {
         toString: function() {
-          if (!this.data.title) {
+          if (!this.data.attributes.title) {
             return this.data.id;
           }
 
-          return this.data.title;
+          return this.data.attributes.title;
         }
       }
     };
