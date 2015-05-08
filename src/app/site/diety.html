@@ -1,0 +1,11 @@
+<h1>Diety</h1>
+<hr>
+<h2>{{diety.toString()}}</h2>
+<h2>Apearences</h2>
+<ul>
+  <li ng-repeat="apearence in diety.links.apearences">
+    <a ui-sref="novels.novel({id: apearence.data.id})">
+      {{apearence.toString()}}
+    </a>
+  </li>
+</ul>

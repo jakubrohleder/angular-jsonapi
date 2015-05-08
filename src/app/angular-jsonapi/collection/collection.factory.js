@@ -128,7 +128,7 @@
 
       _this.__synchronize('all');
 
-      return this;
+      return _this.data;
     }
 
     function clear() {

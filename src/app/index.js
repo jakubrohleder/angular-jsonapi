@@ -15,25 +15,73 @@ angular.module('angularJsonapiExample', [
   })
   .config(function($stateProvider, $urlRouterProvider) {
     $stateProvider
-      .state('bm', {
-        url: '/',
-        abstract: true,
-        templateUrl: 'app/frame/frame.html',
-        controller: 'FrameCtrl'
-      })
-      .state('bm.novels', {
-        url: 'novels',
+      .state('novels', {
+        url: '/novels',
         views: {
-          stats: {
+          'stats@': {
             templateUrl: 'app/stats/stats.html',
             controller: 'StatsCtrl'
           },
-          site: {
-            templateUrl: 'app/site/site.html',
-            controller: 'SiteCtrl'
+          'site@': {
+            templateUrl: 'app/site/novels.html',
+            controller: 'NovelsCtrl',
+            resolve: {
+              novels: function(Novels) {
+                return Novels.all();
+              }
+            }
           }
         }
-      });
+      })
+      .state('novels.novel', {
+        url: '/{id:[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}}',
+        views: {
+          'site@': {
+            templateUrl: 'app/site/novel.html',
+            controller: 'NovelCtrl',
+            resolve: {
+              novel: function($stateParams, Novels) {
+                return Novels.get($stateParams.id);
+              }
+            }
+          }
+        }
+      })
+      .state('dieties', {
+        url: '/dieties',
+        views: {
+          'stats@': {
+            templateUrl: 'app/stats/stats.html',
+            controller: 'StatsCtrl'
+          },
+          'site@': {
+            templateUrl: 'app/site/dieties.html',
+            controller: 'DietiesCtrl',
+            resolve: {
+              dieties: function(Dieties) {
+                return Dieties.all();
+              }
+            }
+          }
+        }
+      })
+      .state('dieties.diety', {
+        url: '/{id:[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}}',
+        views: {
+          'site@': {
+            templateUrl: 'app/site/diety.html',
+            controller: 'DietyCtrl',
+            resolve: {
+              diety: function($stateParams, Dieties) {
+                console.log(Dieties.get($stateParams.id));
+                return Dieties.get($stateParams.id);
+              }
+            }
+          }
+        }
+      })
+
+      ;
 
     $urlRouterProvider.otherwise('/novels');
   });

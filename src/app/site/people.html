@@ -1,0 +1,7 @@
+<h1>People</h1>
+<hr>
+<ul>
+  <li ng-repeat="person in people">
+    <a ui-sref=".person({id: person.data.id})">{{person.toString()}}</a>
+  </li>
+</ul>

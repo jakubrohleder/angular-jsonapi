@@ -1,0 +1,16 @@
+<h1>Novel</h1>
+<hr>
+<h2>{{novel.toString()}}</h2>
+<h2>Dieties</h2>
+<ul>
+  <li ng-repeat="diety in novel.links.dieties">
+    <a ui-sref="dieties.diety({id: diety.data.id})">
+      {{diety.toString()}}
+    </a>
+  </li>
+</ul>
+
+<h2>Author</h2>
+ <a ui-sref="people.person({id: novel.links.author.data.id})">
+  {{person.toString()}}
+</a>
