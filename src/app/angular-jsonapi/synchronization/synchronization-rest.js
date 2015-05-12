@@ -37,7 +37,7 @@
         };
       }
 
-      function afterAll(collection, object, linkSchema, linkedObject, results) {
+      function afterAll(collection, object, linkSchema, linkedObject, params, results) {
         var rawData = results[0].value.data.data;
         var included = results[0].value.data.included;
 
@@ -60,7 +60,7 @@
         }
       }
 
-      function afterGet(collection, object, linkSchema, linkedObject, results) {
+      function afterGet(collection, object, linkSchema, linkedObject, params, results) {
         var data;
         var included;
 
@@ -79,11 +79,12 @@
         }
       }
 
-      function all() {
+      function all(collection, object, params) {
         var deferred = $q.defer();
         var config = {
           method: 'GET',
-          url: url
+          url: url,
+          params: params || {}
         };
 
         $http(config).
@@ -97,11 +98,24 @@
         return deferred.promise;
       }
 
-      function get(collection, object) {
+      function get(collection, object, linkSchema, linkedObject, params) {
         var deferred = $q.defer();
-        var config = {
+        var config;
+        var ids;
+
+        if (angular.isArray(object)) {
+          ids = [];
+          angular.forEach(object, function(object) {
+            ids.push(object.data.id);
+          });
+        } else {
+          ids = object.data.id;
+        }
+
+        config = {
           method: 'GET',
-          url: url + '/' + object.data.id
+          url: url + '/' + ids.toString(),
+          params: params || {}
         };
 
         $http(config).

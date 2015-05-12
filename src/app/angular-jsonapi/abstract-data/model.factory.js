@@ -10,7 +10,7 @@
       model: modelFactory
     };
 
-    function modelFactory(schema, linkedCollections, parentCollection) {
+    function modelFactory(schemaObj, linkedCollections, parentCollection) {
       var Model = function(data, updatedAt, dummy) {
         var _this = this;
 
@@ -26,11 +26,11 @@
       Model.prototype = Object.create(AngularJsonAPIAbstractData.prototype);
       Model.prototype.constructor = Model;
 
-      Model.prototype.schema = new AngularJsonAPISchema(schema);
+      Model.prototype.schema = schemaObj;
       Model.prototype.linkedCollections = linkedCollections;
       Model.prototype.parentCollection = parentCollection;
 
-      angular.forEach(schema.functions, function(metaFunction, metaFunctionName) {
+      angular.forEach(schemaObj.functions, function(metaFunction, metaFunctionName) {
         Model.prototype[metaFunctionName] = function() {
           return metaFunction.call(this);
         };

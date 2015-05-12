@@ -12,7 +12,6 @@
         collection: '='
       },
       controller: function($scope, $interval) {
-        console.log($scope.collection.updatedAt);
         $interval(function() {
           $scope.updateDiff = (Date.now() - $scope.collection.updatedAt) / 1000;
         }, 100);

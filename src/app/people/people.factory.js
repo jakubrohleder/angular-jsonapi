@@ -16,6 +16,7 @@
       },
       links: {
         novels: {
+          included: true,
           type: 'hasMany',
           reflection: 'author'
         }

@@ -10,12 +10,26 @@
 
     function AngularJsonAPISchema(schema) {
       var _this = this;
+      var include = [];
+
+      _this.params = {
+        get: {},
+        all: {}
+      };
 
       angular.forEach(schema.links, function(linkSchema, linkName) {
-        schema.links[linkName] = new AngularJsonAPILinkSchema(linkSchema, linkName, schema.type);
+        var linkSchemaObj = new AngularJsonAPILinkSchema(linkSchema, linkName, schema.type);
+        schema.links[linkName] = linkSchemaObj;
+        if (linkSchemaObj.included === true) {
+          include.push(linkName);
+        }
       });
 
       angular.extend(_this, schema);
+
+      if (include.length > 0) {
+        _this.params.get.include = include.join(',');
+      }
     }
 
     function AngularJsonAPILinkSchema(linkSchema, linkName, type) {
@@ -35,6 +49,7 @@
         _this.type = linkSchema.type;
         _this.polymorphic = linkSchema.polymorphic || false;
         _this.reflection = linkSchema.reflection || type;
+        _this.included = linkSchema.included || false;
       }
     }
 

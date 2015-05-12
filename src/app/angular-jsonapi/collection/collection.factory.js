@@ -7,7 +7,8 @@
   function AngularJsonAPICollectionWrapper(
     $log,
     uuid4,
-    JsonAPIModelFactory
+    JsonAPIModelFactory,
+    AngularJsonAPISchema
   ) {
     AngularJsonAPICollection.prototype.allCollections = {};
 
@@ -28,8 +29,10 @@
     function AngularJsonAPICollection(schema, synchronization) {
       var _this = this;
 
+      var schemaObj = new AngularJsonAPISchema(schema);
+
       _this.Model = JsonAPIModelFactory.model(
-        schema,
+        schemaObj,
         _this.allCollections,
         _this
       );
@@ -39,7 +42,7 @@
       _this.loadingCount = 0;
       _this.data = {};
       _this.removed = {};
-      _this.schema = schema;
+      _this.schema = schemaObj;
 
       _this.dummy = new _this.Model({type: schema.type}, undefined, true);
       _this.dummy.form.save = __saveDummy.bind(_this.dummy);
@@ -118,7 +121,7 @@
         result = _this.__get(id);
       }
 
-      _this.__synchronize('get', result);
+      _this.__synchronize('get', result, undefined, undefined, _this.schema.params.get);
 
       return result;
     }
@@ -126,7 +129,7 @@
     function all() {
       var _this = this;
 
-      _this.__synchronize('all');
+      _this.__synchronize('all', undefined, undefined, undefined, _this.schema.params.all);
 
       return _this.data;
     }
@@ -186,11 +189,12 @@
       }
     }
 
-    function __synchronize(action, object, linkKey, linkedObject) {
+    function __synchronize(action, object, linkKey, linkedObject, params) {
       var _this = this;
-      $log.log('Synchro Collection', this.Model.prototype.schema.type, action, object);
 
-      _this.synchronization.synchronize(action, _this, object, linkKey, linkedObject);
+      $log.log('Synchro Collection', this.Model.prototype.schema.type, {action: action, object: object, linkKey: linkKey, linkedObject: linkedObject, params: params});
+
+      _this.synchronization.synchronize(action, _this, object, linkKey, linkedObject, params);
     }
   }
 })();

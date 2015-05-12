@@ -4,6 +4,8 @@
   angular.module('angularJsonapiExample')
   /* jshint ignore:start */
   .constant('faker', faker)
+  .constant('URL', URL)
+  .constant('console', console)
   .config(function($provide) {
     $provide.decorator('$httpBackend', function($delegate) {
       var proxy = function(method, url, data, callback, headers) {
@@ -32,7 +34,9 @@
   /* jshint ignore:end */
   .run(function(
     $log,
-    $httpBackend
+    $httpBackend,
+    URL,
+    console
   ) {
 
     // function randomNovel(id) {
@@ -221,19 +225,21 @@
       }
     };
 
-    var people = {};
-    people[person1Data.id] = person1Data;
-    people[person2Data.id] = person2Data;
-    var dieties = {};
-    dieties[diety1Data.id] = diety1Data;
-    dieties[diety2Data.id] = diety2Data;
-    dieties[diety3Data.id] = diety3Data;
-    var novels = {};
-    novels[novelData.id] = novelData;
+    var datas = {
+      people: {},
+      dieties: {},
+      novels: {}
+    };
+    datas.people[person1Data.id] = person1Data;
+    datas.people[person2Data.id] = person2Data;
+    datas.dieties[diety1Data.id] = diety1Data;
+    datas.dieties[diety2Data.id] = diety2Data;
+    datas.dieties[diety3Data.id] = diety3Data;
+    datas.novels[novelData.id] = novelData;
 
     $httpBackend.whenGET('/people').respond(function() {
       var res = [];
-      angular.forEach(people, function(person) {
+      angular.forEach(datas.people, function(person) {
         res.push(person);
       });
 
@@ -241,49 +247,75 @@
     });
 
     $httpBackend.whenGET(/\/people\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
-      var id = url.split('/')[2];
-      if (people[id] === undefined) {
+      console.debug('People get:', url);
+      var urlObject = parseUrl(url);
+      var id = urlObject.id;
+      var data = {};
+      if (datas.people[id] === undefined) {
         return [404, [], {}];
       } else {
-        return [200, {data: people[id]}, {}];
+        data.data = datas.people[id];
+        return [200, data, {}];
       }
     });
 
     $httpBackend.whenDELETE(/\/people\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
-      var id = url.split('/')[2];
-      delete people[id];
+      console.debug('Delete get:', url);
+      var urlObject = parseUrl(url);
+      var id = urlObject.id;
+      delete datas.people[id];
 
       return [200, {}, {}];
     });
 
     $httpBackend.whenGET('/novels').respond(function() {
       var res = [];
-      angular.forEach(novels, function(novel) {
+      angular.forEach(datas.novels, function(novel) {
         res.push(novel);
       });
 
-      return [200, {data: res, included: [dieties[diety1Data.id]]}, {}];
+      return [200, {data: res, included: [datas.dieties[diety1Data.id]]}, {}];
     });
 
     $httpBackend.whenGET(/\/novels\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
-      var id = url.split('/')[2];
-      if (novels[id] === undefined) {
+      console.debug('Novel get:', url);
+      var urlObject = parseUrl(url);
+      var id = urlObject.id;
+      var data = {};
+      if (datas.novels[id] === undefined) {
         return [404, [], {}];
       } else {
-        return [200, {data: novels[id]}, {}];
+        data.data = datas.novels[id];
+        if (urlObject.search.include !== undefined) {
+          data.included = [];
+          angular.forEach(urlObject.search.include, function(elem) {
+            if (angular.isArray(datas.novels[id].links[elem].linkage)) {
+              angular.forEach(datas.novels[id].links[elem].linkage, function(include) {
+                data.included.push(datas[include.type][include.id]);
+              });
+            } else {
+              data.included.push(datas[datas.novels[id].links[elem].linkage.type][datas.novels[id].links[elem].linkage.id]);
+            }
+
+          });
+        }
+
+        return [200, data, {}];
       }
     });
 
     $httpBackend.whenDELETE(/\/novels\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
-      var id = url.split('/')[2];
-      delete novels[id];
+      console.debug('Novel delete:', url);
+      var urlObject = parseUrl(url);
+      var id = urlObject.id;
+      delete datas.novels[id];
 
       return [200, {}, {}];
     });
 
     $httpBackend.whenGET('/dieties').respond(function() {
       var res = [];
-      angular.forEach(dieties, function(diety) {
+      angular.forEach(datas.dieties, function(diety) {
         res.push(diety);
       });
 
@@ -291,22 +323,59 @@
     });
 
     $httpBackend.whenGET(/\/dieties\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
-      var id = url.split('/')[2];
-      if (dieties[id] === undefined) {
+      console.debug('Dieties get:', url);
+      var urlObject = parseUrl(url);
+      var id = urlObject.id;
+      var data = {};
+      if (datas.dieties[id] === undefined) {
         return [404, [], {}];
       } else {
-        return [200, {data: dieties[id]}, {}];
+        data.data = datas.dieties[id];
+        return [200, data, {}];
       }
     });
 
     $httpBackend.whenDELETE(/\/dieties\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
-      var id = url.split('/')[2];
-      delete dieties[id];
+      console.debug('Dieties delete:', url);
+      var urlObject = parseUrl(url);
+      var id = urlObject.id;
+      delete datas.dieties[id];
 
       return [200, {}, {}];
     });
 
     $httpBackend.whenGET(/main\//).passThrough();
     $httpBackend.whenGET(/app\//).passThrough();
+
+    function parseUrl(url) {
+      var obj = {};
+      var hash;
+      var regex = /[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/;
+
+      angular.extend(obj, new URL('http://example.com' + url));
+
+      hash = obj.search.split('&');
+      hash[0] = hash[0].substr(1);
+      obj.search = {};
+      angular.forEach(hash, function(elem) {
+        var t = elem.split('=');
+        if (t[1] !== undefined) {
+          obj.search[t[0]] = t[1].split(',');
+        }
+      });
+
+      obj.id = regex.exec(url)[0];
+
+      // parser.protocol; // => "http:"
+      // parser.hostname; // => "example.com"
+      // parser.port;     // => "3000"
+      // parser.pathname; // => "/pathname/"
+      // parser.search;   // => "?search=test"
+      // parser.hash;     // => "#hash"
+      // parser.host;     // => "example.com:3000"
+
+      return obj;
+    }
+
   });
 })();

@@ -16,10 +16,12 @@
       },
       links: {
         author: {
+          included: true,
           type: 'hasOne',
           model: 'people'
         },
         dieties: {
+          included: true,
           type: 'hasMany',
           reflection: 'apearences'
         }

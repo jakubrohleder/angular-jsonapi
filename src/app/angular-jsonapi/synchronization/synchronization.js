@@ -103,7 +103,7 @@
       _this.synchronizationHooks[action].push(callback);
     }
 
-    function synchronize(action, collection, object, linkSchema, linkedObject) {
+    function synchronize(action, collection, object, linkSchema, linkedObject, params) {
       var _this = this;
       var promises = [];
 
@@ -118,19 +118,18 @@
       }
 
       angular.forEach(_this.beginHooks[action], function(hook) {
-        hook.call(_this, collection, object, linkSchema, linkedObject);
+        hook.call(_this, collection, object, linkSchema, linkedObject, params);
       });
 
       angular.forEach(_this.beforeHooks[action], function(hook) {
-        hook.call(_this, collection, object, linkSchema, linkedObject);
+        hook.call(_this, collection, object, linkSchema, linkedObject, params);
       });
 
       angular.forEach(_this.synchronizationHooks[action], function(hook) {
-        promises.push(hook.call(_this, collection, object, linkSchema, linkedObject));
+        promises.push(hook.call(_this, collection, object, linkSchema, linkedObject, params));
       });
 
       $q.allSettled(promises).then(function(results) {
-        console.log('Action: ' + action, results);
         _this.state[action].success = true;
         angular.forEach(results, function(result) {
           if (result.success === false) {
@@ -139,11 +138,11 @@
         });
 
         angular.forEach(_this.afterHooks[action], function(hook) {
-          hook.call(_this, collection, object, linkSchema, linkedObject, results);
+          hook.call(_this, collection, object, linkSchema, linkedObject, params, results);
         });
 
         angular.forEach(_this.finishHooks[action], function(hook) {
-          hook.call(_this, collection, object, linkSchema, linkedObject);
+          hook.call(_this, collection, object, linkSchema, linkedObject, params);
         });
 
         _this.state[action].loading = false;
