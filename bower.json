@@ -1,11 +1,14 @@
 {
   "name": "angular-jsonapi",
-  "version": "0.1",
+  "version": "0.1.1",
   "main": "dist/angular-jsonapi.js",
   "dependencies": {
     "angular": "~1.3.4",
     "angular-uuid4": "~0.3.0"
   },
+  "ignore": [
+    "demo/"
+  ],
   "devDependencies": {
     "angular-mocks": "~1.3.4",
     "jquery": "~2.1.1",
