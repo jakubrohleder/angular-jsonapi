@@ -39,82 +39,6 @@
     console
   ) {
 
-    // function randomNovel(id) {
-    //   id = id || uuid4.generate();
-    //   return {
-    //     type: 'novels',
-    //     id: id,
-    //     title: faker.company.catchPhrase(),
-    //     part: faker.random.number(10),
-    //     links: {
-    //       self: 'http://example.com/novels/1',
-    //       author: {
-    //         self: 'http://example.com/novels/1/links/author',
-    //         related: 'http://example.com/novels/1/author',
-    //         linkage: { type: 'people', id: uuid4.generate() }
-    //       },
-    //       dieties: {
-    //         self: 'http://example.com/novels/1/links/dieties',
-    //         related: 'http://example.com/novels/1/dieties',
-    //         linkage: [
-    //           { type: 'dieties', id: uuid4.generate() },
-    //           { type: 'dieties', id: uuid4.generate() }
-    //         ]
-    //       }
-    //     }
-    //   };
-    // }
-
-    // function randomDiety(id) {
-    //   id = id || uuid4.generate();
-    //   return {
-    //     type: 'dieties',
-    //     id: id,
-    //     name: faker.company.companyName(),
-    //     part: faker.random.number(12),
-    //     links: {
-    //       self: 'http://example.com/dieties/1',
-    //       apearences: {
-    //         self: 'http://example.com/dieties/1/links/apearences',
-    //         related: 'http://example.com/dieties/1/apearences',
-    //         linkage: [{ type: 'novels', id: uuid4.generate() }]
-    //       }
-    //     }
-    //   };
-    // }
-
-    // function randomPerson(id) {
-    //   id = id || uuid4.generate();
-    //   return {
-    //     type: 'people',
-    //     id: id,
-    //     firstName: faker.name.firstName(),
-    //     lastName: faker.name.lastName(),
-    //     links: {
-    //       self: 'http://example.com/people/1',
-    //       novels: {
-    //         self: 'http://example.com/people/1/links/novels',
-    //         related: 'http://example.com/people/1/novels',
-    //         linkage: [{ type: 'novels', id: uuid4.generate() }]
-    //       }
-    //     }
-    //   };
-    // }
-
-    // function buildResponse(count, random, id) {
-    //   var result = {
-    //     data: []
-    //   };
-
-    //   for (var i = 0; i < count; i++) {
-    //     var obj = random(id);
-    //     result.data.push(obj);
-    //   }
-
-    //   return result;
-    // }
-    //
-
     var novelData = {
       type: 'novels',
       id: '975fe66c-43c6-46cb-98fe-1cac46370de2',
@@ -123,16 +47,22 @@
         part: 1
       },
       links: {
-        self: 'http://example.com/novels/1',
+        self: 'http://example.com/novels/1'
+      },
+      relationships: {
         author: {
-          self: 'http://example.com/novels/1/links/author',
-          related: 'http://example.com/novels/1/author',
-          linkage: { type: 'people', id: '873edec0-5266-463f-9fd4-24365637b4f4' }
+          links: {
+            self: 'http://example.com/novels/1/links/author',
+            related: 'http://example.com/novels/1/author'
+          },
+          data: { type: 'people', id: '873edec0-5266-463f-9fd4-24365637b4f4' }
         },
         dieties: {
-          self: 'http://example.com/novels/1/links/dieties',
-          related: 'http://example.com/novels/1/dieties',
-          linkage: [
+          links: {
+            self: 'http://example.com/novels/1/links/dieties',
+            related: 'http://example.com/novels/1/dieties'
+          },
+          data: [
             { type: 'dieties', id: '0214cffb-3269-47df-a910-13088d3344cb' },
             { type: 'dieties', id: '1d75c7bc-4c4f-4923-98d4-a53caa137c09' }
           ]
@@ -148,11 +78,14 @@
         lastName: 'Lovecraft'
       },
       links: {
-        self: 'http://example.com/people/1',
+        self: 'http://example.com/people/1'
+      }, relationships: {
         novels: {
-          self: 'http://example.com/people/1/links/novels',
-          related: 'http://example.com/people/1/novels',
-          linkage: [{ type: 'novels', id: '975fe66c-43c6-46cb-98fe-1cac46370de2' }]
+          links: {
+            self: 'http://example.com/people/1/links/novels',
+            related: 'http://example.com/people/1/novels'
+          },
+          data: [{ type: 'novels', id: '975fe66c-43c6-46cb-98fe-1cac46370de2' }]
         }
       }
     };
@@ -165,11 +98,14 @@
         lastName: 'King'
       },
       links: {
-        self: 'http://example.com/people/1',
+        self: 'http://example.com/people/1'
+      }, relationships: {
         novels: {
-          self: 'http://example.com/people/1/links/novels',
-          related: 'http://example.com/people/1/novels',
-          linkage: []
+          links: {
+            self: 'http://example.com/people/1/links/novels',
+            related: 'http://example.com/people/1/novels'
+          },
+          data: []
         }
       }
     };
@@ -182,11 +118,14 @@
         power: 10
       },
       links: {
-        self: 'http://example.com/dieties/1',
+        self: 'http://example.com/dieties/1'
+      }, relationships: {
         apearences: {
-          self: 'http://example.com/dieties/1/links/apearences',
-          related: 'http://example.com/dieties/1/apearences',
-          linkage: [{ type: 'novels', id: '975fe66c-43c6-46cb-98fe-1cac46370de2' }]
+          links: {
+            self: 'http://example.com/dieties/1/links/apearences',
+            related: 'http://example.com/dieties/1/apearences'
+          },
+          data: [{ type: 'novels', id: '975fe66c-43c6-46cb-98fe-1cac46370de2' }]
         }
       }
     };
@@ -199,11 +138,14 @@
         power: 4
       },
       links: {
-        self: 'http://example.com/dieties/1',
+        self: 'http://example.com/dieties/1'
+      }, relationships: {
         apearences: {
-          self: 'http://example.com/dieties/1/links/apearences',
-          related: 'http://example.com/dieties/1/apearences',
-          linkage: [{ type: 'novels', id: '975fe66c-43c6-46cb-98fe-1cac46370de2' }]
+          links: {
+            self: 'http://example.com/dieties/1/links/apearences',
+            related: 'http://example.com/dieties/1/apearences'
+          },
+          data: [{ type: 'novels', id: '975fe66c-43c6-46cb-98fe-1cac46370de2' }]
         }
       }
     };
@@ -216,11 +158,14 @@
         power: 12
       },
       links: {
-        self: 'http://example.com/dieties/1',
+        self: 'http://example.com/dieties/1'
+      }, relationships: {
         apearences: {
-          self: 'http://example.com/dieties/1/links/apearences',
-          related: 'http://example.com/dieties/1/apearences',
-          linkage: []
+          links: {
+            self: 'http://example.com/dieties/1/links/apearences',
+            related: 'http://example.com/dieties/1/apearences'
+          },
+          data: []
         }
       }
     };
@@ -289,12 +234,12 @@
         if (urlObject.search.include !== undefined) {
           data.included = [];
           angular.forEach(urlObject.search.include, function(elem) {
-            if (angular.isArray(datas.novels[id].links[elem].linkage)) {
-              angular.forEach(datas.novels[id].links[elem].linkage, function(include) {
+            if (angular.isArray(datas.novels[id].relationships[elem].data)) {
+              angular.forEach(datas.novels[id].relationships[elem].data, function(include) {
                 data.included.push(datas[include.type][include.id]);
               });
             } else {
-              data.included.push(datas[datas.novels[id].links[elem].linkage.type][datas.novels[id].links[elem].linkage.id]);
+              data.included.push(datas[datas.novels[id].relationships[elem].data.type][datas.novels[id].relationships[elem].data.id]);
             }
 
           });
@@ -354,15 +299,17 @@
 
       angular.extend(obj, new URL('http://example.com' + url));
 
-      hash = obj.search.split('&');
-      hash[0] = hash[0].substr(1);
-      obj.search = {};
-      angular.forEach(hash, function(elem) {
-        var t = elem.split('=');
-        if (t[1] !== undefined) {
-          obj.search[t[0]] = t[1].split(',');
-        }
-      });
+      if (obj.search !== undefined) {
+        hash = obj.search.split('&');
+        hash[0] = hash[0].substr(1);
+        obj.search = {};
+        angular.forEach(hash, function(elem) {
+          var t = elem.split('=');
+          if (t[1] !== undefined) {
+            obj.search[t[0]] = t[1].split(',');
+          }
+        });
+      }
 
       obj.id = regex.exec(url)[0];
 

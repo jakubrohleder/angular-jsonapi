@@ -14,7 +14,7 @@
         name: ['required', 'string'],
         power: ['required', 'integer']
       },
-      links: {
+      relationships: {
         apearences: {
           included: false,
           type: 'hasMany',

@@ -38,15 +38,15 @@
     function AngularJsonAPIAbstractData(data, updatedAt, dummy) {
       var _this = this;
 
-      data.links = data.links || {};
+      data.relationships = data.relationships || {};
 
       _this.removed = false;
       _this.loadingCount = 0;
       _this.data = {
-        links: {},
+        relationships: {},
         attributes: {}
       };
-      _this.links = {};
+      _this.relationships = {};
 
       _this.errors = {
         validation: {}
@@ -106,7 +106,7 @@
       var _this = this;
       var res = {data: {}};
       angular.forEach(_this.data, function(val, key) {
-        if (key !== 'links') {
+        if (key !== 'relationships') {
           res.data[key] = val;
         }
       });
@@ -118,7 +118,7 @@
       var _this = this;
       var linkedObject = _this.linkedCollections[linkModelName].__get(id);
 
-      if (_this.schema.links[linkKey] === undefined) {
+      if (_this.schema.relationships[linkKey] === undefined) {
         $log.error('Cannot add link not specified in schema: ' + linkKey);
         return;
       }
@@ -147,7 +147,7 @@
 
     function addLink(linkKey, linkedObject, reflection) {
       var _this = this;
-      var linkSchema = _this.schema.links[linkKey];
+      var linkSchema = _this.schema.relationships[linkKey];
       var linkType;
       var reflectionKey;
       var linkAttributes;
@@ -169,10 +169,10 @@
 
       linkType = linkSchema.type;
       reflectionKey = linkSchema.reflection;
-      linkAttributes = _this.data.links[linkKey].linkage;
+      linkAttributes = _this.data.relationships[linkKey].data;
 
       if (linkType === 'hasOne') {
-        if (_this.data.links[linkKey].linkage.id === linkedObject.data.id) {
+        if (_this.data.relationships[linkKey].data.id === linkedObject.data.id) {
           return;
         }
 
@@ -181,11 +181,11 @@
           _this.removeLink(linkKey);
         }
 
-        _this.data.links[linkKey].linkage = linkedObject.toLink();
+        _this.data.relationships[linkKey].data = linkedObject.toLink();
         linkAttributes = linkedObject.toLink();
       } else {
         var duplicate = false;
-        angular.forEach(_this.data.links[linkKey].linkage, function(link) {
+        angular.forEach(_this.data.relationships[linkKey].data, function(link) {
           if (link.id === linkedObject.data.id) {
             duplicate = true;
           }
@@ -195,7 +195,7 @@
           return;
         }
 
-        _this.data.links[linkKey].linkage.push(linkedObject.toLink());
+        _this.data.relationships[linkKey].data.push(linkedObject.toLink());
       }
 
       if (reflection === true) {
@@ -212,44 +212,44 @@
     function removeAllLinks() {
       var _this = this;
 
-      angular.forEach(_this.links, function(link, key) {
+      angular.forEach(_this.relationships, function(link, key) {
         _this.removeLink(key);
       });
     }
 
     function removeLink(linkKey, linkedObject, reflection) {
       var _this = this;
-      var linkSchema = _this.schema.links[linkKey];
+      var linkSchema = _this.schema.relationships[linkKey];
       var linkType;
       var linkAttributes;
       var reflectionKey;
       var removed = false;
 
-      if (_this.schema.links[linkKey] === undefined) {
+      if (_this.schema.relationships[linkKey] === undefined) {
         $log.error('Can\'t remove link not present in schema');
         return;
       }
 
       linkType = linkSchema.type;
       reflectionKey = linkSchema.reflection;
-      linkAttributes = _this.data.links[linkKey].linkage;
+      linkAttributes = _this.data.relationships[linkKey].data;
 
       if (linkType === 'hasOne') {
         if (linkedObject === undefined || linkedObject.data.id === linkAttributes.id) {
-          _this.data.links[linkKey].linkage = null;
+          _this.data.relationships[linkKey].data = null;
           linkAttributes = null;
           removed = true;
-          if (reflection !== true && _this.links[linkKey] !== undefined) {
-            _this.links[linkKey].removeLink(reflectionKey, _this, true);
+          if (reflection !== true && _this.relationships[linkKey] !== undefined) {
+            _this.relationships[linkKey].removeLink(reflectionKey, _this, true);
           }
         }
       } else {
         if (linkedObject === undefined) {
-          _this.data.links[linkKey].linkage = [];
+          _this.data.relationships[linkKey].data = [];
           linkAttributes = [];
           removed = true;
           if (reflection !== true) {
-            angular.forEach(_this.links[linkKey], function(link) {
+            angular.forEach(_this.relationships[linkKey], function(link) {
               link.removeLink(reflectionKey, _this, true);
             });
           }
@@ -294,8 +294,8 @@
       var reflectionKey = linkSchema.reflection;
 
       if (linkAttributes === null) {
-        delete _this.links[linkKey];
-        _this.links[linkKey] = undefined;
+        delete _this.relationships[linkKey];
+        _this.relationships[linkKey] = undefined;
       } else if (linkType === 'hasMany' && angular.isArray(linkAttributes)) {
         var getAll = function() {
           var result = [];
@@ -309,7 +309,7 @@
           return result;
         };
 
-        lazyProperty(_this.links, linkKey, getAll);
+        lazyProperty(_this.relationships, linkKey, getAll);
       } else if (linkType === 'hasOne' && linkAttributes.id) {
 
         var getSingle = function() {
@@ -319,7 +319,7 @@
           return linkedObject;
         };
 
-        lazyProperty(_this.links, linkKey, getSingle);
+        lazyProperty(_this.relationships, linkKey, getSingle);
       }
     }
 
@@ -334,34 +334,33 @@
           indexedLinks[link.id] = link;
         });
 
-        angular.forEach(_this.links[linkKey], function(link) {
+        angular.forEach(_this.relationships[linkKey], function(link) {
           if (indexedLinks[link.data.id] === undefined) {
             link.removeLink(reflectionKey, _this, true);
           }
         });
-      } else if (linkType === 'hasOne' && linkAttributes.id) {
-        if (_this.links[linkKey] !== undefined && _this.links[linkKey].data.id !== linkAttributes.id) {
-          _this.links[linkKey].removeLink(reflectionKey, _this, true);
+      } else if (linkType === 'hasOne' && linkAttributes !== null && linkAttributes.id) {
+        if (_this.relationships[linkKey] !== undefined && _this.relationships[linkKey].data.id !== linkAttributes.id) {
+          _this.relationships[linkKey].removeLink(reflectionKey, _this, true);
         }
       }
 
       _this.__setLinkInternal(linkAttributes, linkKey, linkSchema);
     }
 
-    function __setLinks(links) {
+    function __setLinks(relationships) {
       var _this = this;
-
-      angular.forEach(_this.schema.links, function(linkSchema, linkName) {
+      angular.forEach(_this.schema.relationships, function(linkSchema, linkName) {
         if (linkSchema.type === 'hasOne') {
-          _this.data.links[linkName] = links[linkName] || {linkage: null};
+          _this.data.relationships[linkName] = relationships[linkName] || {data: null};
         } else {
-          _this.data.links[linkName] = links[linkName] || {linkage: []};
+          _this.data.relationships[linkName] = relationships[linkName] || {data: []};
         }
       });
 
-      angular.forEach(_this.schema.links, function(linkSchema, linkKey) {
-        if (links[linkKey] !== undefined) {
-          _this.__setLink(links[linkKey].linkage, linkKey, linkSchema);
+      angular.forEach(_this.schema.relationships, function(linkSchema, linkKey) {
+        if (relationships[linkKey] !== undefined) {
+          _this.__setLink(relationships[linkKey].data, linkKey, linkSchema);
         }
       });
     }
@@ -408,14 +407,14 @@
 
       _this.errors.validation = _this.__validateData(safeData);
 
-      safeData.links = safeData.links || {};
+      safeData.relationships = safeData.relationships || {};
       safeData.attributes = safeData.attributes || {};
 
       _this.data.id = safeData.id;
       _this.data.type = safeData.type;
 
       _this.__setAttributes(safeData.attributes);
-      _this.__setLinks(safeData.links);
+      _this.__setLinks(safeData.relationships);
     }
 
     function __validate(validator, attributeValue, attributeName) {

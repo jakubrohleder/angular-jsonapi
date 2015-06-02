@@ -14,7 +14,7 @@
         firstName: ['required', 'string'],
         lastName: ['required', 'string']
       },
-      links: {
+      relationships: {
         novels: {
           included: true,
           type: 'hasMany',

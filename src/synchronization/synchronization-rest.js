@@ -156,7 +156,7 @@
         } else {
           config = {
             method: 'DELETE',
-            url: url + '/' + object.data.id + '/links/' + linkKey,
+            url: url + '/' + object.data.id + '/relationships/' + linkKey,
             data: {data: linkedObject.toLink()}
           };
 
@@ -176,7 +176,7 @@
         var deferred = $q.defer();
         var config = {
           method: 'POST',
-          url: url + '/' + object.data.id + '/links/' + linkKey,
+          url: url + '/' + object.data.id + '/relationships/' + linkKey,
           data: {data: linkedObject.toLink()}
         };
 
@@ -213,9 +213,10 @@
 
       function add(collection, object) {
         var deferred = $q.defer();
+        console.log(object);
         var config = {
           method: 'POST',
-          url: url + '/' + object.data.id,
+          url: url + '/',
           data: {data: object.toJson()}
         };
 

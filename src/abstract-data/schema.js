@@ -17,9 +17,9 @@
         all: {}
       };
 
-      angular.forEach(schema.links, function(linkSchema, linkName) {
+      angular.forEach(schema.relationships, function(linkSchema, linkName) {
         var linkSchemaObj = new AngularJsonAPILinkSchema(linkSchema, linkName, schema.type);
-        schema.links[linkName] = linkSchemaObj;
+        schema.relationships[linkName] = linkSchemaObj;
         if (linkSchemaObj.included === true) {
           include.push(linkName);
         }

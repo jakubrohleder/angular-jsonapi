@@ -90,7 +90,7 @@
         _this.data[validatedData.id] = new this.Model(validatedData, updatedAt);
       } else {
         _this.data[validatedData.id].__setData(validatedData, updatedAt);
-        _this.data[validatedData.id].__setLinks(validatedData.links);
+        _this.data[validatedData.id].__setLinks(validatedData.relationships);
       }
 
       _this.data[validatedData.id].__setUpdated(updatedAt);
@@ -180,7 +180,7 @@
           return;
         }
 
-        data.links = {};
+        data.relationships = {};
 
         data.type = _this.schema.type;
         newModel = _this.parentCollection.addOrUpdate(data);

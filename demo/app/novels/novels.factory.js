@@ -14,7 +14,7 @@
         title: ['required', 'string', {minlength: 3}, {maxlength: 50}],
         part: ['integer', {maxvalue: 10, minvalue: 1}]
       },
-      links: {
+      relationships: {
         author: {
           included: true,
           type: 'hasOne',

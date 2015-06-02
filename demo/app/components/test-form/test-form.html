@@ -31,7 +31,7 @@
   </div>
 
   <div collapse="collapsedLinks">
-    <div ng-repeat="(link, value) in object.links">
+    <div ng-repeat="(link, value) in object.relationships">
       <div ng-if="isArray(value)">
         <h4>{{link}} hasMany</h4>
         <div class="row" ng-repeat="value in value">
@@ -56,7 +56,7 @@
         <div class="form-group">
           <input type="text" class="form-control input-sm" ng-model="uuids[link]" placeholder="uuid4">
         </div>
-        <button class="btn btn-primary btn-sm pull-right" ng-click="object.addLinkById(link, object.schema.links[link].model, uuids[link])" type="button">Add</button>
+        <button class="btn btn-primary btn-sm pull-right" ng-click="object.addLinkById(link, object.schema.relationships[link].model, uuids[link])" type="button">Add</button>
       </form>
     </div>
   </div>
