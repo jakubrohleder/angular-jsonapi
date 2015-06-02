@@ -300,7 +300,13 @@
         var getAll = function() {
           var result = [];
           angular.forEach(linkAttributes, function(link) {
-            var linkedObject = _this.linkedCollections[link.type].__get(link.id);
+            var linkedCollection = _this.linkedCollections[link.type];
+            if (linkedCollection === undefined) {
+              $log.error('No angular-jsonapi schema for', linkAttributes.type);
+              return;
+            }
+
+            var linkedObject = linkedCollection.__get(linkAttributes.id);
             linkedObject.addLink(reflectionKey, _this, true);
 
             result.push(linkedObject);
@@ -313,7 +319,13 @@
       } else if (linkType === 'hasOne' && linkAttributes.id) {
 
         var getSingle = function() {
-          var linkedObject = _this.linkedCollections[linkAttributes.type].__get(linkAttributes.id);
+          var linkedCollection = _this.linkedCollections[linkAttributes.type];
+          if (linkedCollection === undefined) {
+            $log.error('No angular-jsonapi schema for', linkAttributes.type);
+            return;
+          }
+
+          var linkedObject = linkedCollection.__get(linkAttributes.id);
           linkedObject.addLink(reflectionKey, _this, true);
 
           return linkedObject;
