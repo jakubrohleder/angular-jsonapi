@@ -3,7 +3,7 @@
 <h2>{{diety.toString()}}</h2>
 <h2>Novels</h2>
 <ul>
-  <li ng-repeat="novel in person.links.novels">
+  <li ng-repeat="novel in person.relationships.novels">
     <a ui-sref="novels.novel({id: novel.data.id})">
       {{novel.toString()}}
     </a>

@@ -223,7 +223,7 @@
     });
 
     $httpBackend.whenGET(/\/novels\/[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/).respond(function(method, url) {
-      console.debug('Novel get:', url);
+      console.debug('Novel get:', url, parseUrl(url));
       var urlObject = parseUrl(url);
       var id = urlObject.id;
       var data = {};
@@ -231,7 +231,7 @@
         return [404, [], {}];
       } else {
         data.data = datas.novels[id];
-        if (urlObject.search.include !== undefined) {
+        if (urlObject.search !== undefined && urlObject.search.include !== undefined) {
           data.included = [];
           angular.forEach(urlObject.search.include, function(elem) {
             if (angular.isArray(datas.novels[id].relationships[elem].data)) {
@@ -297,8 +297,8 @@
       var hash;
       var regex = /[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}/;
 
-      angular.extend(obj, new URL('http://example.com' + url));
-
+      obj.search = (new URL('http://example.com' + url)).search;
+      console.log(obj);
       if (obj.search !== undefined) {
         hash = obj.search.split('&');
         hash[0] = hash[0].substr(1);

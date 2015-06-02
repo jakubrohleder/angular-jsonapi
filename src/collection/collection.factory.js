@@ -128,10 +128,9 @@
 
     function all() {
       var _this = this;
-
       _this.__synchronize('all', undefined, undefined, undefined, _this.schema.params.all);
 
-      return _this.data;
+      return _this;
     }
 
     function clear() {

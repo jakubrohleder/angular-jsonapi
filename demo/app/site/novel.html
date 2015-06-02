@@ -3,7 +3,7 @@
 <h2>{{novel.toString()}}</h2>
 <h2>Dieties</h2>
 <ul>
-  <li ng-repeat="diety in novel.links.dieties">
+  <li ng-repeat="diety in novel.relationships.dieties">
     <a ui-sref="dieties.diety({id: diety.data.id})">
       {{diety.toString()}}
     </a>
@@ -11,6 +11,6 @@
 </ul>
 
 <h2>Author</h2>
- <a ui-sref="people.person({id: novel.links.author.data.id})">
-  {{novel.links.author.toString()}}
+ <a ui-sref="people.person({id: novel.relationships.author.data.id})">
+  {{novel.relationships.author.toString()}}
 </a>
