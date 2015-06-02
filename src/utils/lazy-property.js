@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  angular.module('angularJsonapi')
+  angular.module('angular-jsonapi')
     .constant('lazyProperty', function(target, propertyName, callback) {
       var result;
       var done;

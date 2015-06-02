@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('angularJsonapi')
+  angular.module('angular-jsonapi')
   .factory('AngularJsonAPIAbstractDataForm', AngularJsonAPIAbstractDataFormWrapper);
 
   function AngularJsonAPIAbstractDataFormWrapper($log) {

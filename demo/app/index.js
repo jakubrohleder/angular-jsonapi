@@ -3,9 +3,9 @@
 angular.module('angularJsonapiExample', [
     'ui.router',
     'ui.bootstrap',
-    'angularJsonapi',
-    'angularJsonapiLocal',
-    'angularJsonapiRest',
+    'angular-jsonapi',
+    'angular-jsonapi-local',
+    'angular-jsonapi-rest',
     'jsonFormatter',
     'ngClipboard',
     'ngMockE2E'

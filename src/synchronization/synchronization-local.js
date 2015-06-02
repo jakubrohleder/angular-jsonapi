@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('angularJsonapiLocal', ['angularJsonapi'])
+  angular.module('angular-jsonapi-local', ['angular-jsonapi'])
   .factory('AngularJsonAPISynchronizationLocal', AngularJsonAPISynchronizationLocalWrapper);
 
   function AngularJsonAPISynchronizationLocalWrapper(AngularJsonAPISynchronization, $window) {

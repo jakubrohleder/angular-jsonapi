@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('angularJsonapi')
+  angular.module('angular-jsonapi')
   .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
 
   function AngularJsonAPISchemaWrapper($log) {

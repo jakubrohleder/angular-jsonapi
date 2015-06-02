@@ -44,7 +44,7 @@ describe('JsonAPIModelFactory factory', function() {
     }
   };
 
-  beforeEach(module('angularJsonapi'));
+  beforeEach(module('angular-jsonapi'));
 
   var Novel;
   var validNovel;

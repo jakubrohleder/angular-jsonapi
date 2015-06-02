@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('angularJsonapi')
+  angular.module('angular-jsonapi')
   .provider('$jsonapi', jsonapiProvider);
 
   function jsonapiProvider() {

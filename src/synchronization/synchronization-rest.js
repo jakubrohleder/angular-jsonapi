@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('angularJsonapiRest', ['angularJsonapi'])
+  angular.module('angular-jsonapi-rest', ['angular-jsonapi'])
   .factory('AngularJsonAPISynchronizationRest', AngularJsonAPISynchronizationRestWrapper);
 
   function AngularJsonAPISynchronizationRestWrapper(AngularJsonAPISynchronization, $q, $http) {
