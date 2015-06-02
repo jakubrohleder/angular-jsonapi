@@ -8,7 +8,11 @@ var $ = require('gulp-load-plugins')({
 
 module.exports = function(options) {
   gulp.task('build', function() {
-    return gulp.src(options.lib + '/**/*.js')
+    return gulp.src([
+        options.lib + '/**/*.js',
+        '!' + options.lib + '/**/*.spec.js',
+        '!' + options.lib + '/**/*.mock.js'
+      ])
       .pipe($.sourcemaps.init())
       .pipe($.ngAnnotate())
       .pipe($.angularFilesort())
