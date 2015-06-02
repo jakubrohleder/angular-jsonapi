@@ -29,6 +29,7 @@ module.exports = function(options) {
       } else {
         gulp.start('inject');
       }
+      gulp.start('build');
     });
 
     gulp.watch(options.src + '/app/**/*.html', function(event) {
