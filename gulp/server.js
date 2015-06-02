@@ -18,6 +18,8 @@ module.exports = function(options) {
       routes = {
         '/bower_components': 'bower_components'
       };
+
+      routes['/' + options.lib] = options.lib;
     }
 
     var server = {

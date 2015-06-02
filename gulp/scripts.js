@@ -7,7 +7,10 @@ var $ = require('gulp-load-plugins')();
 
 module.exports = function(options) {
   gulp.task('scripts', function() {
-    return gulp.src(options.src + '/app/**/*.js')
+    return gulp.src([
+      options.src + '/app/**/*.js',
+      options.lib + '/**/*.js'
+    ])
       .pipe($.jshint())
       .pipe($.jshint.reporter('jshint-stylish'))
       // .pipe($.jscs())

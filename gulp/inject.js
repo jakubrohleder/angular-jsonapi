@@ -16,7 +16,11 @@ module.exports = function(options) {
     var injectScripts = gulp.src([
       options.src + '/app/**/*.js',
       '!' + options.src + '/app/**/*.spec.js',
-      '!' + options.src + '/app/**/*.mock.js'
+      '!' + options.src + '/app/**/*.mock.js',
+
+      options.lib + '/**/*.js',
+      '!' + options.lib + '/**/*.spec.js',
+      '!' + options.lib + '/**/*.mock.js'
     ])
     .pipe($.angularFilesort()).on('error', options.errorHandler('AngularFilesort'));
 
