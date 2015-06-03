@@ -1,7 +1,8 @@
 (function() {
   'use strict';
 
-  angular.module('angular-jsonapi', ['uuid4']);
+  angular.module('angular-jsonapi', ['uuid4'])
+  .constant('pluralize', pluralize);
 
 })();
 
@@ -740,7 +741,7 @@
   angular.module('angular-jsonapi')
   .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
 
-  function AngularJsonAPISchemaWrapper($log) {
+  function AngularJsonAPISchemaWrapper($log, pluralize) {
 
     return AngularJsonAPISchema;
 
@@ -772,7 +773,7 @@
       var _this = this;
 
       if (angular.isString(linkSchema)) {
-        _this.model = linkName;
+        _this.model = pluralize.plural(linkName);
         _this.type = linkSchema;
         _this.polymorphic = false;
         _this.reflection = type;
@@ -781,7 +782,7 @@
           $log.error('Schema of link without a type: ', linkSchema, linkName);
         }
 
-        _this.model = linkSchema.model || linkName;
+        _this.model = linkSchema.model || pluralize.plural(linkName);
         _this.type = linkSchema.type;
         _this.polymorphic = linkSchema.polymorphic || false;
         _this.reflection = linkSchema.reflection || type;
@@ -790,7 +791,7 @@
     }
 
   }
-  AngularJsonAPISchemaWrapper.$inject = ["$log"];
+  AngularJsonAPISchemaWrapper.$inject = ["$log", "pluralize"];
 })();
 
 (function() {
@@ -1012,7 +1013,10 @@
       linkAttributes = _this.data.relationships[linkKey].data;
 
       if (linkType === 'hasOne') {
-        if (_this.data.relationships[linkKey].data.id === linkedObject.data.id) {
+        if (
+          linkAttributes !== null &&
+          linkAttributes.id === linkedObject.data.id
+        ) {
           return;
         }
 
@@ -1021,11 +1025,11 @@
           _this.removeLink(linkKey);
         }
 
-        _this.data.relationships[linkKey].data = linkedObject.toLink();
+        linkAttributes = linkedObject.toLink();
         linkAttributes = linkedObject.toLink();
       } else {
         var duplicate = false;
-        angular.forEach(_this.data.relationships[linkKey].data, function(link) {
+        angular.forEach(linkAttributes, function(link) {
           if (link.id === linkedObject.data.id) {
             duplicate = true;
           }
@@ -1035,7 +1039,7 @@
           return;
         }
 
-        _this.data.relationships[linkKey].data.push(linkedObject.toLink());
+        linkAttributes.push(linkedObject.toLink());
       }
 
       if (reflection === true) {
@@ -1075,7 +1079,9 @@
       linkAttributes = _this.data.relationships[linkKey].data;
 
       if (linkType === 'hasOne') {
-        if (linkedObject === undefined || linkedObject.data.id === linkAttributes.id) {
+        if (linkedObject.data !== null &&
+            (linkedObject === undefined || linkedObject.data.id === linkAttributes.id)
+        ) {
           _this.data.relationships[linkKey].data = null;
           linkAttributes = null;
           removed = true;
@@ -1146,7 +1152,7 @@
               return;
             }
 
-            var linkedObject = linkedCollection.__get(linkAttributes.id);
+            var linkedObject = linkedCollection.__get(link.id);
             linkedObject.addLink(reflectionKey, _this, true);
 
             result.push(linkedObject);

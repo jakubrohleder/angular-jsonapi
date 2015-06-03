@@ -172,7 +172,10 @@
       linkAttributes = _this.data.relationships[linkKey].data;
 
       if (linkType === 'hasOne') {
-        if (_this.data.relationships[linkKey].data.id === linkedObject.data.id) {
+        if (
+          linkAttributes !== null &&
+          linkAttributes.id === linkedObject.data.id
+        ) {
           return;
         }
 
@@ -181,11 +184,11 @@
           _this.removeLink(linkKey);
         }
 
-        _this.data.relationships[linkKey].data = linkedObject.toLink();
+        linkAttributes = linkedObject.toLink();
         linkAttributes = linkedObject.toLink();
       } else {
         var duplicate = false;
-        angular.forEach(_this.data.relationships[linkKey].data, function(link) {
+        angular.forEach(linkAttributes, function(link) {
           if (link.id === linkedObject.data.id) {
             duplicate = true;
           }
@@ -195,7 +198,7 @@
           return;
         }
 
-        _this.data.relationships[linkKey].data.push(linkedObject.toLink());
+        linkAttributes.push(linkedObject.toLink());
       }
 
       if (reflection === true) {
@@ -235,7 +238,9 @@
       linkAttributes = _this.data.relationships[linkKey].data;
 
       if (linkType === 'hasOne') {
-        if (linkedObject === undefined || linkedObject.data.id === linkAttributes.id) {
+        if (linkedObject.data !== null &&
+            (linkedObject === undefined || linkedObject.data.id === linkAttributes.id)
+        ) {
           _this.data.relationships[linkKey].data = null;
           linkAttributes = null;
           removed = true;
@@ -306,7 +311,7 @@
               return;
             }
 
-            var linkedObject = linkedCollection.__get(linkAttributes.id);
+            var linkedObject = linkedCollection.__get(link.id);
             linkedObject.addLink(reflectionKey, _this, true);
 
             result.push(linkedObject);

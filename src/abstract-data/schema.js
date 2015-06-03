@@ -4,7 +4,7 @@
   angular.module('angular-jsonapi')
   .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
 
-  function AngularJsonAPISchemaWrapper($log) {
+  function AngularJsonAPISchemaWrapper($log, pluralize) {
 
     return AngularJsonAPISchema;
 
@@ -36,7 +36,7 @@
       var _this = this;
 
       if (angular.isString(linkSchema)) {
-        _this.model = linkName;
+        _this.model = pluralize.plural(linkName);
         _this.type = linkSchema;
         _this.polymorphic = false;
         _this.reflection = type;
@@ -45,7 +45,7 @@
           $log.error('Schema of link without a type: ', linkSchema, linkName);
         }
 
-        _this.model = linkSchema.model || linkName;
+        _this.model = linkSchema.model || pluralize.plural(linkName);
         _this.type = linkSchema.type;
         _this.polymorphic = linkSchema.polymorphic || false;
         _this.reflection = linkSchema.reflection || type;
