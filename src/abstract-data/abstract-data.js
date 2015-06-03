@@ -185,7 +185,6 @@
         }
 
         linkAttributes = linkedObject.toLink();
-        linkAttributes = linkedObject.toLink();
       } else {
         var duplicate = false;
         angular.forEach(linkAttributes, function(link) {
@@ -369,9 +368,11 @@
       var _this = this;
       angular.forEach(_this.schema.relationships, function(linkSchema, linkName) {
         if (linkSchema.type === 'hasOne') {
-          _this.data.relationships[linkName] = relationships[linkName] || {data: null};
+          _this.data.relationships[linkName] = relationships[linkName] || {};
+          _this.data.relationships[linkName].data = _this.data.relationships[linkName].data || null;
         } else {
-          _this.data.relationships[linkName] = relationships[linkName] || {data: []};
+          _this.data.relationships[linkName] = relationships[linkName] || {};
+          _this.data.relationships[linkName].data = _this.data.relationships[linkName].data || [];
         }
       });
 
