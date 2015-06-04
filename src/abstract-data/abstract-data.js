@@ -169,10 +169,12 @@
 
       linkType = linkSchema.type;
       reflectionKey = linkSchema.reflection;
-      linkAttributes = _this.data.relationships[linkKey].data;
 
       if (linkType === 'hasOne') {
+        linkAttributes = _this.data.relationships[linkKey].data;
+
         if (
+          linkAttributes !== undefined &&
           linkAttributes !== null &&
           linkAttributes.id === linkedObject.data.id
         ) {
@@ -186,6 +188,7 @@
 
         linkAttributes = linkedObject.toLink();
       } else {
+        linkAttributes = _this.data.relationships[linkKey].data || [];
         var duplicate = false;
         angular.forEach(linkAttributes, function(link) {
           if (link.id === linkedObject.data.id) {
@@ -237,9 +240,7 @@
       linkAttributes = _this.data.relationships[linkKey].data;
 
       if (linkType === 'hasOne') {
-        if (linkedObject.data !== null &&
-            (linkedObject === undefined || linkedObject.data.id === linkAttributes.id)
-        ) {
+        if (linkedObject !== undefined && linkedObject.data.id === linkAttributes.id) {
           _this.data.relationships[linkKey].data = null;
           linkAttributes = null;
           removed = true;
@@ -320,7 +321,7 @@
         };
 
         lazyProperty(_this.relationships, linkKey, getAll);
-      } else if (linkType === 'hasOne' && linkAttributes.id) {
+      } else if (linkType === 'hasOne' && linkAttributes !== null) {
 
         var getSingle = function() {
           var linkedCollection = _this.linkedCollections[linkAttributes.type];
@@ -355,7 +356,7 @@
             link.removeLink(reflectionKey, _this, true);
           }
         });
-      } else if (linkType === 'hasOne' && linkAttributes !== null && linkAttributes.id) {
+      } else if (linkType === 'hasOne' && linkAttributes !== null) {
         if (_this.relationships[linkKey] !== undefined && _this.relationships[linkKey].data.id !== linkAttributes.id) {
           _this.relationships[linkKey].removeLink(reflectionKey, _this, true);
         }
@@ -367,17 +368,14 @@
     function __setLinks(relationships) {
       var _this = this;
       angular.forEach(_this.schema.relationships, function(linkSchema, linkName) {
-        if (linkSchema.type === 'hasOne') {
-          _this.data.relationships[linkName] = relationships[linkName] || {};
-          _this.data.relationships[linkName].data = _this.data.relationships[linkName].data || null;
-        } else {
-          _this.data.relationships[linkName] = relationships[linkName] || {};
-          _this.data.relationships[linkName].data = _this.data.relationships[linkName].data || [];
+        _this.data.relationships[linkName] = _this.data.relationships[linkName] || {};
+        if (relationships[linkName] !== undefined) {
+          angular.extend(_this.data.relationships[linkName], relationships[linkName]);
         }
       });
 
       angular.forEach(_this.schema.relationships, function(linkSchema, linkKey) {
-        if (relationships[linkKey] !== undefined) {
+        if (relationships[linkKey] !== undefined && relationships[linkKey].data !== undefined) {
           _this.__setLink(relationships[linkKey].data, linkKey, linkSchema);
         }
       });
