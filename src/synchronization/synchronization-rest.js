@@ -213,7 +213,6 @@
 
       function add(collection, object) {
         var deferred = $q.defer();
-        console.log(object);
         var config = {
           method: 'POST',
           url: url + '/',
