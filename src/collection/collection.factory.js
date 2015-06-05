@@ -18,6 +18,7 @@
 
     AngularJsonAPICollection.prototype.get = get;
     AngularJsonAPICollection.prototype.all = all;
+    AngularJsonAPICollection.prototype.refresh = all;
     AngularJsonAPICollection.prototype.remove = remove;
     AngularJsonAPICollection.prototype.clear = clear;
     AngularJsonAPICollection.prototype.fromJson = fromJson;
