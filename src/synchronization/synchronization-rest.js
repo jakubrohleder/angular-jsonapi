@@ -38,11 +38,14 @@
       }
 
       function afterAll(collection, object, linkSchema, linkedObject, params, results) {
-        var rawData = results[0].value.data.data;
-        var included = results[0].value.data.included;
+        var rawData;
+        var included;
+        var indexedData;
 
         if (results[0].success === true && rawData !== undefined) {
-          var indexedData = {};
+          rawData = results[0].value.data.data;
+          included = results[0].value.data.included;
+          indexedData = {};
           angular.forEach(rawData, function(data) {
             indexedData[data.id] = data;
             collection.addOrUpdate(data);
