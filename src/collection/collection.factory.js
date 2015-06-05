@@ -23,6 +23,7 @@
     AngularJsonAPICollection.prototype.fromJson = fromJson;
     AngularJsonAPICollection.prototype.toJson = toJson;
     AngularJsonAPICollection.prototype.addOrUpdate = addOrUpdate;
+    AngularJsonAPICollection.prototype.hasErrors = hasErrors;
 
     return AngularJsonAPICollection;
 
@@ -49,6 +50,21 @@
       _this.allCollections[schema.type] = _this;
 
       _this.__synchronize('init');
+
+      _this.errors = {};
+    }
+
+    function hasErrors() {
+      var _this = this;
+      var result = false;
+
+      angular.forEach(_this.errors, function(error) {
+        if (error !== undefined) {
+          result = true;
+        }
+      });
+
+      return result;
     }
 
     function fromJson(json) {

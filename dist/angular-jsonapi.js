@@ -280,7 +280,7 @@
         var included;
         var indexedData;
 
-        if (results[0].success === true && rawData !== undefined) {
+        if (results[0].success === true) {
           rawData = results[0].value.data.data;
           included = results[0].value.data.included;
           indexedData = {};
@@ -313,10 +313,6 @@
           angular.forEach(included, function(object) {
             collection.allCollections[object.type].addOrUpdate(object);
           });
-        } else {
-          object.error = true;
-          object.__remove();
-          collection.__remove(object.data.id);
         }
       }
 
@@ -328,11 +324,15 @@
           params: params || {}
         };
 
+        collection.errors.rest = collection.errors.rest || {};
+
         $http(config).
           success(function(data, status, headers, config) {
+            collection.errors.rest.all = undefined;
             deferred.resolve(wrapResp(data, status, headers, config));
           }).
           error(function(data, status, headers, config) {
+            collection.errors.rest.all = data;
             deferred.reject(wrapResp(data, status, headers, config));
           });
 
@@ -359,11 +359,15 @@
           params: params || {}
         };
 
+        object.errors.rest = object.errors.rest || {};
+
         $http(config).
           success(function(data, status, headers, config) {
+            object.errors.rest.get = undefined;
             deferred.resolve(wrapResp(data, status, headers, config));
           }).
           error(function(data, status, headers, config) {
+            object.errors.rest.get = data;
             deferred.reject(wrapResp(data, status, headers, config));
           });
 
@@ -377,11 +381,15 @@
           url: url + '/' + object.data.id
         };
 
+        object.errors.rest = object.errors.rest || {};
+
         $http(config).
           success(function(data, status, headers, config) {
+            object.errors.rest.remove = undefined;
             deferred.resolve(wrapResp(data, status, headers, config));
           }).
           error(function(data, status, headers, config) {
+            object.errors.rest.remove = data;
             deferred.reject(wrapResp(data, status, headers, config));
           });
 
@@ -391,6 +399,8 @@
       function removeLink(collection, object, linkKey, linkedObject) {
         var deferred = $q.defer();
         var config;
+
+        object.errors.rest = object.errors.rest || {};
 
         if (object.removed === true || linkedObject === undefined) {
           deferred.resolve();
@@ -403,9 +413,11 @@
 
           $http(config).
           success(function(data, status, headers, config) {
+            object.errors.rest.removeLink = undefined;
             deferred.resolve(wrapResp(data, status, headers, config));
           }).
           error(function(data, status, headers, config) {
+            object.errors.rest.removeLink = data;
             deferred.reject(wrapResp(data, status, headers, config));
           });
         }
@@ -421,11 +433,15 @@
           data: {data: linkedObject.toLink()}
         };
 
+        object.errors.rest = object.errors.rest || {};
+
         $http(config).
           success(function(data, status, headers, config) {
+            object.errors.rest.addLink = undefined;
             deferred.resolve(wrapResp(data, status, headers, config));
           }).
           error(function(data, status, headers, config) {
+            object.errors.rest.addLink = data;
             deferred.reject(wrapResp(data, status, headers, config));
           });
 
@@ -441,11 +457,15 @@
           data: {data: object.toPatchData()}
         };
 
+        object.errors.rest = object.errors.rest || {};
+
         $http(config).
           success(function(data, status, headers, config) {
+            object.errors.rest.update = undefined;
             deferred.resolve(wrapResp(data, status, headers, config));
           }).
           error(function(data, status, headers, config) {
+            object.errors.rest.update = data;
             deferred.reject(wrapResp(data, status, headers, config));
           });
 
@@ -460,11 +480,15 @@
           data: {data: object.toJson()}
         };
 
+        object.errors.rest = object.errors.rest || {};
+
         $http(config).
           success(function(data, status, headers, config) {
+            object.errors.rest.add = undefined;
             deferred.resolve(wrapResp(data, status, headers, config));
           }).
           error(function(data, status, headers, config) {
+            object.errors.rest.add = data;
             deferred.reject(wrapResp(data, status, headers, config));
           });
 
@@ -561,6 +585,7 @@
     AngularJsonAPICollection.prototype.fromJson = fromJson;
     AngularJsonAPICollection.prototype.toJson = toJson;
     AngularJsonAPICollection.prototype.addOrUpdate = addOrUpdate;
+    AngularJsonAPICollection.prototype.hasErrors = hasErrors;
 
     return AngularJsonAPICollection;
 
@@ -587,6 +612,21 @@
       _this.allCollections[schema.type] = _this;
 
       _this.__synchronize('init');
+
+      _this.errors = {};
+    }
+
+    function hasErrors() {
+      var _this = this;
+      var result = false;
+
+      angular.forEach(_this.errors, function(error) {
+        if (error !== undefined) {
+          result = true;
+        }
+      });
+
+      return result;
     }
 
     function fromJson(json) {
@@ -873,6 +913,7 @@
     AngularJsonAPIAbstractData.prototype.toLink = toLink;
     AngularJsonAPIAbstractData.prototype.toPatchData = toPatchData;
     AngularJsonAPIAbstractData.prototype.removeAllLinks = removeAllLinks;
+    AngularJsonAPIAbstractData.prototype.hasErrors = hasErrors;
 
     AngularJsonAPIAbstractData.prototype.toJson = toJson;
 
@@ -896,7 +937,6 @@
       };
 
       _this.dummy = dummy || false;
-      _this.error = false;
 
       _this.__setUpdated(updatedAt);
       _this.__setData(data, updatedAt);
@@ -908,6 +948,19 @@
       var _this = this;
 
       _this.parentCollection.__synchronize('refresh', _this);
+    }
+
+    function hasErrors() {
+      var _this = this;
+      var result = false;
+
+      angular.forEach(_this.errors, function(error) {
+        if (error !== undefined) {
+          result = true;
+        }
+      });
+
+      return result;
     }
 
     function toJson() {

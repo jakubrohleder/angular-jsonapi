@@ -30,6 +30,7 @@
     AngularJsonAPIAbstractData.prototype.toLink = toLink;
     AngularJsonAPIAbstractData.prototype.toPatchData = toPatchData;
     AngularJsonAPIAbstractData.prototype.removeAllLinks = removeAllLinks;
+    AngularJsonAPIAbstractData.prototype.hasErrors = hasErrors;
 
     AngularJsonAPIAbstractData.prototype.toJson = toJson;
 
@@ -53,7 +54,6 @@
       };
 
       _this.dummy = dummy || false;
-      _this.error = false;
 
       _this.__setUpdated(updatedAt);
       _this.__setData(data, updatedAt);
@@ -65,6 +65,19 @@
       var _this = this;
 
       _this.parentCollection.__synchronize('refresh', _this);
+    }
+
+    function hasErrors() {
+      var _this = this;
+      var result = false;
+
+      angular.forEach(_this.errors, function(error) {
+        if (error !== undefined) {
+          result = true;
+        }
+      });
+
+      return result;
     }
 
     function toJson() {
