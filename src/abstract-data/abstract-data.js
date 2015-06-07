@@ -380,6 +380,10 @@
 
     function __setLinks(relationships) {
       var _this = this;
+      if (relationships === undefined) {
+        return;
+      }
+
       angular.forEach(_this.schema.relationships, function(linkSchema, linkName) {
         _this.data.relationships[linkName] = _this.data.relationships[linkName] || {};
         if (relationships[linkName] !== undefined) {
