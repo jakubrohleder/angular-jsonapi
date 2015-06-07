@@ -78,7 +78,7 @@
         }
       }
 
-      function all(collection, object, params) {
+      function all(collection, object, linkSchema, linkedObject, params) {
         var deferred = $q.defer();
         var config = {
           method: 'GET',

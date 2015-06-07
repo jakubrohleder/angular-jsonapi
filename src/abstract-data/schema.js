@@ -10,7 +10,8 @@
 
     function AngularJsonAPISchema(schema) {
       var _this = this;
-      var include = [];
+      var includeGet = [];
+      var includeAll = [];
 
       _this.params = {
         get: {},
@@ -21,14 +22,21 @@
         var linkSchemaObj = new AngularJsonAPILinkSchema(linkSchema, linkName, schema.type);
         schema.relationships[linkName] = linkSchemaObj;
         if (linkSchemaObj.included === true) {
-          include.push(linkName);
+          includeGet.push(linkName);
+          if (linkSchemaObj.type === 'hasOne') {
+            includeAll.push(linkName);
+          }
         }
       });
 
       angular.extend(_this, schema);
 
-      if (include.length > 0) {
-        _this.params.get.include = include.join(',');
+      if (includeGet.length > 0) {
+        _this.params.get.include = includeGet.join(',');
+      }
+
+      if (includeAll.length > 0) {
+        _this.params.all.include = includeAll.join(',');
       }
     }
 
