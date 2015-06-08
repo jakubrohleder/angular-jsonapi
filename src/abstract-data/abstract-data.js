@@ -171,7 +171,10 @@
       }
 
       if (linkSchema === undefined) {
-        $log.error('Can\'t add link not present in schema: ', linkKey, _this, reflection);
+        if (reflection === false) {
+          $log.error('Can\'t add link not present in schema: ', linkKey, _this, reflection);
+        }
+
         return;
       }
 
