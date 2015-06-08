@@ -9,7 +9,8 @@
     Novels,
     Dieties,
     People,
-    $rootScope
+    $rootScope,
+    $jsonapi
   ) {
 
     $scope.novels = Novels;
@@ -21,10 +22,7 @@
     $scope.newDiety = $scope.dieties.dummy;
 
     $rootScope.clear = function() {
-      Novels.clear();
-      People.clear();
-      Dieties.clear();
-
+      $jsonapi.clearAll();
     };
 
   }

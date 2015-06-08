@@ -1506,7 +1506,8 @@
         remove: remove,
         all: all,
         addModel: addModel,
-        getModel: getModel
+        getModel: getModel,
+        clearAll: clearAll
       };
 
       function addModel(schema, synchronization) {
@@ -1549,6 +1550,12 @@
         }
 
         return memory[type].all();
+      }
+
+      function clearAll() {
+        angular.forEach(memory, function(collection) {
+          collection.clear();
+        });
       }
     }
     jsonapiFactory.$inject = ["$log", "AngularJsonAPICollection"];
