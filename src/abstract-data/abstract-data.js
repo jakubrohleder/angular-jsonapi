@@ -431,7 +431,7 @@
       var _this = this;
 
       angular.forEach(_this.schema.attributes, function(validator, attributeName) {
-        if (attributes[attributeName]) {
+        if (attributes[attributeName] !== undefined) {
           _this.data.attributes[attributeName] = attributes[attributeName];
         }
       });

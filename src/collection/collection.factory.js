@@ -196,11 +196,13 @@
           return;
         }
 
-        data.relationships = {};
+        data.relationships = data.relationships || {};
 
         data.type = _this.schema.type;
         newModel = _this.parentCollection.addOrUpdate(data);
         _this.form.reset();
+        _this.relationships = {};
+        _this.data.relationships = {};
         _this.parentCollection.__synchronize('add', _this);
       }
     }

@@ -758,11 +758,13 @@
           return;
         }
 
-        data.relationships = {};
+        data.relationships = data.relationships || {};
 
         data.type = _this.schema.type;
         newModel = _this.parentCollection.addOrUpdate(data);
         _this.form.reset();
+        _this.relationships = {};
+        _this.data.relationships = {};
         _this.parentCollection.__synchronize('add', _this);
       }
     }
@@ -790,8 +792,10 @@
 
     function AngularJsonAPISchema(schema) {
       var _this = this;
-      var includeGet = [];
-      var includeAll = [];
+      var include = schema.include || {};
+      schema.include = include;
+      include.get = schema.include.get || [];
+      include.all = schema.include.all || [];
 
       _this.params = {
         get: {},
@@ -802,21 +806,21 @@
         var linkSchemaObj = new AngularJsonAPILinkSchema(linkSchema, linkName, schema.type);
         schema.relationships[linkName] = linkSchemaObj;
         if (linkSchemaObj.included === true) {
-          includeGet.push(linkName);
+          include.get.push(linkName);
           if (linkSchemaObj.type === 'hasOne') {
-            includeAll.push(linkName);
+            include.all.push(linkName);
           }
         }
       });
 
       angular.extend(_this, schema);
 
-      if (includeGet.length > 0) {
-        _this.params.get.include = includeGet.join(',');
+      if (include.get.length > 0) {
+        _this.params.get.include = include.get.join(',');
       }
 
-      if (includeAll.length > 0) {
-        _this.params.all.include = includeAll.join(',');
+      if (include.all.length > 0) {
+        _this.params.all.include = include.all.join(',');
       }
     }
 
@@ -1323,7 +1327,7 @@
       var _this = this;
 
       angular.forEach(_this.schema.attributes, function(validator, attributeName) {
-        if (attributes[attributeName]) {
+        if (attributes[attributeName] !== undefined) {
           _this.data.attributes[attributeName] = attributes[attributeName];
         }
       });
