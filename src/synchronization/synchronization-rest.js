@@ -226,7 +226,7 @@
           method: 'PATCH',
           headers: headers,
           url: url + '/' + object.data.id,
-          data: {data: object.toPatchData()}
+          data: object.toPatchData()
         };
 
         object.errors.rest = object.errors.rest || {};
@@ -250,7 +250,7 @@
           method: 'POST',
           headers: headers,
           url: url + '/',
-          data: {data: object.toJson()}
+          data: object.toJson()
         };
 
         object.errors.rest = object.errors.rest || {};
