@@ -251,6 +251,10 @@
 
     function AngularJsonAPISynchronizationRest(url) {
       var _this = this;
+      var headers = { // jscs:disable disallowQuotedKeysInObjects
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }; // jscs:enable disallowQuotedKeysInObjects
 
       AngularJsonAPISynchronization.call(_this);
 
@@ -320,6 +324,7 @@
         var deferred = $q.defer();
         var config = {
           method: 'GET',
+          headers: headers,
           url: url,
           params: params || {}
         };
@@ -355,6 +360,7 @@
 
         config = {
           method: 'GET',
+          headers: headers,
           url: url + '/' + ids.toString(),
           params: params || {}
         };
@@ -378,6 +384,7 @@
         var deferred = $q.defer();
         var config = {
           method: 'DELETE',
+          headers: headers,
           url: url + '/' + object.data.id
         };
 
@@ -407,6 +414,7 @@
         } else {
           config = {
             method: 'DELETE',
+            headers: headers,
             url: url + '/' + object.data.id + '/relationships/' + linkKey,
             data: {data: linkedObject.toLink()}
           };
@@ -429,6 +437,7 @@
         var deferred = $q.defer();
         var config = {
           method: 'POST',
+          headers: headers,
           url: url + '/' + object.data.id + '/relationships/' + linkKey,
           data: {data: linkedObject.toLink()}
         };
@@ -453,6 +462,7 @@
         var deferred = $q.defer();
         var config = {
           method: 'PATCH',
+          headers: headers,
           url: url + '/' + object.data.id,
           data: {data: object.toPatchData()}
         };
@@ -476,6 +486,7 @@
         var deferred = $q.defer();
         var config = {
           method: 'POST',
+          headers: headers,
           url: url + '/',
           data: {data: object.toJson()}
         };
