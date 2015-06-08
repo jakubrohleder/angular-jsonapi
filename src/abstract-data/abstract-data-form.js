@@ -18,7 +18,10 @@
     function AngularJsonAPIAbstractDataForm(parent) {
       var _this = this;
 
-      _this.data = {};
+      _this.data = {
+        attributes: {},
+        relationships: {}
+      };
       _this.parent = parent;
       _this.reset();
     }
@@ -39,7 +42,11 @@
       var _this = this;
 
       angular.forEach(_this.parent.schema.attributes, function(data, key) {
-        _this.data[key] = _this.parent.data.attributes[key] || '';
+        _this.data.attributes[key] = _this.parent.data.attributes[key] || '';
+      });
+
+      angular.forEach(_this.parent.schema.relationships, function(data, key) {
+        _this.data.relationships[key] = _this.parent.data.relationships[key] || {};
       });
 
       _this.errors = {

@@ -608,8 +608,14 @@
       _this.removed = {};
       _this.schema = schemaObj;
 
-      _this.dummy = new _this.Model({type: schema.type}, undefined, true);
+      _this.dummy = new _this.Model({
+        type: schema.type,
+        attributes: {},
+        relationships: {}
+      }, undefined, true);
+
       _this.dummy.form.save = __saveDummy.bind(_this.dummy);
+      _this.dummy.form.addLink = __addLinkDummy.bind(_this.dummy);
       _this.allCollections[schema.type] = _this;
 
       _this.__synchronize('init');
@@ -758,21 +764,41 @@
           return;
         }
 
-        data.relationships = data.relationships || {};
-
         data.type = _this.schema.type;
         newModel = _this.parentCollection.addOrUpdate(data);
         _this.form.reset();
         _this.relationships = {};
-        _this.data.relationships = {};
-        _this.parentCollection.__synchronize('add', _this);
+        _this.parentCollection.__synchronize('add', newModel);
+      }
+    }
+
+    function __addLinkDummy(linkKey, linkedObject) {
+      var _this = this;
+      if (_this.schema.relationships[linkKey] === undefined) {
+        $log.error('Link\'', linkKey, '\'not present in schema of', _this.data.type, _this);
+        return;
+      }
+
+      if (_this.schema.relationships[linkKey].type === 'hasOne') {
+        _this.form.data.relationships[linkKey] = {
+          data: {
+            type: linkedObject.data.type,
+            id: linkedObject.data.id
+          }
+        };
+      } else {
+        _this.form.data.relationships[linkKey].data = _this.form.data.relationships[linkKey].data || [];
+        _this.form.data.relationships[linkKey].data.push({
+          type: linkedObject.data.type,
+          id: linkedObject.data.id
+        });
       }
     }
 
     function __synchronize(action, object, linkKey, linkedObject, params) {
       var _this = this;
 
-      $log.log('Synchro Collection', this.Model.prototype.schema.type, {action: action, object: object, linkKey: linkKey, linkedObject: linkedObject, params: params});
+      $log.debug('Synchro Collection', this.Model.prototype.schema.type, {action: action, object: object, linkKey: linkKey, linkedObject: linkedObject, params: params});
 
       _this.synchronization.synchronize(action, _this, object, linkKey, linkedObject, params);
     }
@@ -1432,7 +1458,10 @@
     function AngularJsonAPIAbstractDataForm(parent) {
       var _this = this;
 
-      _this.data = {};
+      _this.data = {
+        attributes: {},
+        relationships: {}
+      };
       _this.parent = parent;
       _this.reset();
     }
@@ -1453,7 +1482,11 @@
       var _this = this;
 
       angular.forEach(_this.parent.schema.attributes, function(data, key) {
-        _this.data[key] = _this.parent.data.attributes[key] || '';
+        _this.data.attributes[key] = _this.parent.data.attributes[key] || '';
+      });
+
+      angular.forEach(_this.parent.schema.relationships, function(data, key) {
+        _this.data.relationships[key] = _this.parent.data.relationships[key] || {};
       });
 
       _this.errors = {
