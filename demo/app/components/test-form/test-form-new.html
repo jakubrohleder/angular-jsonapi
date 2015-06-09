@@ -1,8 +1,8 @@
 <div>
   <h3>New</h3>
   <form name="form">
-    <div ng-repeat="(attribute, value) in object.form.data" class="form-group">
-      <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="{{attribute}}" ng-model="object.form.data[attribute]" placeholder="{{attribute}}">
+    <div ng-repeat="(attribute, value) in object.form.data.attributes" class="form-group">
+      <input ng-model-options="{ debounce: 100 }" type="text" class="form-control" id="{{attribute}}" ng-model="object.form.data.attributes[attribute]" placeholder="{{attribute}}">
       <span id="helpBlock" ng-repeat="error in object.form.errors.validation[attribute]" class="help-block">{{error}}</span>
     </div>
     <button ng-click="object.form.save()" class="btn btn-primary">Add</button>

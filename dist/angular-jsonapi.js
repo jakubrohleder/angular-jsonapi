@@ -181,6 +181,7 @@
     function synchronize(action, collection, object, linkSchema, linkedObject, params) {
       var _this = this;
       var promises = [];
+      var deferred = $q.defer();
 
       _this.state[action].loading = true;
 
@@ -229,7 +230,20 @@
         if (collection !== undefined) {
           collection.loadingCount -= 1;
         }
+
+        if (_this.state[action].success === true) {
+          deferred.resolve(results);
+        } else {
+          deferred.reject(results);
+        }
+
+      },
+
+      function(results) {
+        deferred.reject(results);
       });
+
+      return deferred.promise;
     }
 
   }
@@ -617,6 +631,7 @@
       _this.loadingCount = 0;
       _this.data = {};
       _this.removed = {};
+      _this.promises = {};
       _this.schema = schemaObj;
 
       _this.dummy = new _this.Model({
@@ -808,10 +823,16 @@
 
     function __synchronize(action, object, linkKey, linkedObject, params) {
       var _this = this;
+      var promise;
 
       $log.debug('Synchro Collection', this.Model.prototype.schema.type, {action: action, object: object, linkKey: linkKey, linkedObject: linkedObject, params: params});
 
-      _this.synchronization.synchronize(action, _this, object, linkKey, linkedObject, params);
+      promise = _this.synchronization.synchronize(action, _this, object, linkKey, linkedObject, params);
+      if (object !== undefined) {
+        object.promises[action] = promise;
+      } else {
+        _this.promises[action] = promise;
+      }
     }
   }
   AngularJsonAPICollectionWrapper.$inject = ["$log", "uuid4", "JsonAPIModelFactory", "AngularJsonAPISchema"];
@@ -985,6 +1006,8 @@
       _this.errors = {
         validation: {}
       };
+
+      _this.promises = {};
 
       _this.dummy = dummy || false;
 

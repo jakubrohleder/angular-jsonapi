@@ -44,6 +44,7 @@
       _this.loadingCount = 0;
       _this.data = {};
       _this.removed = {};
+      _this.promises = {};
       _this.schema = schemaObj;
 
       _this.dummy = new _this.Model({
@@ -235,10 +236,16 @@
 
     function __synchronize(action, object, linkKey, linkedObject, params) {
       var _this = this;
+      var promise;
 
       $log.debug('Synchro Collection', this.Model.prototype.schema.type, {action: action, object: object, linkKey: linkKey, linkedObject: linkedObject, params: params});
 
-      _this.synchronization.synchronize(action, _this, object, linkKey, linkedObject, params);
+      promise = _this.synchronization.synchronize(action, _this, object, linkKey, linkedObject, params);
+      if (object !== undefined) {
+        object.promises[action] = promise;
+      } else {
+        _this.promises[action] = promise;
+      }
     }
   }
 })();

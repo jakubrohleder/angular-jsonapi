@@ -53,6 +53,8 @@
         validation: {}
       };
 
+      _this.promises = {};
+
       _this.dummy = dummy || false;
 
       _this.__setUpdated(updatedAt);

@@ -106,6 +106,7 @@
     function synchronize(action, collection, object, linkSchema, linkedObject, params) {
       var _this = this;
       var promises = [];
+      var deferred = $q.defer();
 
       _this.state[action].loading = true;
 
@@ -154,7 +155,20 @@
         if (collection !== undefined) {
           collection.loadingCount -= 1;
         }
+
+        if (_this.state[action].success === true) {
+          deferred.resolve(results);
+        } else {
+          deferred.reject(results);
+        }
+
+      },
+
+      function(results) {
+        deferred.reject(results);
       });
+
+      return deferred.promise;
     }
 
   }
