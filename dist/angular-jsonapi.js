@@ -796,6 +796,8 @@
         _this.relationships = {};
         _this.parentCollection.__synchronize('add', newModel);
       }
+
+      return newModel;
     }
 
     function __addLinkDummy(linkKey, linkedObject) {
