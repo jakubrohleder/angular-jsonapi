@@ -35,7 +35,7 @@
         return;
       }
 
-      _this.parent.__updateAttributes(_this.data);
+      _this.parent.__updateAttributes(_this.data.attributes);
     }
 
     function reset() {
