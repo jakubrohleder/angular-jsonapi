@@ -634,14 +634,14 @@
       _this.promises = {};
       _this.schema = schemaObj;
 
-      _this.dummy = new _this.Model({
+      _this.new = new _this.Model({
         type: schema.type,
         attributes: {},
         relationships: {}
       }, undefined, true);
 
-      _this.dummy.form.save = __saveDummy.bind(_this.dummy);
-      _this.dummy.form.addLink = __addLinkDummy.bind(_this.dummy);
+      _this.new.form.save = __saveNew.bind(_this.new);
+      _this.new.form.addLink = __addLinkNew.bind(_this.new);
       _this.allCollections[schema.type] = _this;
 
       _this.__synchronize('init');
@@ -719,9 +719,18 @@
       return _this.data[id];
     }
 
-    function get(id) {
+    function get(id, filters) {
       var _this = this;
       var result;
+      var params = [];
+
+      if (_this.schema.params.get.length > 0) {
+        params.push(_this.schema.params.get);
+      }
+
+      angular.forEach(filters, function(value, key) {
+        params.push('filter[' + key + ']=' + value);
+      });
 
       if (angular.isArray(id)) {
         result = [];
@@ -732,7 +741,7 @@
         result = _this.__get(id);
       }
 
-      _this.__synchronize('get', result, undefined, undefined, _this.schema.params.get);
+      _this.__synchronize('get', result, undefined, undefined, params.join('&'));
 
       return result;
     }
@@ -776,7 +785,7 @@
       _this.__synchronize('remove', object);
     }
 
-    function __saveDummy() {
+    function __saveNew() {
       var _this = this;
       var errors = _this.form.validate();
       var newModel;
@@ -786,7 +795,7 @@
         if (data.id === undefined) {
           data.id = uuid4.generate();
         } else if (!uuid4.validate(data.id)) {
-          $log.error('Wrong id of dummy data!');
+          $log.error('Wrong id of new data!');
           return;
         }
 
@@ -800,7 +809,7 @@
       return newModel;
     }
 
-    function __addLinkDummy(linkKey, linkedObject) {
+    function __addLinkNew(linkKey, linkedObject) {
       var _this = this;
       if (_this.schema.relationships[linkKey] === undefined) {
         $log.error('Link\'', linkKey, '\'not present in schema of', _this.data.type, _this);
@@ -922,14 +931,14 @@
     };
 
     function modelFactory(schemaObj, linkedCollections, parentCollection) {
-      var Model = function(data, updatedAt, dummy) {
+      var Model = function(data, updatedAt, isNew) {
         var _this = this;
 
         if (data.type !== _this.schema.type) {
           $log.error('Data type other then declared in schema: ', data.type, ' instead of ', _this.schema.type);
         }
 
-        AngularJsonAPIAbstractData.call(_this, data, updatedAt, dummy);
+        AngularJsonAPIAbstractData.call(_this, data, updatedAt, isNew);
 
         _this.form.parent = _this;
       };
@@ -992,7 +1001,7 @@
 
     return AngularJsonAPIAbstractData;
 
-    function AngularJsonAPIAbstractData(data, updatedAt, dummy) {
+    function AngularJsonAPIAbstractData(data, updatedAt, isNew) {
       var _this = this;
 
       data.relationships = data.relationships || {};
@@ -1011,7 +1020,7 @@
 
       _this.promises = {};
 
-      _this.dummy = dummy || false;
+      _this.isNew = isNew || false;
 
       _this.__setUpdated(updatedAt);
       _this.__setData(data, updatedAt);
@@ -1598,7 +1607,7 @@
           $log.error('Can\t add not existing object type: ' + type + '. Use initialize(Model, datas).');
         }
 
-        return memory[type].dummy.form;
+        return memory[type].isNew.form;
       }
 
       function get(type, id) {

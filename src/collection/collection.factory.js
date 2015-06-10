@@ -47,14 +47,14 @@
       _this.promises = {};
       _this.schema = schemaObj;
 
-      _this.dummy = new _this.Model({
+      _this.new = new _this.Model({
         type: schema.type,
         attributes: {},
         relationships: {}
       }, undefined, true);
 
-      _this.dummy.form.save = __saveDummy.bind(_this.dummy);
-      _this.dummy.form.addLink = __addLinkDummy.bind(_this.dummy);
+      _this.new.form.save = __saveNew.bind(_this.new);
+      _this.new.form.addLink = __addLinkNew.bind(_this.new);
       _this.allCollections[schema.type] = _this;
 
       _this.__synchronize('init');
@@ -198,7 +198,7 @@
       _this.__synchronize('remove', object);
     }
 
-    function __saveDummy() {
+    function __saveNew() {
       var _this = this;
       var errors = _this.form.validate();
       var newModel;
@@ -208,7 +208,7 @@
         if (data.id === undefined) {
           data.id = uuid4.generate();
         } else if (!uuid4.validate(data.id)) {
-          $log.error('Wrong id of dummy data!');
+          $log.error('Wrong id of new data!');
           return;
         }
 
@@ -222,7 +222,7 @@
       return newModel;
     }
 
-    function __addLinkDummy(linkKey, linkedObject) {
+    function __addLinkNew(linkKey, linkedObject) {
       var _this = this;
       if (_this.schema.relationships[linkKey] === undefined) {
         $log.error('Link\'', linkKey, '\'not present in schema of', _this.data.type, _this);

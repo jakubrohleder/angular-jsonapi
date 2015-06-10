@@ -34,7 +34,7 @@
           $log.error('Can\t add not existing object type: ' + type + '. Use initialize(Model, datas).');
         }
 
-        return memory[type].dummy.form;
+        return memory[type].isNew.form;
       }
 
       function get(type, id) {

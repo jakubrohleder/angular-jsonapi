@@ -36,7 +36,7 @@
 
     return AngularJsonAPIAbstractData;
 
-    function AngularJsonAPIAbstractData(data, updatedAt, dummy) {
+    function AngularJsonAPIAbstractData(data, updatedAt, isNew) {
       var _this = this;
 
       data.relationships = data.relationships || {};
@@ -55,7 +55,7 @@
 
       _this.promises = {};
 
-      _this.dummy = dummy || false;
+      _this.isNew = isNew || false;
 
       _this.__setUpdated(updatedAt);
       _this.__setData(data, updatedAt);

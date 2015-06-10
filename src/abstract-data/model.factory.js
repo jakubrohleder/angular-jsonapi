@@ -11,14 +11,14 @@
     };
 
     function modelFactory(schemaObj, linkedCollections, parentCollection) {
-      var Model = function(data, updatedAt, dummy) {
+      var Model = function(data, updatedAt, isNew) {
         var _this = this;
 
         if (data.type !== _this.schema.type) {
           $log.error('Data type other then declared in schema: ', data.type, ' instead of ', _this.schema.type);
         }
 
-        AngularJsonAPIAbstractData.call(_this, data, updatedAt, dummy);
+        AngularJsonAPIAbstractData.call(_this, data, updatedAt, isNew);
 
         _this.form.parent = _this;
       };
