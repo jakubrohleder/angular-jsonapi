@@ -223,7 +223,7 @@
       function update(collection, object) {
         var deferred = $q.defer();
         var config = {
-          method: 'PATCH',
+          method: 'PUT',
           headers: headers,
           url: url + '/' + object.data.id,
           data: object.toPatchData()
