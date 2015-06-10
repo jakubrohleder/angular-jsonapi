@@ -178,7 +178,7 @@
             method: 'DELETE',
             headers: headers,
             url: url + '/' + object.data.id + '/relationships/' + linkKey,
-            data: {data: linkedObject.toLink()}
+            data: {data: linkedObject.toLinkData()}
           };
 
           $http(config).
@@ -201,7 +201,7 @@
           method: 'POST',
           headers: headers,
           url: url + '/' + object.data.id + '/relationships/' + linkKey,
-          data: {data: linkedObject.toLink()}
+          data: {data: linkedObject.toLinkData()}
         };
 
         object.errors.rest = object.errors.rest || {};
@@ -250,7 +250,7 @@
           method: 'POST',
           headers: headers,
           url: url + '/',
-          data: object.toJson()
+          data: object.toAddData()
         };
 
         object.errors.rest = object.errors.rest || {};

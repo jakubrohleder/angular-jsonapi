@@ -27,10 +27,13 @@
     AngularJsonAPIAbstractData.prototype.addLinkById = addLinkById;
     AngularJsonAPIAbstractData.prototype.addLink = addLink;
     AngularJsonAPIAbstractData.prototype.removeLink = removeLink;
-    AngularJsonAPIAbstractData.prototype.toLink = toLink;
-    AngularJsonAPIAbstractData.prototype.toPatchData = toPatchData;
+
     AngularJsonAPIAbstractData.prototype.removeAllLinks = removeAllLinks;
     AngularJsonAPIAbstractData.prototype.hasErrors = hasErrors;
+
+    AngularJsonAPIAbstractData.prototype.toLinkData = toLinkData;
+    AngularJsonAPIAbstractData.prototype.toPatchData = toPatchData;
+    AngularJsonAPIAbstractData.prototype.toAddData = toAddData;
 
     AngularJsonAPIAbstractData.prototype.toJson = toJson;
 
@@ -91,6 +94,25 @@
       };
     }
 
+    function toAddData() {
+      var _this = this;
+      var data = angular.copy(_this.data);
+      var relationships = {};
+
+      angular.forEach(data.relationships, function(value, key) {
+        if (value.data !== undefined) {
+          relationships[key] = value;
+        }
+      });
+
+      data.relationships = relationships;
+
+      return {
+        data: data,
+        updatedAt: _this.updatedAt
+      };
+    }
+
     function __setUpdated(updatedAt) {
       var _this = this;
 
@@ -113,7 +135,7 @@
       _this.parentCollection.remove(_this.data.id);
     }
 
-    function toLink() {
+    function toLinkData() {
       return {type: this.data.type, id: this.data.id};
     }
 
@@ -204,7 +226,7 @@
           _this.removeLink(linkKey);
         }
 
-        linkAttributes = linkedObject.toLink();
+        linkAttributes = linkedObject.toLinkData();
       } else {
         linkAttributes = _this.data.relationships[linkKey].data || [];
         var duplicate = false;
@@ -218,7 +240,7 @@
           return;
         }
 
-        linkAttributes.push(linkedObject.toLink());
+        linkAttributes.push(linkedObject.toLinkData());
       }
 
       if (reflection === true) {
