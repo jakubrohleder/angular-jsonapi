@@ -967,7 +967,8 @@
     $log,
     uuid4,
     lazyProperty,
-    AngularJsonAPIAbstractDataForm
+    AngularJsonAPIAbstractDataForm,
+    $timeout
   ) {
 
     AngularJsonAPIAbstractData.prototype.__setData = __setData;
@@ -1230,7 +1231,10 @@
       var removed = false;
 
       if (_this.schema.relationships[linkKey] === undefined) {
-        $log.error('Can\'t remove link not present in schema');
+        if (reflection === false) {
+          $log.error('Can\'t remove link not present in schema: ' + linkKey, _this);
+        }
+
         return;
       }
 
@@ -1319,6 +1323,7 @@
           return result;
         };
 
+        $timeout(getAll);
         lazyProperty(_this.relationships, linkKey, getAll);
       } else if (linkType === 'hasOne' && linkAttributes !== null) {
 
@@ -1335,6 +1340,7 @@
           return linkedObject;
         };
 
+        $timeout(getSingle);
         lazyProperty(_this.relationships, linkKey, getSingle);
       }
     }
@@ -1496,7 +1502,7 @@
     }
 
   }
-  AngularJsonAPIAbstractDataWrapper.$inject = ["$log", "uuid4", "lazyProperty", "AngularJsonAPIAbstractDataForm"];
+  AngularJsonAPIAbstractDataWrapper.$inject = ["$log", "uuid4", "lazyProperty", "AngularJsonAPIAbstractDataForm", "$timeout"];
 })();
 
 (function() {
