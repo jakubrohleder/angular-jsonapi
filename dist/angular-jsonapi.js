@@ -722,15 +722,9 @@
     function get(id, filters) {
       var _this = this;
       var result;
-      var params = [];
+      var params = _this.schema.params.get;
 
-      if (_this.schema.params.get.length > 0) {
-        params.push(_this.schema.params.get);
-      }
-
-      angular.forEach(filters, function(value, key) {
-        params.push('filter[' + key + ']=' + value);
-      });
+      params.filter = filters;
 
       if (angular.isArray(id)) {
         result = [];
@@ -741,7 +735,7 @@
         result = _this.__get(id);
       }
 
-      _this.__synchronize('get', result, undefined, undefined, params.join('&'));
+      _this.__synchronize('get', result, undefined, undefined, params);
 
       return result;
     }
