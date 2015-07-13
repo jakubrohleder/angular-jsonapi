@@ -1241,7 +1241,7 @@
       linkAttributes = _this.data.relationships[linkKey].data;
 
       if (linkType === 'hasOne') {
-        if (linkedObject !== undefined && linkedObject.data.id === linkAttributes.id) {
+        if (linkedObject === undefined || linkedObject.data.id === linkAttributes.id) {
           _this.data.relationships[linkKey].data = null;
           linkAttributes = null;
           removed = true;
