@@ -132,12 +132,10 @@
       return _this.data[id];
     }
 
-    function get(id, filters) {
+    function get(id) {
       var _this = this;
       var result;
       var params = _this.schema.params.get;
-
-      params.filter = filters;
 
       if (angular.isArray(id)) {
         result = [];

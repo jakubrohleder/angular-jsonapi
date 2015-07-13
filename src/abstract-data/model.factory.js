@@ -32,7 +32,7 @@
 
       angular.forEach(schemaObj.functions, function(metaFunction, metaFunctionName) {
         Model.prototype[metaFunctionName] = function() {
-          return metaFunction.call(this);
+          return metaFunction.apply(this, arguments);
         };
       });
 
