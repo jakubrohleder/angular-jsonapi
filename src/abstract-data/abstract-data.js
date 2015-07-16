@@ -61,10 +61,10 @@
 
       _this.isNew = isNew || false;
 
+      _this.form = new AngularJsonAPIAbstractDataForm(_this);
+
       _this.__setUpdated(updatedAt);
       _this.__setData(data, updatedAt);
-
-      _this.form = new AngularJsonAPIAbstractDataForm(_this);
     }
 
     function refresh() {
@@ -481,6 +481,8 @@
 
       _this.__setAttributes(safeData.attributes);
       _this.__setLinks(safeData.relationships);
+
+      _this.form.reset();
     }
 
     function __validate(validator, attributeValue, attributeName) {

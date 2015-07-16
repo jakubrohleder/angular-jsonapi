@@ -46,6 +46,7 @@
       _this.removed = {};
       _this.promises = {};
       _this.schema = schemaObj;
+      _this.length = 0;
 
       _this.new = new _this.Model({
         type: schema.type,
@@ -112,6 +113,7 @@
 
       if (_this.data[validatedData.id] === undefined) {
         _this.data[validatedData.id] = new this.Model(validatedData, updatedAt);
+        _this.length += 1;
       } else {
         _this.data[validatedData.id].__setData(validatedData, updatedAt);
         _this.data[validatedData.id].__setLinks(validatedData.relationships);
@@ -162,6 +164,7 @@
       var _this = this;
       _this.updatedAt = Date.now();
       _this.data = {};
+      _this.length = 0;
 
       _this.__synchronize('clear');
     }
@@ -174,6 +177,8 @@
       _this.updatedAt = Date.now();
 
       delete _this.data[id];
+
+      _this.length -= 1;
     }
 
     function remove(id) {
