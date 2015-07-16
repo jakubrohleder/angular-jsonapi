@@ -307,9 +307,9 @@
             collection.addOrUpdate(data);
           });
 
-          angular.forEach(collection.data, function(data) {
-            if (indexedData[data.id] === undefined) {
-              collection.__remove(data.id);
+          angular.forEach(collection.data, function(object) {
+            if (indexedData[object.data.id] === undefined) {
+              collection.__remove(object.data.id);
             }
           });
 
