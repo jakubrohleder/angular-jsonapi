@@ -453,7 +453,7 @@
           method: 'POST',
           headers: headers,
           url: url + '/' + object.data.id + '/relationships/' + linkKey,
-          data: {data: linkedObject.toLinkData()}
+          data: {data: [linkedObject.toLinkData()]}
         };
 
         object.errors.rest = object.errors.rest || {};
