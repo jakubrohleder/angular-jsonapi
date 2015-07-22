@@ -1032,7 +1032,7 @@
     function refresh() {
       var _this = this;
 
-      _this.parentCollection.__synchronize('refresh', _this);
+      _this.parentCollection.__synchronize('refresh', _this, undefined, undefined, _this.schema.params.get);
     }
 
     function hasErrors() {
