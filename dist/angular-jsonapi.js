@@ -36,6 +36,16 @@
 (function() {
   'use strict';
 
+  angular.module('angular-jsonapi')
+    .constant('toKebabCase', function(str) {
+      return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    });
+
+})();
+
+(function() {
+  'use strict';
+
   angular.module('angular-jsonapi').config(['$provide', function($provide) {
     $provide.decorator('$q', ['$delegate', function($delegate) {
       var $q = $delegate;
@@ -256,7 +266,7 @@
   angular.module('angular-jsonapi-rest', ['angular-jsonapi'])
   .factory('AngularJsonAPISynchronizationRest', AngularJsonAPISynchronizationRestWrapper);
 
-  function AngularJsonAPISynchronizationRestWrapper(AngularJsonAPISynchronization, $q, $http) {
+  function AngularJsonAPISynchronizationRestWrapper(AngularJsonAPISynchronization, $q, $http, toKebabCase) {
 
     AngularJsonAPISynchronizationRest.prototype = Object.create(AngularJsonAPISynchronization.prototype);
     AngularJsonAPISynchronizationRest.prototype.constructor = AngularJsonAPISynchronizationRest;
@@ -429,7 +439,7 @@
           config = {
             method: 'DELETE',
             headers: headers,
-            url: url + '/' + object.data.id + '/relationships/' + linkKey,
+            url: url + '/' + object.data.id + '/relationships/' + toKebabCase(linkKey),
             data: {data: linkedObject.toLinkData()}
           };
 
@@ -452,7 +462,7 @@
         var config = {
           method: 'POST',
           headers: headers,
-          url: url + '/' + object.data.id + '/relationships/' + linkKey,
+          url: url + '/' + object.data.id + '/relationships/' + toKebabCase(linkKey),
           data: {data: [linkedObject.toLinkData()]}
         };
 
@@ -521,7 +531,7 @@
       }
     }
   }
-  AngularJsonAPISynchronizationRestWrapper.$inject = ["AngularJsonAPISynchronization", "$q", "$http"];
+  AngularJsonAPISynchronizationRestWrapper.$inject = ["AngularJsonAPISynchronization", "$q", "$http", "toKebabCase"];
 })();
 
 (function() {
