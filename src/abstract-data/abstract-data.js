@@ -203,8 +203,8 @@
         return;
       }
 
-      if (linkSchema.polymorphic === false && linkSchema.model !== linkedObject.schema.type) {
-        $log.error('This relation is not polymorphic, expected: ' + linkSchema.model + ' instead of ' + linkedObject.schema.type);
+      if (linkSchema.polymorphic === false && linkSchema.model !== linkedObject.data.type) {
+        $log.error('This relation is not polymorphic, expected: ' + linkSchema.model + ' instead of ' + linkedObject.data.type);
         return;
       }
 
