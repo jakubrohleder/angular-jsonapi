@@ -439,8 +439,7 @@
           config = {
             method: 'DELETE',
             headers: headers,
-            url: url + '/' + object.data.id + '/relationships/' + toKebabCase(linkKey),
-            data: {data: linkedObject.toLinkData()}
+            url: url + '/' + object.data.id + '/relationships/' + toKebabCase(linkKey) + '/' + linkedObject.data.id
           };
 
           $http(config).
