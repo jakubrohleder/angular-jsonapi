@@ -652,6 +652,10 @@
 
       _this.new.form.save = __saveNew.bind(_this.new);
       _this.new.form.addLink = __addLinkNew.bind(_this.new);
+
+      _this.new.reset = __reset.bind(_this.new);
+      _this.new.detach = __detach.bind(_this.new);
+
       _this.allCollections[schema.type] = _this;
 
       _this.__synchronize('init');
@@ -807,8 +811,7 @@
 
         data.type = _this.schema.type;
         newModel = _this.parentCollection.addOrUpdate(data);
-        _this.form.reset();
-        _this.relationships = {};
+        _this.reset();
         _this.parentCollection.__synchronize('add', newModel);
       }
 
@@ -836,6 +839,22 @@
           id: linkedObject.data.id
         });
       }
+    }
+
+    function __reset() {
+      var _this = this;
+
+      _this.form.reset();
+      _this.relationships = {};
+    }
+
+    function __detach() {
+      var _this = this;
+      var detached = angular.copy(_this);
+
+      _this.reset();
+
+      return detached;
     }
 
     function __synchronize(action, object, linkKey, linkedObject, params) {
