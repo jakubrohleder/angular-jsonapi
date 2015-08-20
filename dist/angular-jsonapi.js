@@ -728,7 +728,7 @@
       var _this = this;
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.Model({id: id, type: _this.Model.prototype.schema.type}, undefined, true);
+        _this.data[id] = new _this.Model({id: id, type: _this.Model.prototype.schema.type}, undefined);
       }
 
       return _this.data[id];
