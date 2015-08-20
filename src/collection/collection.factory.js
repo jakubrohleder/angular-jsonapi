@@ -258,6 +258,11 @@
 
       _this.reset();
 
+      detached.form.save = __saveNew.bind(detached);
+      detached.form.addLink = __addLinkNew.bind(detached);
+      detached.reset = __reset.bind(detached);
+      detached.detach = __detach.bind(detached);
+
       return detached;
     }
 
