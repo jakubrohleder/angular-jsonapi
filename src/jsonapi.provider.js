@@ -8,7 +8,7 @@
     var memory = {};
     this.$get = jsonapiFactory;
 
-    function jsonapiFactory($log, AngularJsonAPICollection) {
+    function jsonapiFactory($log, AngularJsonAPIFactory) {
       return {
         form: form,
         get: get,
@@ -20,7 +20,7 @@
       };
 
       function addModel(schema, synchronization) {
-        var collection = new AngularJsonAPICollection(schema, synchronization);
+        var collection = new AngularJsonAPIFactory(schema, synchronization);
 
         memory[schema.type] = collection;
       }
