@@ -334,7 +334,8 @@
 
       _this.__setUpdated();
       _this.__setAttributes(validatedAttributes);
-      _this.parentCollection.__synchronize('update', _this);
+
+      return _this.parentCollection.__synchronize('update', _this);
     }
 
     function __setLinkInternal(linkAttributes, linkKey, linkSchema) {

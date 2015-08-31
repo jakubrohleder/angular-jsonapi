@@ -18,11 +18,13 @@
 
     AngularJsonAPICollection.prototype.get = get;
     AngularJsonAPICollection.prototype.all = all;
-    AngularJsonAPICollection.prototype.refresh = all;
     AngularJsonAPICollection.prototype.remove = remove;
     AngularJsonAPICollection.prototype.clear = clear;
+    AngularJsonAPICollection.prototype.create = create;
+
     AngularJsonAPICollection.prototype.fromJson = fromJson;
     AngularJsonAPICollection.prototype.toJson = toJson;
+
     AngularJsonAPICollection.prototype.addOrUpdate = addOrUpdate;
     AngularJsonAPICollection.prototype.hasErrors = hasErrors;
 
@@ -278,6 +280,8 @@
       } else {
         _this.promises[action] = promise;
       }
+
+      return promise;
     }
   }
 })();
