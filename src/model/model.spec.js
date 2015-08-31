@@ -1,7 +1,7 @@
 /*jshint expr: true*/
 'use strict';
 
-describe('JsonAPIModelFactory factory', function() {
+describe('AngularJsonAPIModel factory', function() {
   var schema = {
     type: 'novels',
     id: 'uuid4',
@@ -50,9 +50,9 @@ describe('JsonAPIModelFactory factory', function() {
   var validNovel;
   var invalidNovel;
 
-  beforeEach(inject(function(_JsonAPIModelFactory_) {
+  beforeEach(inject(function(_AngularJsonAPIModel_) {
     var invalidData = angular.copy(data);
-    Novel = _JsonAPIModelFactory_.model(schema, linkGetters).model;
+    Novel = _AngularJsonAPIModel_.model(schema, linkGetters).model;
     validNovel = new Novel(data);
 
     invalidData.id = 'adsad';
@@ -61,8 +61,8 @@ describe('JsonAPIModelFactory factory', function() {
     invalidNovel = new Novel(invalidData);
   }));
 
-  it('is ok', inject(function(JsonAPIModelFactory) {
-    expect(JsonAPIModelFactory).to.be.ok;
+  it('is ok', inject(function(AngularJsonAPIModel) {
+    expect(AngularJsonAPIModel).to.be.ok;
     expect(Novel).to.be.ok;
     expect(Novel.prototype.schema).to.deep.equal(schema);
     expect(Novel.prototype.linkGetters).to.deep.equal(linkGetters);

@@ -7,7 +7,7 @@
   function AngularJsonAPIFactoryWrapper(
     $log,
     uuid4,
-    JsonAPIModelFactory,
+    AngularJsonAPIModel,
     AngularJsonAPISchema
   ) {
     AngularJsonAPIFactory.prototype.allCollections = {};
@@ -35,7 +35,7 @@
 
       var schemaObj = new AngularJsonAPISchema(schema);
 
-      _this.Model = JsonAPIModelFactory.model(
+      _this.Model = AngularJsonAPIModel.model(
         schemaObj,
         _this.allCollections,
         _this

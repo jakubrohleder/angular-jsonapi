@@ -2,9 +2,9 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('JsonAPIModelFactory', JsonAPIModelFactory);
+  .factory('AngularJsonAPIModel', AngularJsonAPIModel);
 
-  function JsonAPIModelFactory(AngularJsonAPIAbstractData, AngularJsonAPISchema, $log) {
+  function AngularJsonAPIModel(AngularJsonAPIAbstractData, AngularJsonAPISchema, $log) {
 
     return {
       model: modelFactory
