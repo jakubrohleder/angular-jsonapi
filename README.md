@@ -25,7 +25,7 @@ The future development plan involves:
 * [x] [About this module](#about-this-module)
 * [ ] [Demo](#demo)
 * [x] [Installation](#installation)
-* [ ][Configuration](#configuration)
+* [ ] [Configuration](#configuration)
 	* [ ] [Model](#model)
 	* [ ] [Validation](#validation)
 	* [ ] [Custom validators](#custom-validators)
