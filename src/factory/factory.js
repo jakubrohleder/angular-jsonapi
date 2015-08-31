@@ -19,6 +19,7 @@
     AngularJsonAPIFactory.prototype.get = get;
     AngularJsonAPIFactory.prototype.all = all;
     AngularJsonAPIFactory.prototype.remove = remove;
+    AngularJsonAPIFactory.prototype.initialize = initialize;
 
     AngularJsonAPIFactory.prototype.clear = clear;
 
@@ -49,18 +50,6 @@
       _this.promises = {};
       _this.schema = schemaObj;
       _this.length = 0;
-
-      _this.new = new _this.Model({
-        type: schema.type,
-        attributes: {},
-        relationships: {}
-      }, undefined, true);
-
-      _this.new.form.save = __saveNew.bind(_this.new);
-      _this.new.form.addLink = __addLinkNew.bind(_this.new);
-
-      _this.new.reset = __reset.bind(_this.new);
-      _this.new.detach = __detach.bind(_this.new);
 
       _this.allCollections[schema.type] = _this;
 
@@ -142,17 +131,8 @@
 
     function get(id) {
       var _this = this;
-      var result;
+      var result = _this.__get(id);
       var params = _this.schema.params.get;
-
-      if (angular.isArray(id)) {
-        result = [];
-        angular.forEach(id, function(id) {
-          result.push(_this.__get(id));
-        });
-      } else {
-        result = _this.__get(id);
-      }
 
       _this.__synchronize('get', result, undefined, undefined, params);
 
@@ -201,71 +181,17 @@
       return _this.__synchronize('remove', object);
     }
 
-    function __saveNew() {
-      var _this = this;
-      var errors = _this.form.validate();
-      var newModel;
-
-      if (angular.equals(errors, {})) {
-        var data = angular.copy(_this.form.data);
-        if (data.id === undefined) {
-          data.id = uuid4.generate();
-        } else if (!uuid4.validate(data.id)) {
-          $log.error('Wrong id of new data!');
-          return;
-        }
-
-        data.type = _this.schema.type;
-        newModel = _this.parentCollection.addOrUpdate(data);
-        _this.reset();
-        _this.parentCollection.__synchronize('add', newModel);
-      }
-
-      return newModel;
-    }
-
-    function __addLinkNew(linkKey, linkedObject) {
-      var _this = this;
-      if (_this.schema.relationships[linkKey] === undefined) {
-        $log.error('Link\'', linkKey, '\'not present in schema of', _this.data.type, _this);
-        return;
-      }
-
-      if (_this.schema.relationships[linkKey].type === 'hasOne') {
-        _this.form.data.relationships[linkKey] = {
-          data: {
-            type: linkedObject.data.type,
-            id: linkedObject.data.id
-          }
-        };
-      } else {
-        _this.form.data.relationships[linkKey].data = _this.form.data.relationships[linkKey].data || [];
-        _this.form.data.relationships[linkKey].data.push({
-          type: linkedObject.data.type,
-          id: linkedObject.data.id
-        });
-      }
-    }
-
-    function __reset() {
+    function initialize() {
       var _this = this;
 
-      _this.form.reset();
-      _this.relationships = {};
-    }
+      var model = new _this.Model({
+        type: _this.schema.type,
+        id: uuid4.generate(),
+        attributes: {},
+        relationships: {}
+      }, undefined, true);
 
-    function __detach() {
-      var _this = this;
-      var detached = angular.copy(_this);
-
-      _this.reset();
-
-      detached.form.save = __saveNew.bind(detached);
-      detached.form.addLink = __addLinkNew.bind(detached);
-      detached.reset = __reset.bind(detached);
-      detached.detach = __detach.bind(detached);
-
-      return detached;
+      return model;
     }
 
     function __synchronize(action, object, linkKey, linkedObject, params) {

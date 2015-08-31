@@ -70,6 +70,10 @@
     function refresh() {
       var _this = this;
 
+      if (_this.isNew === true) {
+        $log.error('Can\'t refresh new object');
+      }
+
       _this.parentCollection.__synchronize('refresh', _this, undefined, undefined, _this.schema.params.get);
     }
 
@@ -335,7 +339,11 @@
       _this.__setUpdated();
       _this.__setAttributes(validatedAttributes);
 
-      return _this.parentCollection.__synchronize('update', _this);
+      if (_this.isNew === true) {
+        return _this.parentCollection.__synchronize('add', _this);
+      } else {
+        return _this.parentCollection.__synchronize('update', _this);
+      }
     }
 
     function __setLinkInternal(linkAttributes, linkKey, linkSchema) {
