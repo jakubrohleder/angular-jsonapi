@@ -1,4 +1,5 @@
 # Angular JsonAPI
+[![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)
 
 ### Use with caution!
 ### This module is still in a WIP state, many things work fine but it lacks tests and API may change, also documentation can not reflect the real state
