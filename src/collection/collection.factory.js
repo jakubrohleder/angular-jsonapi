@@ -172,7 +172,7 @@
       _this.data = {};
       _this.length = 0;
 
-      _this.__synchronize('clear');
+      return _this.__synchronize('clear');
     }
 
     function __remove(id) {
@@ -198,7 +198,7 @@
         $log.error('Object with this id does not exist');
       }
 
-      _this.__synchronize('remove', object);
+      return _this.__synchronize('remove', object);
     }
 
     function __saveNew() {
