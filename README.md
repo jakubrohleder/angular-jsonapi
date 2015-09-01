@@ -160,7 +160,6 @@ Angular-jsonapi supports multiple validators, as well as gives you opportunity t
 |`'required'` | Checks if the field contains any data (works for strings, integers etc.). |
 |`{maxlength: value}` and `{minlenght: value}` | Checks if the field content is shorter/longer or equal to `value`. |
 |`{maxvalue: value}` and `{minvalue: value}` | Checks if the field value is lower/higher or equal to `value`. Works only on intergers. |
-|`{maxlength: value}` and `{minlenght: value}` | Checks if the field content is shorter/longer or equal to `value`. |
 | **custom** | Any function can be passed as a validator, learn more in [custom validators](#custom-validators) section. |
 
 All errors messages are in english and `i18n` is not supported right now, but it is on the [roadmap](#roadmap).
