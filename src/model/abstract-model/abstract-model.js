@@ -385,7 +385,7 @@
 
         AngularJsonAPIModelLinkerService.link(object, key, target, schema);
 
-        if (initialize !== true) {
+        if (initialize !== true && reflectionKey !== false) {
           AngularJsonAPIModelLinkerService.link(object, reflectionKey, target, reflectionSchema);
         }
       }

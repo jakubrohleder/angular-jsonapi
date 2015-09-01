@@ -40,7 +40,7 @@
     //       errors = errors.concat(__validate(element, attributeValue, attributeName));
     //     });
     //   } else if (angular.isFunction(validator)) {
-    //     var err = validator(attributeValue);
+    //     var err = validator(attributeValue, attributeName);
     //     if (angular.isArray(err)) {
     //       errors.concat(err);
     //     } else {
