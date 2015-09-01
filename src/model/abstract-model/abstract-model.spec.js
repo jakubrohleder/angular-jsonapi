@@ -1,6 +1,13 @@
 /*jshint expr: true*/
-'use strict';
+(function() {
+  'use strict';
 
-describe('AngularJsonAPIAbstractModel factory', function() {
+  describe('AngularJsonAPIAbstractModel', function() {
 
-});
+    beforeEach(module('angular-jsonapi'));
+
+    it('returns valid model', inject(function(AngularJsonAPIAbstractModel) {
+      expect(AngularJsonAPIAbstractModel).toBeDefined();
+    }));
+  });
+})();

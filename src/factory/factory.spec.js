@@ -1,12 +1,13 @@
 /*jshint expr: true*/
-'use strict';
+(function() {
+  'use strict';
 
-describe('AngularJsonAPIFactory factory', function() {
+  describe('AngularJsonAPIFactory', function() {
 
-  beforeEach(module('angular-jsonapi'));
+    beforeEach(module('angular-jsonapi'));
 
-  it('returns valid model', inject(function(AngularJsonAPIFactory) {
-    expect(AngularJsonAPIFactory).to.be.ok;
-  }));
-
-});
+    it('returns valid model', inject(function(AngularJsonAPIFactory) {
+      expect(AngularJsonAPIFactory).toBeDefined();
+    }));
+  });
+})();

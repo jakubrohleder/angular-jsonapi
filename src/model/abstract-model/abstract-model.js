@@ -17,9 +17,10 @@
     AngularJsonAPIAbstractModel.prototype.reset = reset;
     AngularJsonAPIAbstractModel.prototype.save = save;
 
+    AngularJsonAPIAbstractModel.prototype.update = update;
+
     AngularJsonAPIAbstractModel.prototype.link = link;
     AngularJsonAPIAbstractModel.prototype.unlink = unlink;
-
     AngularJsonAPIAbstractModel.prototype.unlinkAll = unlinkAll;
 
     AngularJsonAPIAbstractModel.prototype.toJson = toJson;
@@ -184,7 +185,7 @@
 
     /**
      * Unlink all relationships of the object **without synchronization**
-     * @return {boolean} result
+     * @return {boolean} Result
      */
     function unlinkAll() {
       var _this = this;
@@ -306,6 +307,17 @@
       return deferred.promise;
     }
 
+    /**
+     * Sets object state to data
+     * @param  {object} validatedData JsonAPI object with data
+     * @return {bool}               Result
+     */
+    function update(validatedData) {
+      var _this = this;
+
+      return __setData(_this, validatedData);
+    }
+
     /////////////
     // PRIVATE //
     /////////////
@@ -338,6 +350,8 @@
 
       angular.forEach(schema.attributes, setAttributes);
       angular.forEach(schema.relationships, setRelationships);
+
+      return true;
 
       function setAttributes(validators, key) {
         object.data.attributes[key] = validatedData.attributes[key];

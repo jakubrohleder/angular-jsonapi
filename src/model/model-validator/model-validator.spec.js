@@ -1,12 +1,13 @@
 /*jshint expr: true*/
-'use strict';
+(function() {
+  'use strict';
 
-describe('AngularJsonAPIModelValidator factory', function() {
+  describe('AngularJsonAPIModelValidatorService', function() {
 
-  beforeEach(module('angular-jsonapi'));
+    beforeEach(module('angular-jsonapi'));
 
-  it('returns valid model', inject(function(AngularJsonAPIModelValidator) {
-    expect(AngularJsonAPIModelValidator).to.be.ok;
-  }));
-
-});
+    it('returns valid model', inject(function(AngularJsonAPIModelValidatorService) {
+      expect(AngularJsonAPIModelValidatorService).toBeDefined();
+    }));
+  });
+})();

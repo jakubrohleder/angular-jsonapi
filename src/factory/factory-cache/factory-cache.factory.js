@@ -51,7 +51,7 @@
         _this.data[id] = new _this.factory.Model(validatedData);
         _this.size += 1;
       } else {
-        _this.data[id].__update(validatedData);
+        _this.data[id].update(validatedData);
       }
 
       return _this.data[id];

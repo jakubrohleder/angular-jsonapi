@@ -1,20 +1,46 @@
 /*jshint expr: true*/
-'use strict';
+(function() {
+  'use strict';
 
-describe('AngularJsonAPIFactoryCache', function() {
+  describe('AngularJsonAPICache', function() {
 
-  beforeEach(module('angular-jsonapi'));
+    beforeEach(module('angular-jsonapi'));
 
-  it('returns valid model', inject(function(AngularJsonAPIFactoryCache) {
-    expect(AngularJsonAPIFactoryCache).to.be.ok;
-  }));
+    it('returns valid model', inject(function(AngularJsonAPICache) {
+      expect(AngularJsonAPICache).toBeDefined();
+    }));
 
-  describe('#fromJson()', function() {
+    describe('#addOrUpdate', function() {
+
+    });
+
+    describe('#fromJson', function() {
+
+    });
+
+    describe('#toJson', function() {
+
+    });
+
+    describe('#clear', function() {
+
+    });
+
+    describe('#get', function() {
+
+    });
+
+    describe('#remove', function() {
+
+    });
+
+    describe('#revertRemove', function() {
+
+    });
+
+    describe('#clearRemoved', function() {
+
+    });
 
   });
-
-  describe('#toJson()', function() {
-
-  });
-
-});
+})();

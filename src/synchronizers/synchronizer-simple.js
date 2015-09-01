@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('angular-jsonapi-local', ['angular-jsonapi'])
+  angular.module('angular-jsonapi')
   .factory('AngularJsonAPISynchronizerSimple', AngularJsonAPISynchronizerSimpleWrapper);
 
   function AngularJsonAPISynchronizerSimpleWrapper(AngularJsonAPISynchronizerPrototype, $q, $log) {
