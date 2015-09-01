@@ -1,5 +1,5 @@
 # Angular JsonAPI
-[![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)
+<!--[![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)-->
 
 ### Use with caution!
 ### This module is still in a WIP state, many things work fine but it lacks tests and API may change, also documentation can not reflect the real state
@@ -21,19 +21,24 @@ The future development plan involves:
 * Full offline-mode support with custom data synchronization strategies
 * Even easier usage!
 
-## Table of Contents
+# Table of Contents
 
 * [x] [About this module](#about-this-module)
 * [ ] [Demo](#demo)
 * [x] [Installation](#installation)
-* [x] [Configuration](#configuration)
+* [ ] [Configuration](#configuration)
  	* [x] [Schema](#schema)
-	* [x] [Validators schema](#validators-schema)
-	* [x] [Relationship schema](#relationship-schema)
-	* [x] [Include schema](#custom-functions-schema)
-	* [x] [Custom functions schema](#custom-functions-schema)
+	   * [x] [Validators schema](#validators-schema)
+	   * [x] [Relationship schema](#relationship-schema)
+	   * [x] [Include schema](#custom-functions-schema)
+	   * [x] [Custom functions schema](#custom-functions-schema)
+	* [ ] [Synchronizations](#synchronizations)
+	   * [ ] [Own synchronizations](#own-synchronizations)
+	* [ ] [Synchronizators](#synchronizators)
+	   * [ ] [Own synchronizators](#own-synchronizators)
+	* [ ] [Model](#model)
 * [ ] [API](#api)
-	* [ ] [New object](#new-object)
+	* [ ] [New object](#new-object) 
 	* [ ] [Requests](#requests)
 	* [ ] [Forms](#forms)
 	* [ ] [Synchronizations API](#synchronizations-api)
@@ -41,11 +46,11 @@ The future development plan involves:
 * [ ] [Custom synchronizations](#custom-synchronizations)
 * [ ] [Roadmap](#using-alternate-response-formats)
 
-## About this module
+# About this module
 
 The idea behind this module is to make those boring and generic data manipulations stuff easy. No more problems with complex data structure, synchronizing data with the server, caching objects or recreating relationships.
 
-## Demo
+# Demo
 
 ### [Live demo] (http://jakubrohleder.github.io/angular-jsonapi)
 
@@ -66,7 +71,7 @@ npm install
 gulp serve
 ~~~
 
-## Installation
+# Installation
 
 * Download this module and its dependencies:
 
@@ -74,9 +79,9 @@ gulp serve
 # from the terminal at the root of your project
 bower install angular-jsonapi --save
 ~~~
-
+  
 * Include `angular-jsonapi` and synchronization modules (`angular-jsonapi-rest`, `angular-jsonapi-local`) in your module's dependencies:
-
+  
 ~~~javascript
 // in your js app's module definition
 angular.module('myApp', [
@@ -86,11 +91,11 @@ angular.module('myApp', [
 ]);
 ~~~
 
-## Configuration
+# Configuration
 
 Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any confiuration options. All the configuration shoud be made in the `run` phase using `$jsonapi`.
 
-### Schema
+## Schema
 
 The only complex step of using this module, is to provide data schema, that is used later on to create objects, validate forms etc. Each data type should have it's own schema. The schema is an object containing following properties:
 
@@ -177,7 +182,7 @@ function awesomeValidator(attributeValue, attributeName) {
   if (attributeValue !== 'awesome') {
     return [attributeName + ' is not awesome'];
   }
-
+  
   return [];
 }
 ~~~
@@ -220,26 +225,34 @@ Accept: application/vnd.api+json
 
 ### Custom functions schema
 
-Custom functions schema is nothing more they just simple object with function names as keys and functions as a value. All of the functions will be runned with an object instance binded to `this` and no arguments.
+Custom functions schema is nothing more they just simple object with function names as keys and functions as a value. All of the functions will be runned with an object instance binded to `this` and no arguments. 
 
 Custom functions are extremly helpfull if you need to inject some common functions that object should perform into its prototype.
 
-## API
+## Synchronizations
 
-### New object
+### Own synchronizations
 
-### Requests
+## Synchronizators
 
-### Forms
+### Own synchronizators
 
-### Synchronizations API
+## Model
 
-### Errors handling
+# API
 
-## Custom synchronizations
+## New object
 
+## Requests
 
+## Forms
 
-## Roadmap
+## Synchronizations API
+
+## Errors handling
+
+# Custom synchronizations
+
+# Roadmap
 
 
