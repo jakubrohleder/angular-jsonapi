@@ -4,9 +4,15 @@
   angular.module('angular-jsonapi-rest', ['angular-jsonapi'])
   .factory('AngularJsonAPISynchronizationRest', AngularJsonAPISynchronizationRestWrapper);
 
-  function AngularJsonAPISynchronizationRestWrapper(AngularJsonAPISynchronization, $q, $http, toKebabCase) {
+  function AngularJsonAPISynchronizationRestWrapper(
+    AngularJsonAPISynchronizationPrototype,
+    AngularJsonAPIModelLinkerService,
+    toKebabCase,
+    $q,
+    $http
+  ) {
 
-    AngularJsonAPISynchronizationRest.prototype = Object.create(AngularJsonAPISynchronization.prototype);
+    AngularJsonAPISynchronizationRest.prototype = Object.create(AngularJsonAPISynchronizationPrototype.prototype);
     AngularJsonAPISynchronizationRest.prototype.constructor = AngularJsonAPISynchronizationRest;
 
     return AngularJsonAPISynchronizationRest;
@@ -18,253 +24,92 @@
         'Content-Type': 'application/vnd.api+json'
       }; // jscs:enable disallowQuotedKeysInObjects
 
-      AngularJsonAPISynchronization.call(_this);
+      AngularJsonAPISynchronizationPrototype.call(_this);
 
       _this.synchronization('remove', remove);
-      _this.synchronization('removeLink', removeLink);
-      _this.synchronization('addLink', addLink);
+      _this.synchronization('unlink', unlink);
+      _this.synchronization('link', link);
       _this.synchronization('update', update);
       _this.synchronization('add', add);
       _this.synchronization('all', all);
       _this.synchronization('get', get);
       _this.synchronization('refresh', get);
-      _this.after('all', afterAll);
-      _this.after('get', afterGet);
-      _this.after('refresh', afterGet);
 
-      function wrapResp(data, status, headers, config) {
-        return {
-          data: data,
-          status: status,
-          headers: headers,
-          config: config
-        };
-      }
-
-      function afterAll(collection, object, linkSchema, linkedObject, params, results) {
-        var rawData;
-        var included;
-        var indexedData;
-
-        if (results[0].success === true) {
-          rawData = results[0].value.data.data;
-          included = results[0].value.data.included;
-          indexedData = {};
-          angular.forEach(rawData, function(data) {
-            indexedData[data.id] = data;
-            collection.addOrUpdate(data);
-          });
-
-          angular.forEach(collection.data, function(object) {
-            if (indexedData[object.data.id] === undefined) {
-              collection.__remove(object.data.id);
-            }
-          });
-
-          angular.forEach(included, function(object) {
-            collection.allCollections[object.type].addOrUpdate(object);
-          });
-        }
-      }
-
-      function afterGet(collection, object, linkSchema, linkedObject, params, results) {
-        var data;
-        var included;
-
-        if (results[0].success === true) {
-          data = results[0].value.data.data;
-          included = results[0].value.data.included;
-          collection.addOrUpdate(data);
-
-          angular.forEach(included, function(object) {
-            collection.allCollections[object.type].addOrUpdate(object);
-          });
-        }
-      }
-
-      function all(collection, object, linkSchema, linkedObject, params) {
-        var deferred = $q.defer();
-        var config = {
+      function all(config) {
+        return $http({
           method: 'GET',
           headers: headers,
           url: url,
-          params: params || {}
-        };
-
-        collection.errors.rest = collection.errors.rest || {};
-
-        $http(config).
-          success(function(data, status, headers, config) {
-            collection.errors.rest.all = undefined;
-            deferred.resolve(wrapResp(data, status, headers, config));
-          }).
-          error(function(data, status, headers, config) {
-            collection.errors.rest.all = data;
-            deferred.reject(wrapResp(data, status, headers, config));
-          });
-
-        return deferred.promise;
+          params: config.params || {}
+        });
       }
 
-      function get(collection, object, linkSchema, linkedObject, params) {
-        var deferred = $q.defer();
-        var config;
-        var ids;
-
-        if (angular.isArray(object)) {
-          ids = [];
-          angular.forEach(object, function(object) {
-            ids.push(object.data.id);
-          });
-        } else {
-          ids = object.data.id;
-        }
-
-        config = {
+      function get(config) {
+        return $http({
           method: 'GET',
           headers: headers,
-          url: url + '/' + ids.toString(),
-          params: params || {}
-        };
-
-        object.errors.rest = object.errors.rest || {};
-
-        $http(config).
-          success(function(data, status, headers, config) {
-            object.errors.rest.get = undefined;
-            deferred.resolve(wrapResp(data, status, headers, config));
-          }).
-          error(function(data, status, headers, config) {
-            object.errors.rest.get = data;
-            deferred.reject(wrapResp(data, status, headers, config));
-          });
-
-        return deferred.promise;
+          url: url + '/' + config.object.data.id,
+          params: config.params || {}
+        });
       }
 
-      function remove(collection, object) {
-        var deferred = $q.defer();
-        var config = {
+      function remove(config) {
+        return $http({
           method: 'DELETE',
           headers: headers,
-          url: url + '/' + object.data.id
-        };
-
-        object.errors.rest = object.errors.rest || {};
-
-        $http(config).
-          success(function(data, status, headers, config) {
-            object.errors.rest.remove = undefined;
-            deferred.resolve(wrapResp(data, status, headers, config));
-          }).
-          error(function(data, status, headers, config) {
-            object.errors.rest.remove = data;
-            deferred.reject(wrapResp(data, status, headers, config));
-          });
-
-        return deferred.promise;
+          url: url + '/' + config.object.data.id
+        });
       }
 
-      function removeLink(collection, object, linkKey, linkedObject) {
+      function unlink(config) {
         var deferred = $q.defer();
-        var config;
 
-        object.errors.rest = object.errors.rest || {};
-
-        if (object.removed === true || linkedObject === undefined) {
-          deferred.resolve();
+        if (config.object.removed === true || config.target === undefined) {
+          deferred.reject();
         } else {
-          config = {
+          $http({
             method: 'DELETE',
             headers: headers,
-            url: url + '/' + object.data.id + '/relationships/' + toKebabCase(linkKey) + '/' + linkedObject.data.id
-          };
-
-          $http(config).
-          success(function(data, status, headers, config) {
-            object.errors.rest.removeLink = undefined;
-            deferred.resolve(wrapResp(data, status, headers, config));
-          }).
-          error(function(data, status, headers, config) {
-            object.errors.rest.removeLink = data;
-            deferred.reject(wrapResp(data, status, headers, config));
-          });
+            url: url + '/' + config.object.data.id + '/relationships/' + toKebabCase(config.key) + '/' + config.target.data.id
+          }).then(deferred.resolve, deferred.reject);
         }
 
         return deferred.promise;
       }
 
-      function addLink(collection, object, linkKey, linkedObject) {
+      function link(config) {
         var deferred = $q.defer();
-        var config = {
-          method: 'POST',
-          headers: headers,
-          url: url + '/' + object.data.id + '/relationships/' + toKebabCase(linkKey),
-          data: {data: [linkedObject.toLinkData()]}
-        };
 
-        object.errors.rest = object.errors.rest || {};
-
-        $http(config).
-          success(function(data, status, headers, config) {
-            object.errors.rest.addLink = undefined;
-            deferred.resolve(wrapResp(data, status, headers, config));
-          }).
-          error(function(data, status, headers, config) {
-            object.errors.rest.addLink = data;
-            deferred.reject(wrapResp(data, status, headers, config));
-          });
+        if (config.object.removed === true || config.target === undefined) {
+          deferred.reject();
+        } else {
+          $http({
+            method: 'POST',
+            headers: headers,
+            url: url + '/' + config.object.data.id + '/relationships/' + toKebabCase(config.key),
+            data: {data: [AngularJsonAPIModelLinkerService.toLinkData(config.target)]}
+          }).then(deferred.resolve, deferred.reject);
+        }
 
         return deferred.promise;
-
       }
 
-      function update(collection, object) {
-        var deferred = $q.defer();
-        var config = {
+      function update(config) {
+        return $http({
           method: 'PUT',
           headers: headers,
-          url: url + '/' + object.data.id,
-          data: object.toPatchData()
-        };
-
-        object.errors.rest = object.errors.rest || {};
-
-        $http(config).
-          success(function(data, status, headers, config) {
-            object.errors.rest.update = undefined;
-            deferred.resolve(wrapResp(data, status, headers, config));
-          }).
-          error(function(data, status, headers, config) {
-            object.errors.rest.update = data;
-            deferred.reject(wrapResp(data, status, headers, config));
-          });
-
-        return deferred.promise;
+          url: url + '/' + config.object.data.id,
+          data: config.object.form.toJson()
+        });
       }
 
-      function add(collection, object) {
-        var deferred = $q.defer();
-        var config = {
+      function add(config) {
+        return $http({
           method: 'POST',
           headers: headers,
           url: url + '/',
-          data: object.toAddData()
-        };
-
-        object.errors.rest = object.errors.rest || {};
-
-        $http(config).
-          success(function(data, status, headers, config) {
-            object.errors.rest.add = undefined;
-            deferred.resolve(wrapResp(data, status, headers, config));
-          }).
-          error(function(data, status, headers, config) {
-            object.errors.rest.add = data;
-            deferred.reject(wrapResp(data, status, headers, config));
-          });
-
-        return deferred.promise;
+          data: config.object.form.toJson()
+        });
       }
     }
   }

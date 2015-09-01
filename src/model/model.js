@@ -4,13 +4,13 @@
   angular.module('angular-jsonapi')
   .factory('AngularJsonAPIModel', AngularJsonAPIModel);
 
-  function AngularJsonAPIModel(AngularJsonAPIAbstractData, AngularJsonAPISchema, $log) {
+  function AngularJsonAPIModel(AngularJsonAPIAbstractModel, AngularJsonAPISchema, $log) {
 
     return {
       model: modelFactory
     };
 
-    function modelFactory(schemaObj, linkedCollections, parentCollection) {
+    function modelFactory(schemaObj, parentFactory) {
       var Model = function(data, updatedAt, isNew) {
         var _this = this;
 
@@ -18,17 +18,17 @@
           $log.error('Data type other then declared in schema: ', data.type, ' instead of ', _this.schema.type);
         }
 
-        AngularJsonAPIAbstractData.call(_this, data, updatedAt, isNew);
+        AngularJsonAPIAbstractModel.call(_this, data, updatedAt, isNew);
 
         _this.form.parent = _this;
       };
 
-      Model.prototype = Object.create(AngularJsonAPIAbstractData.prototype);
+      Model.prototype = Object.create(AngularJsonAPIAbstractModel.prototype);
       Model.prototype.constructor = Model;
 
       Model.prototype.schema = schemaObj;
-      Model.prototype.linkedCollections = linkedCollections;
-      Model.prototype.parentCollection = parentCollection;
+      Model.prototype.parentFactory = parentFactory;
+      Model.prototype.synchronize = parentFactory.synchronizer.synchronize;
 
       angular.forEach(schemaObj.functions, function(metaFunction, metaFunctionName) {
         Model.prototype[metaFunctionName] = function() {

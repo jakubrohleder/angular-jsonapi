@@ -4,27 +4,29 @@
   angular.module('angular-jsonapi-local', ['angular-jsonapi'])
   .factory('AngularJsonAPISynchronizationLocal', AngularJsonAPISynchronizationLocalWrapper);
 
-  function AngularJsonAPISynchronizationLocalWrapper(AngularJsonAPISynchronization, $window) {
+  function AngularJsonAPISynchronizationLocalWrapper(AngularJsonAPISynchronizationPrototype, $window) {
 
-    AngularJsonAPISynchronizationLocal.prototype = Object.create(AngularJsonAPISynchronization.prototype);
+    AngularJsonAPISynchronizationLocal.prototype = Object.create(AngularJsonAPISynchronizationPrototype.prototype);
     AngularJsonAPISynchronizationLocal.prototype.constructor = AngularJsonAPISynchronizationLocal;
 
     return AngularJsonAPISynchronizationLocal;
 
     function AngularJsonAPISynchronizationLocal(prefix) {
       var _this = this;
+      var type = _this.synchronizer.factory.schema.type;
+      var cache = _this.synchronizer.factory.cache;
 
       _this.__updateStorage = updateStorage;
 
-      AngularJsonAPISynchronization.call(_this);
+      AngularJsonAPISynchronizationPrototype.call(_this);
 
       _this.begin('init', init);
       _this.begin('clear', clear);
       _this.begin('remove', updateStorage);
-      _this.begin('removeLink', updateStorage);
-      _this.begin('removeLinkReflection', updateStorage);
-      _this.begin('addLink', updateStorage);
-      _this.begin('addLinkReflection', updateStorage);
+      _this.begin('unlink', updateStorage);
+      _this.begin('unlinkReflection', updateStorage);
+      _this.begin('link', updateStorage);
+      _this.begin('linkReflection', updateStorage);
       _this.begin('update', updateStorage);
       _this.begin('add', updateStorage);
       _this.finish('get', updateStorage);
@@ -33,26 +35,25 @@
       _this.finish('init', updateStorage);
       _this.finish('clear', updateStorage);
       _this.finish('remove', updateStorage);
-      _this.finish('removeLink', updateStorage);
-      _this.finish('removeLinkReflection', updateStorage);
-      _this.finish('addLink', updateStorage);
-      _this.finish('addLinkReflection', updateStorage);
+      _this.finish('unlink', updateStorage);
+      _this.finish('unlinkReflection', updateStorage);
+      _this.finish('link', updateStorage);
+      _this.finish('linkReflection', updateStorage);
       _this.finish('update', updateStorage);
       _this.finish('add', updateStorage);
       _this.finish('get', updateStorage);
       _this.finish('all', updateStorage);
 
-      function init(collection) {
-        var datas = $window.localStorage.getItem(prefix + '.' + collection.Model.prototype.schema.type);
-        collection.fromJson(datas);
+      function init() {
+        return $window.localStorage.getItem(prefix + '.' + type);
       }
 
-      function clear(collection) {
-        $window.localStorage.removeItem(prefix + '.' + collection.Model.prototype.schema.type);
+      function clear() {
+        $window.localStorage.removeItem(prefix + '.' + type);
       }
 
-      function updateStorage(collection) {
-        $window.localStorage.setItem(prefix + '.' + collection.Model.prototype.schema.type, collection.toJson());
+      function updateStorage() {
+        $window.localStorage.setItem(prefix + '.' + type, cache.toJson());
       }
     }
   }

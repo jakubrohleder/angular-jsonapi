@@ -5,17 +5,14 @@
   .factory('AngularJsonAPIFactory', AngularJsonAPIFactoryWrapper);
 
   function AngularJsonAPIFactoryWrapper(
-    $log,
-    uuid4,
     AngularJsonAPIModel,
-    AngularJsonAPISchema
+    AngularJsonAPISchema,
+    AngularJsonAPICache,
+    AngularJsonAPICollection,
+    uuid4,
+    $log,
+    $q
   ) {
-    AngularJsonAPIFactory.prototype.allCollections = {};
-
-    AngularJsonAPIFactory.prototype.__synchronize = __synchronize;
-    AngularJsonAPIFactory.prototype.__get = __get;
-    AngularJsonAPIFactory.prototype.__remove = __remove;
-
     AngularJsonAPIFactory.prototype.get = get;
     AngularJsonAPIFactory.prototype.all = all;
     AngularJsonAPIFactory.prototype.remove = remove;
@@ -23,164 +20,127 @@
 
     AngularJsonAPIFactory.prototype.clear = clear;
 
-    AngularJsonAPIFactory.prototype.fromJson = fromJson;
-    AngularJsonAPIFactory.prototype.toJson = toJson;
-
-    AngularJsonAPIFactory.prototype.addOrUpdate = addOrUpdate;
-    AngularJsonAPIFactory.prototype.hasErrors = hasErrors;
-
     return AngularJsonAPIFactory;
 
-    function AngularJsonAPIFactory(schema, synchronization) {
+    /**
+     * AngularJsonAPIFactory constructor
+     * @param {json} schema       Schema object
+     * @param {AngularJsonAPISynchronizer} synchronizer Synchronizer for the factory
+     */
+    function AngularJsonAPIFactory(schema, synchronizer) {
       var _this = this;
+      var config = {
+        action: 'init'
+      };
 
-      var schemaObj = new AngularJsonAPISchema(schema);
+      _this.schema = new AngularJsonAPISchema(schema);
+      _this.cache = new AngularJsonAPICache(_this);
+
+      _this.synchronizer = synchronizer;
+      _this.synchronizer.factory = _this;
 
       _this.Model = AngularJsonAPIModel.model(
-        schemaObj,
-        _this.allCollections,
+        _this.schema,
         _this
       );
 
-      _this.synchronization = synchronization;
+      _this.synchronizer.synchronize(config).then(resolved, rejected);
 
-      _this.loadingCount = 0;
-      _this.data = {};
-      _this.removed = {};
-      _this.promises = {};
-      _this.schema = schemaObj;
-      _this.length = 0;
+      function resolved(data, finish) {
+        _this.cache.fromJson(data);
 
-      _this.allCollections[schema.type] = _this;
+        finish();
+        return data;
+      }
 
-      _this.__synchronize('init');
+      function rejected(errors, finish) {
+        finish();
 
-      _this.errors = {};
-    }
-
-    function hasErrors() {
-      var _this = this;
-      var result = false;
-
-      angular.forEach(_this.errors, function(error) {
-        if (error !== undefined) {
-          result = true;
-        }
-      });
-
-      return result;
-    }
-
-    function fromJson(json) {
-      var _this = this;
-      var collection = angular.fromJson(json);
-
-      if (collection !== null && collection.data !== undefined) {
-        _this.updatedAt = collection.updatedAt;
-
-        angular.forEach(collection.data, function(objectData) {
-          var data = objectData.data;
-          _this.addOrUpdate(data, objectData.updatedAt);
-        });
+        return errors;
       }
     }
 
-    function toJson() {
-      var _this = this;
-      var json = {
-        data: {},
-        updatedAt: _this.updatedAt
-      };
-
-      angular.forEach(_this.data, function(object, key) {
-        json.data[key] = object.toJson();
-      });
-
-      return angular.toJson(json);
-    }
-
-    function addOrUpdate(validatedData, updatedAt) {
-      var _this = this;
-      if (validatedData.id === undefined) {
-        $log.error('Can\'t add data without id!', validatedData);
-        return;
-      }
-
-      if (_this.data[validatedData.id] === undefined) {
-        _this.data[validatedData.id] = new this.Model(validatedData, updatedAt);
-        _this.length += 1;
-      } else {
-        _this.data[validatedData.id].__setData(validatedData, updatedAt);
-        _this.data[validatedData.id].__setLinks(validatedData.relationships);
-      }
-
-      _this.data[validatedData.id].__setUpdated(updatedAt);
-
-      return _this.data[validatedData.id];
-    }
-
-    function __get(id) {
-      var _this = this;
-
-      if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.Model({id: id, type: _this.Model.prototype.schema.type}, undefined);
-      }
-
-      return _this.data[id];
-    }
-
+    /**
+     * Get request
+     * @param  {uuid} id
+     * @return {AngularJsonAPIModel} Model associated with id, synchronized
+     */
     function get(id) {
       var _this = this;
-      var result = _this.__get(id);
-      var params = _this.schema.params.get;
+      var object = _this.__get(id);
 
-      _this.__synchronize('get', result, undefined, undefined, params);
+      object.fetch();
 
-      return result;
+      return object;
     }
 
-    function all() {
+    /**
+     * All request
+     * @param  {object} params Object associated with params (for filters/pagination etc.)
+     * @return {AngularJsonAPICollection} Collection of AngularJsonAPIModel, synchronized
+     */
+    function all(params) {
       var _this = this;
-      _this.__synchronize('all', undefined, undefined, undefined, _this.schema.params.all);
 
-      return _this;
+      var collection = new AngularJsonAPICollection(
+        _this,
+        angular.extend(params, _this.schema.params.all)
+      );
+
+      collection.fetch();
+
+      return collection;
     }
 
-    function clear() {
-      var _this = this;
-      _this.updatedAt = Date.now();
-      _this.data = {};
-      _this.length = 0;
-
-      return _this.__synchronize('clear');
-    }
-
-    function __remove(id) {
-      var _this = this;
-      var object = _this.data[id];
-
-      _this.removed[id] = object;
-      _this.updatedAt = Date.now();
-
-      delete _this.data[id];
-
-      _this.length -= 1;
-    }
-
+    /**
+     * Remove request
+     * @param  {uuid} id
+     * @return {promise} Promise associated with the synchronization, in case of
+     * fail object is reverted to previous state
+     */
     function remove(id) {
       var _this = this;
-      var object = _this.data[id];
+      var object = _this.cache.remove(id);
+      var config = {
+        action: 'remove',
+        object: object
+      };
 
       if (object !== undefined) {
-        _this.__remove(id);
-        object.__remove(id);
+        object.removed = true;
+
+        if (object.isNew) {
+          return $q.when(undefined);
+        }
       } else {
         $log.error('Object with this id does not exist');
       }
 
-      return _this.__synchronize('remove', object);
+      return _this.synchronizer.synchronize(config).then(resolved, rejected);
+
+      function resolved(data, finish) {
+        object.unlinkAll();
+        _this.cache.clearRemoved(id);
+        finish();
+
+        return data;
+      }
+
+      function rejected(errors, finish) {
+        if (object !== undefined) {
+          object.removed = false;
+          _this.cache.revertRemove(id);
+        }
+
+        finish();
+        return errors;
+      }
     }
 
+    /**
+     * Initialize new AngularJsonAPIModel
+     * @return {AngularJsonAPIModel} New model
+     */
     function initialize() {
       var _this = this;
 
@@ -189,25 +149,33 @@
         id: uuid4.generate(),
         attributes: {},
         relationships: {}
-      }, undefined, true);
+      }, true);
 
       return model;
     }
 
-    function __synchronize(action, object, linkKey, linkedObject, params) {
+    /**
+     * Clears localy saved data
+     * @return {promise} Promise associated with the synchronization resolves to nothing
+     */
+    function clear() {
       var _this = this;
-      var promise;
+      _this.cache.clear();
+      var config = {
+        action: 'clear'
+      };
 
-      $log.debug('Synchro Collection', this.Model.prototype.schema.type, {action: action, object: object, linkKey: linkKey, linkedObject: linkedObject, params: params});
+      return _this.synchronizer.synchronize(config).then(resolved, rejected);
 
-      promise = _this.synchronization.synchronize(action, _this, object, linkKey, linkedObject, params);
-      if (object !== undefined) {
-        object.promises[action] = promise;
-      } else {
-        _this.promises[action] = promise;
+      function resolved(data, finish) {
+        finish();
       }
 
-      return promise;
+      function rejected(errors, finish) {
+        finish();
+
+        return errors;
+      }
     }
   }
 })();
