@@ -19,8 +19,8 @@
     AngularJsonAPIFactory.prototype.get = get;
     AngularJsonAPIFactory.prototype.all = all;
     AngularJsonAPIFactory.prototype.remove = remove;
+
     AngularJsonAPIFactory.prototype.clear = clear;
-    AngularJsonAPIFactory.prototype.create = create;
 
     AngularJsonAPIFactory.prototype.fromJson = fromJson;
     AngularJsonAPIFactory.prototype.toJson = toJson;
