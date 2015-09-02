@@ -16,6 +16,8 @@
       var type = _this.synchronizer.factory.schema.type;
       var cache = _this.synchronizer.factory.cache;
 
+      prefix = prefix || 'AngularJsonAPI';
+
       _this.__updateStorage = updateStorage;
 
       AngularJsonAPISynchronizationPrototype.call(_this);

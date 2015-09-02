@@ -26,24 +26,23 @@ The future development plan involves:
 * [x] [About this module](#about-this-module)
 * [ ] [Demo](#demo)
 * [x] [Installation](#installation)
-* [ ] [Configuration](#configuration)
+* [x] [Configuration](#configuration)
  	* [x] [Schema](#schema)
 	   * [x] [Validators schema](#validators-schema)
 	   * [x] [Relationship schema](#relationship-schema)
 	   * [x] [Include schema](#custom-functions-schema)
 	   * [x] [Custom functions schema](#custom-functions-schema)
-	* [ ] [Synchronizations](#synchronizations)
+	* [x] [Synchronizations](#synchronizations)
 	   * [ ] [Own synchronizations](#own-synchronizations)
-	* [ ] [Synchronizators](#synchronizators)
+	* [x] [Synchronizators](#synchronizators)
 	   * [ ] [Own synchronizators](#own-synchronizators)
-	* [ ] [Model](#model)
+	* [x] [Model](#model)
 * [ ] [API](#api)
 	* [ ] [New object](#new-object) 
 	* [ ] [Requests](#requests)
 	* [ ] [Forms](#forms)
 	* [ ] [Synchronizations API](#synchronizations-api)
 	* [ ] [Errors handling](#errors-handling)
-* [ ] [Custom synchronizations](#custom-synchronizations)
 * [ ] [Roadmap](#using-alternate-response-formats)
 
 # About this module
@@ -93,11 +92,11 @@ angular.module('myApp', [
 
 # Configuration
 
-Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any confiuration options. All the configuration shoud be made in the `run` phase using `$jsonapi`.
+Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any confiuration options. All the configuration shoud be made in the `run` phase using `$jsonapi`. The only option as the moment is `$jsonapi.addModel`, it takes two arguments: [schema](#schema) and [synchronizer](#synchronizers). 
 
 ## Schema
 
-The only complex step of using this module, is to provide data schema, that is used later on to create objects, validate forms etc. Each data type should have it's own schema. The schema is an object containing following properties:
+First step is to provide data schema, that is used later on to create objects, validate forms etc. Each data type should have it's own schema. The schema is an object containing following properties:
 
 | field | description |
 |---|---|
@@ -226,17 +225,114 @@ Accept: application/vnd.api+json
 
 Custom functions schema is nothing more they just simple object with function names as keys and functions as a value. All of the functions will be runned with an object instance binded to `this` and no arguments. 
 
-Custom functions are extremly helpfull if you need to inject some common functions that object should perform into its prototype.
+Custom functions are extremly helpfull if you need to inject some methods common for the object type into its prototype.
+
+## Synchronizers
+
+Synchronizers are object that keep synchronizations work together by running hooks in the right order, as well as creating the final data that is used to update object.
+
+In most cases `AngularJsonAPISynchronizerSimple` is enought. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
+
+`AngularJsonAPISynchronizerSimple` constructor takes one argument - array of [synchronizations] (#synchronizations).
+
+~~~javascript
+    var novelsSynchronizer = new AngularJsonAPISynchronizerSimple([
+      localeSynchronization, restSynchronization
+    ]);
+~~~
+
+### Own Synchronizers
+
+**todo**
 
 ## Synchronizations
 
+Synchronizations are strategies of updating model with given source. At the moment two synchronization types are supported:
+
+### AngularJsonAPISynchronizationLocal
+Saves data in the local store and loads them each time you visit the site, in this way your users can access data immidiately even if they are offline. All the data are cleared when the users logs out.
+
+Date is saved each time it changes and loaded during initialization of the module.
+
+To use this synchronization you must include `angular-jsonapi-local` in your module dependencies.
+
+Synchronization constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
+
+~~~javascript
+
+var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
+
+~~~
+
+### AngularJsonAPISynchronizationRest
+Is a simple synchronizator with the RESTAPI supporting JSON API format. It performs following operations:
+`remove`, `unlink`, `link`, `update`, `add`, `all`, `get`. Everytime the data changes the suitable request is made to keep your data synchronized.
+
+To use this synchronization you must include `angular-jsonapi-rest` in your module dependencies.
+
+Synchronization constructor takes one argument - `url` of the resource, there is no default value.
+
+~~~javascript
+
+var novelsSynchro = new AngularJsonAPISynchronizationRest('localhost:3000/novels');
+
+~~~
+
 ### Own synchronizations
 
-## Synchronizators
-
-### Own synchronizators
+**todo**
 
 ## Model
+
+After performing `$jsonapi.addModel(schema, synchronizer);` the model factory is accesible by return `$jsonapi.getModel(schema.type);`. The easiest way to use it is to create `angular.factory` for each model and then inject it to your controllers. 
+
+All in all configuration of the factory for novels can look like this:
+
+~~~javascript
+(function() {
+  'use strict';
+
+  angular.module('angularJsonapiExample')
+  
+  .run(function(
+    $jsonapi,
+    AngularJsonAPISynchronizationLocal,
+    AngularJsonAPISynchronizationRest,
+    AngularJsonAPISynchronizerSimple
+  ) {
+    var novelsSchema = {
+      type: 'novels',
+      id: 'uuid4',
+      attributes: {
+        title: ['required', 'string', {minlength: 3}, {maxlength: 50}],
+        part: ['integer', {maxvalue: 10, minvalue: 1}]
+      },
+      relationships: {
+        author: {
+          included: true,
+          type: 'hasOne',
+          model: 'people'
+        }
+      }
+    };
+
+    var localeSynchronization = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
+    var restSynchronization = new AngularJsonAPISynchronizationRest('/novels');
+    var novelsSynchronizer = new AngularJsonAPISynchronizerSimple([
+      localeSynchronization, restSynchronization
+    ]);
+
+    $jsonapi.addModel(novelsSchema, novelsSynchronizer);
+  })
+  .factory('Novels', Novels);
+
+  function Novels(
+    $jsonapi
+  ) {
+    return $jsonapi.getModel('novels');
+  }
+})();
+~~~
 
 # API
 
@@ -249,8 +345,6 @@ Custom functions are extremly helpfull if you need to inject some common functio
 ## Synchronizations API
 
 ## Errors handling
-
-# Custom synchronizations
 
 # Roadmap
 
