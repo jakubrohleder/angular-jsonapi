@@ -5,9 +5,7 @@
     .controller('NovelCtrl', NovelCtrl);
 
   function NovelCtrl(
-    $scope,
-    novel
+    $scope
   ) {
-    $scope.novel = novel;
   }
 })();

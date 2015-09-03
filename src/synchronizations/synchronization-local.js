@@ -13,8 +13,6 @@
 
     function AngularJsonAPISynchronizationLocal(prefix) {
       var _this = this;
-      var type = _this.synchronizer.factory.schema.type;
-      var cache = _this.synchronizer.factory.cache;
 
       prefix = prefix || 'AngularJsonAPI';
 
@@ -47,14 +45,18 @@
       _this.finish('all', updateStorage);
 
       function init() {
+        var type = _this.synchronizer.factory.schema.type;
         return $window.localStorage.getItem(prefix + '.' + type);
       }
 
       function clear() {
+        var type = _this.synchronizer.factory.schema.type;
         $window.localStorage.removeItem(prefix + '.' + type);
       }
 
       function updateStorage() {
+        var type = _this.synchronizer.factory.schema.type;
+        var cache = _this.synchronizer.factory.cache;
         $window.localStorage.setItem(prefix + '.' + type, cache.toJson());
       }
     }

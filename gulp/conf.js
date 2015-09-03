@@ -25,8 +25,17 @@ exports.paths = {
  *  to inject css preprocessor deps and js files in karma
  */
 exports.wiredep = {
-  exclude: [/bootstrap.js$/, /bootstrap-sass-official\/.*\.js/, /bootstrap\.css/],
-  directory: 'bower_components'
+  exclude: [/bootstrap.js$/, /bootstrap-sass-official\/.*\.js/, /bootstrap\.css/, /semantic\.less/],
+  devDependencies: true,
+  directory: 'bower_components',
+  overrides: {
+    semantic: {
+      main: [
+        'dist/semantic.css',
+        'dist/semantic.js'
+      ]
+    }
+  }
 };
 
 /**

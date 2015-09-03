@@ -5,9 +5,7 @@
     .controller('DietyCtrl', DietyCtrl);
 
   function DietyCtrl(
-    $scope,
-    diety
+    $scope
   ) {
-    $scope.diety = diety;
   }
 })();

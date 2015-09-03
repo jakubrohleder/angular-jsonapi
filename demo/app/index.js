@@ -2,13 +2,11 @@
 
 angular.module('angularJsonapiExample', [
     'ui.router',
-    'ui.bootstrap',
     'angular-jsonapi',
     'angular-jsonapi-local',
     'angular-jsonapi-rest',
     'jsonFormatter',
     'ngClipboard',
-    'ngMockE2E'
   ])
   .config(function(ngClipProvider) {
     ngClipProvider.setPath('bower_components/zeroclipboard/dist/ZeroClipboard.swf');
@@ -24,12 +22,7 @@ angular.module('angularJsonapiExample', [
           },
           'site@': {
             templateUrl: 'app/site/novels.html',
-            controller: 'NovelsCtrl',
-            resolve: {
-              novels: function(Novels) {
-                return Novels.all();
-              }
-            }
+            controller: 'NovelsCtrl'
           }
         }
       })
@@ -38,12 +31,7 @@ angular.module('angularJsonapiExample', [
         views: {
           'site@': {
             templateUrl: 'app/site/novel.html',
-            controller: 'NovelCtrl',
-            resolve: {
-              novel: function($stateParams, Novels) {
-                return Novels.get($stateParams.id);
-              }
-            }
+            controller: 'NovelCtrl'
           }
         }
       })
@@ -56,12 +44,7 @@ angular.module('angularJsonapiExample', [
           },
           'site@': {
             templateUrl: 'app/site/dieties.html',
-            controller: 'DietiesCtrl',
-            resolve: {
-              dieties: function(Dieties) {
-                return Dieties.all();
-              }
-            }
+            controller: 'DietiesCtrl'
           }
         }
       })
@@ -70,12 +53,7 @@ angular.module('angularJsonapiExample', [
         views: {
           'site@': {
             templateUrl: 'app/site/diety.html',
-            controller: 'DietyCtrl',
-            resolve: {
-              diety: function($stateParams, Dieties) {
-                return Dieties.get($stateParams.id);
-              }
-            }
+            controller: 'DietyCtrl'
           }
         }
       })
@@ -88,12 +66,7 @@ angular.module('angularJsonapiExample', [
           },
           'site@': {
             templateUrl: 'app/site/people.html',
-            controller: 'PeopleCtrl',
-            resolve: {
-              people: function(People) {
-                return People.all();
-              }
-            }
+            controller: 'PeopleCtrl'
           }
         }
       })
@@ -102,12 +75,7 @@ angular.module('angularJsonapiExample', [
         views: {
           'site@': {
             templateUrl: 'app/site/person.html',
-            controller: 'PersonCtrl',
-            resolve: {
-              person: function($stateParams, People) {
-                return People.get($stateParams.id);
-              }
-            }
+            controller: 'PersonCtrl'
           }
         }
       })

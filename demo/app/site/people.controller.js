@@ -5,9 +5,7 @@
     .controller('PeopleCtrl', PeopleCtrl);
 
   function PeopleCtrl(
-    $scope,
-    people
+    $scope
   ) {
-    $scope.people = people;
   }
 })();

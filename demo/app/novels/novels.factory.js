@@ -37,17 +37,18 @@
       }
     };
 
-    var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
-    var novelsSynchro = new AngularJsonAPISynchronizationRest('/novels');
-    novelsSynchro.extend(localeSynchro);
+    // var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
+    // var novelsSynchro = new AngularJsonAPISynchronizationRest('/novels');
+    // novelsSynchro.extend(localeSynchro);
 
-    $jsonapi.addModel(novelsSchema, novelsSynchro);
+    // $jsonapi.addModel(novelsSchema, novelsSynchro);
   })
   .factory('Novels', Novels);
 
   function Novels(
     $jsonapi
   ) {
-    return $jsonapi.getModel('novels');
+    return {};
+    // return $jsonapi.getModel('novels');
   }
 })();

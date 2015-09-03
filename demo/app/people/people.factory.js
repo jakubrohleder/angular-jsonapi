@@ -32,17 +32,18 @@
       }
     };
 
-    var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
-    var peopleSynchro = new AngularJsonAPISynchronizationRest('/people');
-    peopleSynchro.extend(localeSynchro);
+    // var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
+    // var peopleSynchro = new AngularJsonAPISynchronizationRest('/people');
+    // peopleSynchro.extend(localeSynchro);
 
-    $jsonapi.addModel(peopleSchema, peopleSynchro);
+    // $jsonapi.addModel(peopleSchema, peopleSynchro);
   })
   .factory('People', People);
 
   function People(
     $jsonapi
   ) {
-    return $jsonapi.getModel('people');
+    return {};
+    // return $jsonapi.getModel('people');
   }
 })();
