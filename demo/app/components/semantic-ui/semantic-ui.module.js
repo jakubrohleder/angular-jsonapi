@@ -1,0 +1,65 @@
+(function() {
+  'use strict';
+  /* global $:false */
+
+  var app = angular
+      .module('correctme.semantic-ui', ['correctme.constants']);
+
+  $.each($.site.settings.modules, function(index, module) {
+    var fn = $.fn[module];
+    var name;
+
+    if (module === 'form' || module === 'api' || module === 'state' || module === 'visibility') {
+      name = 'se' + module.charAt(0).toUpperCase() + module.substring(1);
+    }else {
+      name = module;
+    }
+
+    /** @ngInject */
+    app.directive(name, ['$timeout', '_', '$rootScope', function($timeout, _, $rootScope) {
+      return {
+        restrict: 'A',
+        seModule: {
+          name: module,
+          fn: fn
+        },
+        scope: {
+          options: '&',
+          arguments: '=',
+          ngModel: '='
+        },
+        link: function(scope, iElement) {
+          console.log('Init', module);
+
+          if (!scope.options) {
+            scope.options = {};
+          }
+
+          scope.options.directive = scope;
+
+          scope.options.onChange = function(value) {
+            $timeout(function() {
+              scope.ngModel = value;
+            });
+          };
+
+          $timeout(function() {
+            var element = $(iElement)[module](_.clone(scope.options));
+            if (scope.arguments !== undefined) {
+              $(iElement)[module].apply(element, scope.arguments);
+            }
+          }, 300);
+
+          $rootScope.$on('semantic-ui:reload', function() {
+            $timeout(function() {
+              var element = $(iElement)[module](_.clone(scope.options));
+              if (scope.arguments !== undefined) {
+                $(iElement)[module].apply(element, scope.arguments);
+              }
+            }, 300);
+          });
+        }
+      };
+    }]);
+  });
+})();

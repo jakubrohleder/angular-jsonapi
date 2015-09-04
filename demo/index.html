@@ -26,14 +26,16 @@
     <![endif]-->
     <div class="btn btn-danger ng-scope" style="position:fixed; top:80px;left:20px;z-index:100;" ng-class="{'active': stats}" ng-click="stats=!stats">Stats</div>
     <div class="btn btn-primary ng-scope" style="position:fixed; top:120px;left:20px;z-index:100;" ng-click="clear()">Clear</div>
-    <div ng-class="{'show-stats': stats}">
+
+    <ui-view></ui-view>
+    <!-- <div ng-class="{'show-stats': stats}">
       <div class="site">
-        <div class="container" ui-view='site'></div>
+        <div class="ui container" ui-view='site'></div>
       </div>
       <div class="stats">
-        <div class="container" ui-view='stats'></div>
+        <div class="ui container" ui-view='stats'></div>
       </div>
-    </div>
+    </div> -->
     <!-- build:js(src) scripts/vendor.js -->
     <!-- bower:js -->
     <!-- run `gulp inject` to automatically populate bower script dependencies -->

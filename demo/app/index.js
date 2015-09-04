@@ -7,12 +7,18 @@ angular.module('angularJsonapiExample', [
     'angular-jsonapi-rest',
     'jsonFormatter',
     'ngClipboard',
+    'promise-button'
   ])
   .config(function(ngClipProvider) {
     ngClipProvider.setPath('bower_components/zeroclipboard/dist/ZeroClipboard.swf');
   })
   .config(function($stateProvider, $urlRouterProvider) {
     $stateProvider
+      .state('test', {
+        url: '/',
+        templateUrl: 'app/test/test.html',
+        controller: 'TestCtrl'
+      })
       .state('novels', {
         url: '/novels',
         views: {
@@ -82,5 +88,5 @@ angular.module('angularJsonapiExample', [
 
       ;
 
-    $urlRouterProvider.otherwise('/novels');
+    $urlRouterProvider.otherwise('');
   });
