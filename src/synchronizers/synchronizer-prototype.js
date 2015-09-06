@@ -17,7 +17,9 @@
     }
 
     function synchronize(config) {
-      $log.debug('Synchro Collection', this.Model.prototype.schema.type, config);
+      var _this = this;
+
+      $log.debug('Synchro Collection', _this.factory.Model.prototype.schema.type, config);
 
       if (config.action === undefined) {
         $log.error('Can\'t synchronize undefined action', config);

@@ -29,10 +29,10 @@
             element.addClass(loadingClass);
             element.removeClass(errorClass);
             element.removeClass(successClass);
-            fn(scope, {$event:event}).then(resolved, rejected);
+            fn(scope, {$event:event}).then(resolve, reject);
           };
 
-          function resolved() {
+          function resolve() {
             element.removeClass(loadingClass);
             element.addClass(successClass);
             element.on('click', onClick);
@@ -40,7 +40,7 @@
             return $q.resolve.apply(this, arguments);
           }
 
-          function rejected() {
+          function reject() {
             element.removeClass(loadingClass);
             element.addClass(errorClass);
             element.on('click', onClick);

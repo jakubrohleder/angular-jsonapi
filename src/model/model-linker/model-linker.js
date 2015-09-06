@@ -20,6 +20,10 @@
      * @return {json}        Link data
      */
     function toLinkData(object) {
+      if (object === null) {
+        return null;
+      }
+
       return {type: object.data.type, id: object.data.id};
     }
 
@@ -31,6 +35,7 @@
      * @param {AngularJsonAPISchema} schema     Relationship schema
      */
     function link(object, key, target, schema) {
+
       if (target === undefined) {
         $log.error('Can\'t link non existing object', object, key, target, schema);
         return false;
@@ -46,15 +51,15 @@
         return false;
       }
 
-      if (schema.polymorphic === false && schema.model !== target.data.type) {
+      if (target !== null && schema.polymorphic === false && schema.model !== target.data.type) {
         $log.error('This relation is not polymorphic, expected: ' + schema.model + ' instead of ' + target.data.type);
         return false;
       }
 
       if (schema.type === 'hasMany') {
-        return __addHasMany(_this, key, object, schema);
+        return __addHasMany(object, key, target, schema);
       } else if (schema.type === 'hasOne') {
-        return __addHasOne(_this, key, object, schema);
+        return __addHasOne(object, key, target, schema);
       }
     }
 
@@ -83,7 +88,7 @@
     /////////////
 
     function __addHasOne(object, key, target, schema) {
-      $log.log('addHasOne', object, key, target, schema);
+      $log.log('addHasOne', object);
 
       if (object.relationships[key] === target) {
         $log.warn(object, 'is already linked to', target);

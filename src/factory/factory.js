@@ -44,19 +44,21 @@
         _this
       );
 
+      synchronizer.factory = _this;
+
       _this.synchronizer.synchronize(config).then(resolved, rejected);
 
-      function resolved(data, finish) {
-        _this.cache.fromJson(data);
+      function resolved(response) {
+        _this.cache.fromJson(response.data);
 
-        finish();
-        return data;
+        response.finish();
+        return response.data;
       }
 
-      function rejected(errors, finish) {
-        finish();
+      function rejected(response) {
+        response.finish();
 
-        return errors;
+        return response.errors;
       }
     }
 
@@ -67,9 +69,9 @@
      */
     function get(id) {
       var _this = this;
-      var object = _this.__get(id);
+      var object = _this.cache.get(id);
 
-      object.fetch();
+      object.refresh();
 
       return object;
     }
@@ -81,6 +83,7 @@
      */
     function all(params) {
       var _this = this;
+      params = params || {};
 
       var collection = new AngularJsonAPICollection(
         _this,
@@ -118,22 +121,22 @@
 
       return _this.synchronizer.synchronize(config).then(resolved, rejected);
 
-      function resolved(data, finish) {
+      function resolved(response) {
         object.unlinkAll();
         _this.cache.clearRemoved(id);
-        finish();
+        response.finish();
 
-        return data;
+        return response.data;
       }
 
-      function rejected(errors, finish) {
+      function rejected(response) {
         if (object !== undefined) {
           object.removed = false;
           _this.cache.revertRemove(id);
         }
 
-        finish();
-        return errors;
+        response.finish();
+        return response.errors;
       }
     }
 
@@ -167,14 +170,16 @@
 
       return _this.synchronizer.synchronize(config).then(resolved, rejected);
 
-      function resolved(data, finish) {
-        finish();
+      function resolved(response) {
+        response.finish();
+
+        return response.data;
       }
 
-      function rejected(errors, finish) {
-        finish();
+      function rejected(response) {
+        response.finish();
 
-        return errors;
+        return response.errors;
       }
     }
   }

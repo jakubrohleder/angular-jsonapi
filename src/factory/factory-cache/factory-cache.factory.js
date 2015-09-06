@@ -115,7 +115,7 @@
       var _this = this;
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.factory.Model({id: id, type: _this.Model.prototype.schema.type});
+        _this.data[id] = new _this.factory.Model({id: id, type: _this.factory.Model.prototype.schema.type});
       }
 
       return _this.data[id];

@@ -14,18 +14,19 @@
         get: get,
         remove: remove,
         all: all,
-        addModel: addModel,
-        getModel: getModel,
-        clearAll: clearAll
+        addFactory: addFactory,
+        getFactory: getFactory,
+        clearAll: clearAll,
+        proccesResults: proccesResults
       };
 
-      function addModel(schema, synchronization) {
-        var collection = new AngularJsonAPIFactory(schema, synchronization);
+      function addFactory(schema, synchronization) {
+        var factory = new AngularJsonAPIFactory(schema, synchronization);
 
-        memory[schema.type] = collection;
+        memory[schema.type] = factory;
       }
 
-      function getModel(type) {
+      function getFactory(type) {
         return memory[type];
       }
 
@@ -62,9 +63,29 @@
       }
 
       function clearAll() {
-        angular.forEach(memory, function(collection) {
-          collection.clear();
+        angular.forEach(memory, function(factory) {
+          factory.clear();
         });
+      }
+
+      function proccesResults(results) {
+        if (results === undefined) {
+          $log.error('Can\'t proccess results:', results);
+        }
+
+        console.log(results);
+
+        var objects = [];
+
+        angular.forEach(results.data, function(data) {
+          objects.push(getFactory(data.type).cache.addOrUpdate(data));
+        });
+
+        angular.forEach(results.included, function(data) {
+          getFactory(data.type).cache.addOrUpdate(data);
+        });
+
+        return objects;
       }
     }
   }

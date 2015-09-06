@@ -4,7 +4,7 @@
   angular.module('angular-jsonapi')
   .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
 
-  function AngularJsonAPISchemaWrapper($log, pluralize) {
+  function AngularJsonAPISchemaWrapper($log, pluralize, toKebabCase) {
 
     return AngularJsonAPISchema;
 
@@ -24,9 +24,9 @@
         var linkSchemaObj = new AngularJsonAPILinkSchema(linkSchema, linkName, schema.type);
         schema.relationships[linkName] = linkSchemaObj;
         if (linkSchemaObj.included === true) {
-          include.get.push(linkName);
+          include.get.push(toKebabCase(linkName));
           if (linkSchemaObj.type === 'hasOne') {
-            include.all.push(linkName);
+            include.all.push(toKebabCase(linkName));
           }
         }
       });

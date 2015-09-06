@@ -16,6 +16,8 @@
     function AngularJsonAPISynchronizerSimple(synchronizations) {
       var _this = this;
 
+      _this.state = {};
+
       AngularJsonAPISynchronizerPrototype.call(_this, synchronizations);
 
       angular.forEach(synchronizations, function(synchronization) {
@@ -29,17 +31,17 @@
       var deferred = $q.defer();
       var action = config.action;
 
-      AngularJsonAPISynchronizerPrototype.synchronize.call(_this, config);
+      AngularJsonAPISynchronizerPrototype.prototype.synchronize.call(_this, config);
 
       angular.forEach(_this.synchronizations, function(synchronization) {
         angular.forEach(synchronization.beginHooks[action], function(hook) {
-          deferred.notify('begin', hook.call(_this, config));
+          deferred.notify({step: 'begin', data: hook.call(_this, config)});
         });
       });
 
       angular.forEach(_this.synchronizations, function(synchronization) {
         angular.forEach(synchronization.beforeHooks[action], function(hook) {
-          deferred.notify('before', hook.call(_this, config));
+          deferred.notify({step: 'before', data: hook.call(_this, config)});
         });
       });
 
@@ -52,14 +54,15 @@
       $q.allSettled(promises, resolvedCallback, rejectedCallback).then(resolved, rejected);
 
       function resolvedCallback(value) {
-        deferred.notify('synchronization', value);
+        deferred.notify({step: 'synchronization', data: value});
       }
 
       function rejectedCallback(reason) {
-        deferred.notify('synchronization', reason);
+        deferred.notify({step: 'synchronization', errors: reason});
       }
 
       function resolved(results) {
+        _this.state[action] = _this.state[action] || {};
         _this.state[action].success = true;
 
         angular.forEach(results, function(result) {
@@ -70,7 +73,7 @@
 
         angular.forEach(_this.synchronizations, function(synchronization) {
           angular.forEach(synchronization.afterHooks[action], function(hook) {
-            deferred.notify('after', hook.call(_this, config, results));
+            deferred.notify({step: 'after', errors: hook.call(_this, config, results)});
           });
         });
 
@@ -86,24 +89,24 @@
         });
 
         if (data === undefined) {
-          deferred.reject(data, finish, errors);
+          deferred.reject({finish: finish, errors: errors});
         } else {
-          deferred.resolve(errors, finish);
+          deferred.resolve({data: data, finish: finish, errors: errors});
         }
       }
 
       function finish() {
         angular.forEach(_this.synchronizations, function(synchronization) {
           angular.forEach(synchronization.finishHooks[action], function(hook) {
-            deferred.notify('finish', hook.call(_this, config));
+            deferred.notify({step: 'finish', errors: hook.call(_this, config)});
           });
         });
       }
 
-      function rejected(results) {
+      function rejected(errors) {
         $log.error('All settled rejected! Something went wrong');
 
-        deferred.reject(results);
+        deferred.reject({finish: angular.noop, errors: errors});
       }
 
       return deferred.promise;

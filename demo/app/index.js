@@ -1,3 +1,4 @@
+(function() {
 'use strict';
 
 angular.module('angularJsonapiExample', [
@@ -13,80 +14,53 @@ angular.module('angularJsonapiExample', [
     ngClipProvider.setPath('bower_components/zeroclipboard/dist/ZeroClipboard.swf');
   })
   .config(function($stateProvider, $urlRouterProvider) {
+    var types = ['jobs', 'laserGuns', 'locations', 'planets', 'powerArmors', 'robotModels', 'robots', 'spaceshipModels', 'spaceships'];
+    var uuid4Regex = '[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}';
+    var typeRegex = types.join('|');
+
     $stateProvider
-      .state('test', {
-        url: '/',
-        templateUrl: 'app/test/test.html',
-        controller: 'TestCtrl'
+      .state('frame', {
+        url: '',
+        templateUrl: 'app/frame/frame.html',
+        controller: 'FrameCtrl',
+        abstract: true
       })
-      .state('novels', {
-        url: '/novels',
-        views: {
-          'stats@': {
-            templateUrl: 'app/stats/stats.html',
-            controller: 'StatsCtrl'
-          },
-          'site@': {
-            templateUrl: 'app/site/novels.html',
-            controller: 'NovelsCtrl'
+      .state('frame.hello', {
+        url: '',
+        templateUrl: 'app/frame/hello.html'
+      })
+      .state('frame.request', {
+        url: '/{type:' + typeRegex + '}',
+        template: '<ui-view></ui-view>',
+        controller: 'RequestCtrl',
+        abstract: true,
+        resolve: {
+          factory: function($jsonapi, $stateParams) {
+            return $jsonapi.getFactory($stateParams.type);
           }
         }
       })
-      .state('novels.novel', {
-        url: '/{id:[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}}',
-        views: {
-          'site@': {
-            templateUrl: 'app/site/novel.html',
-            controller: 'NovelCtrl'
+      .state('frame.request.all', {
+        url: '',
+        templateUrl: 'app/request/all.html',
+        controller: 'RequestAllCtrl',
+        resolve: {
+          collection: function(factory) {
+            return factory.all();
           }
         }
       })
-      .state('dieties', {
-        url: '/dieties',
-        views: {
-          'stats@': {
-            templateUrl: 'app/stats/stats.html',
-            controller: 'StatsCtrl'
-          },
-          'site@': {
-            templateUrl: 'app/site/dieties.html',
-            controller: 'DietiesCtrl'
-          }
-        }
-      })
-      .state('dieties.diety', {
-        url: '/{id:[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}}',
-        views: {
-          'site@': {
-            templateUrl: 'app/site/diety.html',
-            controller: 'DietyCtrl'
-          }
-        }
-      })
-      .state('people', {
-        url: '/people',
-        views: {
-          'stats@': {
-            templateUrl: 'app/stats/stats.html',
-            controller: 'StatsCtrl'
-          },
-          'site@': {
-            templateUrl: 'app/site/people.html',
-            controller: 'PeopleCtrl'
-          }
-        }
-      })
-      .state('people.person', {
-        url: '/{id:[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}}',
-        views: {
-          'site@': {
-            templateUrl: 'app/site/person.html',
-            controller: 'PersonCtrl'
-          }
-        }
-      })
+      .state('frame.request.get', {
+        url: '/{id:' + uuid4Regex + '}',
+        templateUrl: 'app/request/get.html',
+        controller: 'RequestGetCtrl',
+        // resolve: {
+        //   object: function(factory, $stateParams) {
+        //     return factory.get($stateParams.id);
+        //   }
+        // }
+      });
 
-      ;
-
-    $urlRouterProvider.otherwise('');
+    $urlRouterProvider.otherwise('/robots');
   });
+})();

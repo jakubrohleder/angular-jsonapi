@@ -28,7 +28,7 @@
 
       Model.prototype.schema = schemaObj;
       Model.prototype.parentFactory = parentFactory;
-      Model.prototype.synchronize = parentFactory.synchronizer.synchronize;
+      Model.prototype.synchronize = parentFactory.synchronizer.synchronize.bind(parentFactory.synchronizer);
 
       angular.forEach(schemaObj.functions, function(metaFunction, metaFunctionName) {
         Model.prototype[metaFunctionName] = function() {

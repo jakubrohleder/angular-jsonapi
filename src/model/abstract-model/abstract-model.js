@@ -38,7 +38,7 @@
       data.relationships = data.relationships || {};
 
       _this.isNew = isNew || false;
-      _this.form = new AngularJsonAPIModelForm(_this);
+
       _this.removed = false;
       _this.loadingCount = 0;
 
@@ -55,6 +55,7 @@
       _this.promises = {};
 
       __setData(_this, data, true);
+      _this.form = new AngularJsonAPIModelForm(_this);
     }
 
     /**
@@ -91,17 +92,17 @@
 
       return deferred.promise;
 
-      function resolved(data, finish) {
+      function resolved(response) {
         __setData(_this, _this.form.data);
-        finish();
+        response.finish();
 
         return _this;
       }
 
-      function rejected(errors, finish) {
-        finish();
+      function rejected() {
+        response.finish();
 
-        return errors;
+        return response.errors;
       }
     }
 
@@ -135,17 +136,17 @@
         _this.synchronize(config).then(resolved, rejected);
       }
 
-      function resolved(data, finish) {
-        _this.update(data);
-        finish();
+      function resolved(response) {
+        _this.update(response.data);
+        response.finish();
 
         return _this;
       }
 
-      function rejected(errors, finish) {
-        finish();
+      function rejected(response) {
+        response.finish();
 
-        return errors;
+        return response.errors;
       }
 
       return deferred.promise;
@@ -232,20 +233,20 @@
 
       promise.then(resolved, rejected);
 
-      function resolved(data, finish) {
+      function resolved(response) {
         deferred.resolve(_this);
 
-        finish();
-        return data;
+        response.finish();
+        return response.data;
       }
 
-      function rejected(errors, finish) {
+      function rejected(response) {
         AngularJsonAPIModelLinkerService.unlink(_this, key, target, schema);
         AngularJsonAPIModelLinkerService.unlink(target, reflectionKey, _this, reflectionSchema);
 
-        deferred.reject(errors);
-        finish();
-        return errors;
+        deferred.reject(response.errors);
+        response.finish();
+        return response.errors;
       }
 
       return deferred.promise;
@@ -288,20 +289,20 @@
 
       promise.then(resolved, rejected);
 
-      function resolved(data, finish) {
+      function resolved(response) {
         deferred.resolve(_this);
 
-        finish();
-        return data;
+        response.finish();
+        return response.data;
       }
 
-      function rejected(errors, finish) {
+      function rejected(response) {
         AngularJsonAPIModelLinkerService.unlink(_this, key, target, schema);
         AngularJsonAPIModelLinkerService.unlink(target, reflectionKey, _this, reflectionSchema);
 
-        deferred.reject(errors);
-        finish();
-        return errors;
+        deferred.reject(response.errors);
+        response.finish();
+        return response.errors;
       }
 
       return deferred.promise;
@@ -332,15 +333,15 @@
       var $jsonapi = $injector.get('$jsonapi');
       var schema = object.schema;
 
-      object.id = validatedData.id;
-      object.type = validatedData.type;
+      object.data.id = validatedData.id;
+      object.data.type = validatedData.type;
 
       if (object.parentFactory.schema.type !== validatedData.type) {
         $log.error('Different type then factory');
         return false;
       }
 
-      if (!uuid4.validate(object.id)) {
+      if (!uuid4.validate(object.data.id)) {
         $log.error('Invalid id');
         return false;
       }
@@ -378,8 +379,18 @@
       }
 
       function linkOne(object, key, schema, data) {
-        var factory = $jsonapi.getModel(data.type);
-        var target = factory.get(data.id);
+
+        if (data === null) {
+          AngularJsonAPIModelLinkerService.link(object, key, null, schema);
+          return;
+        }
+
+        if (data === undefined) {
+          return;
+        }
+
+        var factory = $jsonapi.getFactory(data.type);
+        var target = factory.cache.get(data.id);
         var reflectionKey = schema.reflection;
         var reflectionSchema = target.schema.relationships[reflectionKey];
 

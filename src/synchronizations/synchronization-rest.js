@@ -41,7 +41,7 @@
           headers: headers,
           url: url,
           params: config.params || {}
-        });
+        }).then(resolveHttp, rejectHttp);
       }
 
       function get(config) {
@@ -50,7 +50,7 @@
           headers: headers,
           url: url + '/' + config.object.data.id,
           params: config.params || {}
-        });
+        }).then(resolveHttp, rejectHttp);
       }
 
       function remove(config) {
@@ -58,7 +58,7 @@
           method: 'DELETE',
           headers: headers,
           url: url + '/' + config.object.data.id
-        });
+        }).then(resolveHttp, rejectHttp);
       }
 
       function unlink(config) {
@@ -71,7 +71,7 @@
             method: 'DELETE',
             headers: headers,
             url: url + '/' + config.object.data.id + '/relationships/' + toKebabCase(config.key) + '/' + config.target.data.id
-          }).then(deferred.resolve, deferred.reject);
+          }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
         }
 
         return deferred.promise;
@@ -88,7 +88,7 @@
             headers: headers,
             url: url + '/' + config.object.data.id + '/relationships/' + toKebabCase(config.key),
             data: {data: [AngularJsonAPIModelLinkerService.toLinkData(config.target)]}
-          }).then(deferred.resolve, deferred.reject);
+          }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
         }
 
         return deferred.promise;
@@ -100,7 +100,7 @@
           headers: headers,
           url: url + '/' + config.object.data.id,
           data: config.object.form.toJson()
-        });
+        }).then(resolveHttp, rejectHttp);
       }
 
       function add(config) {
@@ -109,7 +109,15 @@
           headers: headers,
           url: url + '/',
           data: config.object.form.toJson()
-        });
+        }).then(resolveHttp, rejectHttp);
+      }
+
+      function resolveHttp(response) {
+        return response.data;
+      }
+
+      function rejectHttp(response) {
+        return response.data;
       }
     }
   }

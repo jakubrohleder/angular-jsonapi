@@ -5,11 +5,13 @@
   .factory('AngularJsonAPICollection', AngularJsonAPICollectionWrapper);
 
   function AngularJsonAPICollectionWrapper(
-
+    $rootScope,
+    $injector
   ) {
 
     AngularJsonAPICollection.prototype.fetch = fetch;
     AngularJsonAPICollection.prototype.refresh = fetch;
+    AngularJsonAPICollection.prototype.get = get;
 
     return AngularJsonAPICollection;
 
@@ -32,37 +34,53 @@
     }
 
     /**
+     * Shortcut to this.factory.get
+     * @param  {uuid4} id Id of object]
+     * @return {AngularJsonAPIModel}          Model with id
+     */
+    function get(id) {
+      var _this = this;
+
+      return _this.factory.get(id);
+    }
+
+    /**
      * Synchronizes collection with the server
      * @return {promise} Promise associated with synchronization that resolves to this
      */
     function fetch() {
       var _this = this;
+      var $jsonapi = $injector.get('$jsonapi');
       var config = {
-        method: 'all',
+        action: 'all',
         params: _this.params
       };
 
-      return _this.factory.__synchronize(config).then(resolved, rejected, notify);
+      return _this.factory.synchronizer.synchronize(config).then(resolved, rejected, notify);
 
-      function resolved(data) {
+      function resolved(results) {
+        $rootScope.$emit('angularJsonAPI:collection:fetch', 'resolved', results);
+
         _this.errors.synchronization = [];
-        _this.data = data;
+        _this.data = $jsonapi.proccesResults(results.data);
+
+        results.finish();
 
         return _this;
       }
 
-      function rejected(errors) {
-        _this.errors.synchronization = errors;
+      function rejected(results) {
+        $rootScope.$emit('angularJsonAPI:collection:fetch', 'rejected', results);
+
+        _this.errors.synchronization = results.errors;
+
+        results.finish();
 
         return _this;
       }
 
-      function notify(data, step) {
-        if (data !== undefined) {
-          _this.data = data;
-        }
-
-        _this.step = step;
+      function notify(results) {
+        $rootScope.$emit('angularJsonAPI:collection:fetch', 'notify', results);
 
         return _this;
       }
