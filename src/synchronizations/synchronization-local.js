@@ -4,7 +4,11 @@
   angular.module('angular-jsonapi-local', ['angular-jsonapi'])
   .factory('AngularJsonAPISynchronizationLocal', AngularJsonAPISynchronizationLocalWrapper);
 
-  function AngularJsonAPISynchronizationLocalWrapper(AngularJsonAPISynchronizationPrototype, $window) {
+  function AngularJsonAPISynchronizationLocalWrapper(
+    AngularJsonAPISynchronizationPrototype,
+    $window,
+    $q
+  ) {
 
     AngularJsonAPISynchronizationLocal.prototype = Object.create(AngularJsonAPISynchronizationPrototype.prototype);
     AngularJsonAPISynchronizationLocal.prototype.constructor = AngularJsonAPISynchronizationLocal;
@@ -20,9 +24,11 @@
 
       AngularJsonAPISynchronizationPrototype.call(_this);
 
-      _this.begin('init', init);
+      _this.synchronization('init', init);
+
       _this.begin('clear', clear);
       _this.begin('remove', updateStorage);
+      _this.begin('refresh', updateStorage);
       _this.begin('unlink', updateStorage);
       _this.begin('unlinkReflection', updateStorage);
       _this.begin('link', updateStorage);
@@ -35,6 +41,7 @@
       _this.finish('init', updateStorage);
       _this.finish('clear', updateStorage);
       _this.finish('remove', updateStorage);
+      _this.finish('refresh', updateStorage);
       _this.finish('unlink', updateStorage);
       _this.finish('unlinkReflection', updateStorage);
       _this.finish('link', updateStorage);
@@ -46,7 +53,7 @@
 
       function init() {
         var type = _this.synchronizer.factory.schema.type;
-        return $window.localStorage.getItem(prefix + '.' + type);
+        return $q.when($window.localStorage.getItem(prefix + '.' + type));
       }
 
       function clear() {

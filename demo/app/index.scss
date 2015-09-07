@@ -1,4 +1,9 @@
-.glyphicon-spin {
+.ui.grid {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.icon.spin {
     -webkit-animation: spin 1000ms infinite linear;
     animation: spin 1000ms infinite linear;
 }
@@ -73,7 +78,34 @@
 .show-stats .site {
   transform: translateX(50%);
 }
+
+.ui.button.fixed {
+  position: fixed;
+  bottom: 1em;
+  right: 1em;
+}
+
+a[ui-sref] {
+  cursor: pointer;
+}
+
+.narrow.container {
+  max-width: 80rem;
+  margin: auto;
+  padding: 3rem;
+}
 /* Do not remove this comments bellow. It's the markers used by gulp-inject to inject
    all your sass files automatically */
 // injector
 // endinjector
+
+
+@media only screen and (max-width: 1200px){
+  .secondary.pointing.menu .item, .secondary.pointing.menu .menu {
+    display: none;
+  }
+  .secondary.pointing.menu .toc.item {
+    display: block;
+  }
+}
+

@@ -5,7 +5,9 @@
     .controller('FrameCtrl', frameCtrl);
 
   function frameCtrl(
-
+    $jsonapi,
+    $scope
   ) {
+    $scope.names = $jsonapi.factoriesNames;
   }
 })();

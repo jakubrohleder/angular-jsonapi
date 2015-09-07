@@ -13,9 +13,9 @@
       id: 'uuid4',
       attributes: {
         name: 'string',
-        cordX: 'number',
-        cordY: 'number',
-        cordZ: 'number',
+        cordsX: 'number',
+        cordsY: 'number',
+        cordsZ: 'number',
         size: 'number'
       },
       relationships: {

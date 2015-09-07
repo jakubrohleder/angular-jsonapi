@@ -10,7 +10,7 @@
     AngularJsonAPICache,
     AngularJsonAPICollection,
     uuid4,
-    $log,
+    $rootScope,
     $q
   ) {
     AngularJsonAPIFactory.prototype.get = get;
@@ -44,21 +44,28 @@
         _this
       );
 
+      _this.initialized = false;
+
       synchronizer.factory = _this;
 
-      _this.synchronizer.synchronize(config).then(resolved, rejected);
+      _this.synchronizer.synchronize(config).then(resolve, reject, notify);
 
-      function resolved(response) {
+      function resolve(response) {
+        $rootScope.$emit('angularJsonAPI:factory:init', 'resolved', response);
         _this.cache.fromJson(response.data);
+        _this.initialized = true;
 
         response.finish();
-        return response.data;
       }
 
-      function rejected(response) {
+      function reject(response) {
+        $rootScope.$emit('angularJsonAPI:factory:init', 'rejected', response);
         response.finish();
+        _this.initialized = true;
+      }
 
-        return response.errors;
+      function notify(response) {
+        $rootScope.$emit('angularJsonAPI:factory:init', 'notify', response);
       }
     }
 
@@ -69,11 +76,12 @@
      */
     function get(id) {
       var _this = this;
-      var object = _this.cache.get(id);
 
-      object.refresh();
+      if (!uuid4.validate(id)) {
+        return $q.reject({errors: [{status: 0, statusText: 'Invalid id not uuid4'}]});
+      }
 
-      return object;
+      return _this.cache.get(id).refresh();
     }
 
     /**
@@ -104,40 +112,8 @@
     function remove(id) {
       var _this = this;
       var object = _this.cache.remove(id);
-      var config = {
-        action: 'remove',
-        object: object
-      };
 
-      if (object !== undefined) {
-        object.removed = true;
-
-        if (object.isNew) {
-          return $q.when(undefined);
-        }
-      } else {
-        $log.error('Object with this id does not exist');
-      }
-
-      return _this.synchronizer.synchronize(config).then(resolved, rejected);
-
-      function resolved(response) {
-        object.unlinkAll();
-        _this.cache.clearRemoved(id);
-        response.finish();
-
-        return response.data;
-      }
-
-      function rejected(response) {
-        if (object !== undefined) {
-          object.removed = false;
-          _this.cache.revertRemove(id);
-        }
-
-        response.finish();
-        return response.errors;
-      }
+      return object.remove();
     }
 
     /**
@@ -152,7 +128,7 @@
         id: uuid4.generate(),
         attributes: {},
         relationships: {}
-      }, true);
+      }, false);
 
       return model;
     }
@@ -163,23 +139,35 @@
      */
     function clear() {
       var _this = this;
-      _this.cache.clear();
+      var deferred = $q.defer();
       var config = {
         action: 'clear'
       };
 
-      return _this.synchronizer.synchronize(config).then(resolved, rejected);
+      _this.cache.clear();
 
-      function resolved(response) {
+      _this.synchronizer.synchronize(config).then(resolve, reject, notify);
+
+      return deferred;
+
+      function resolve(response) {
+        $rootScope.$emit('angularJsonAPI:factory:clear', 'resolved', response);
         response.finish();
 
-        return response.data;
+        deferred.resolve(response);
       }
 
-      function rejected(response) {
+      function reject(response) {
+        $rootScope.$emit('angularJsonAPI:factory:clear', 'resolved', response);
         response.finish();
 
-        return response.errors;
+        deferred.reject(response);
+      }
+
+      function notify(response) {
+        $rootScope.$emit('angularJsonAPI:factory:clear', 'notify', response);
+
+        deferred.notify(response);
       }
     }
   }

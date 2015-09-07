@@ -9,7 +9,7 @@
     AngularJsonAPISynchronizerSimple
   ) {
     var schema = {
-      type: 'robot-models',
+      type: 'robotModels',
       id: 'uuid4',
       attributes: {
         name: 'string',
@@ -33,7 +33,7 @@
     };
 
     var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
-    var restSynchro = new AngularJsonAPISynchronizationRest('http://localhost:3000/robot-models');
+    var restSynchro = new AngularJsonAPISynchronizationRest('http://localhost:3000/robotModels');
     var synchronizer = new AngularJsonAPISynchronizerSimple([localeSynchro, restSynchro]);
 
     $jsonapi.addFactory(schema, synchronizer);
@@ -43,6 +43,6 @@
   function RobotModels(
     $jsonapi
   ) {
-    return $jsonapi.getFactory('robot-models');
+    return $jsonapi.getFactory('robotModels');
   }
 })();

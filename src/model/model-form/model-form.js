@@ -25,6 +25,8 @@
       var _this = this;
 
       _this.data = {
+        id: parent.data.id,
+        type: parent.data.type,
         attributes: {},
         relationships: {}
       };
@@ -74,7 +76,7 @@
     function reset() {
       var _this = this;
 
-      angular.forEach(_this.schema.attributes, function(data, key) {
+      angular.forEach(_this.schema.attributes, function(validator, key) {
         _this.data.attributes[key] = _this.parent.data.attributes[key] || '';
       });
 

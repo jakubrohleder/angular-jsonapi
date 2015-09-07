@@ -29,23 +29,23 @@
             element.addClass(loadingClass);
             element.removeClass(errorClass);
             element.removeClass(successClass);
-            fn(scope, {$event:event}).then(resolve, reject);
+            $q.when(fn(scope, {$event:event})).then(resolve, reject);
           };
 
-          function resolve() {
+          function resolve(response) {
             element.removeClass(loadingClass);
             element.addClass(successClass);
             element.on('click', onClick);
 
-            return $q.resolve.apply(this, arguments);
+            return response;
           }
 
-          function reject() {
+          function reject(response) {
             element.removeClass(loadingClass);
             element.addClass(errorClass);
             element.on('click', onClick);
 
-            return $q.reject.apply(this, arguments);
+            return response;
           }
 
           scope.$apply(callback);

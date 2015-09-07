@@ -8,7 +8,8 @@ angular.module('angularJsonapiExample', [
     'angular-jsonapi-rest',
     'jsonFormatter',
     'ngClipboard',
-    'promise-button'
+    'promise-button',
+    'RecursionHelper'
   ])
   .config(function(ngClipProvider) {
     ngClipProvider.setPath('bower_components/zeroclipboard/dist/ZeroClipboard.swf');
@@ -54,11 +55,11 @@ angular.module('angularJsonapiExample', [
         url: '/{id:' + uuid4Regex + '}',
         templateUrl: 'app/request/get.html',
         controller: 'RequestGetCtrl',
-        // resolve: {
-        //   object: function(factory, $stateParams) {
-        //     return factory.get($stateParams.id);
-        //   }
-        // }
+        resolve: {
+          object: function(factory, $stateParams) {
+            return factory.get($stateParams.id);
+          }
+        }
       });
 
     $urlRouterProvider.otherwise('/robots');

@@ -1,8 +1,10 @@
 # Angular JsonAPI
-<!--[![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)-->
 
-### Use with caution!
-### This module is still in a WIP state, many things work fine but it lacks tests and API may change, also documentation can not reflect the real state
+[![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)
+
+## Use with caution
+
+This module is still in a WIP state, many things work fine but it lacks tests and API may change, also documentation can not reflect the real state
 
 Simple and lightweight, yet powerfull ORM for your frontend that seamlessly integrates with your JsonAPI server.
 
@@ -27,22 +29,22 @@ The future development plan involves:
 * [ ] [Demo](#demo)
 * [x] [Installation](#installation)
 * [x] [Configuration](#configuration)
- 	* [x] [Schema](#schema)
-	   * [x] [Validators schema](#validators-schema)
-	   * [x] [Relationship schema](#relationship-schema)
-	   * [x] [Include schema](#custom-functions-schema)
-	   * [x] [Custom functions schema](#custom-functions-schema)
-	* [x] [Synchronizations](#synchronizations)
-	   * [ ] [Own synchronizations](#own-synchronizations)
-	* [x] [Synchronizators](#synchronizators)
-	   * [ ] [Own synchronizators](#own-synchronizators)
-	* [x] [Model](#model)
+  * [x] [Schema](#schema)
+    * [x] [Validators schema](#validators-schema)
+    * [x] [Relationship schema](#relationship-schema)
+    * [x] [Include schema](#custom-functions-schema)
+    * [x] [Custom functions schema](#custom-functions-schema)
+  * [x] [Synchronizations](#synchronizations)
+    * [ ] [Own synchronizations](#own-synchronizations)
+  * [x] [Synchronizators](#synchronizators)
+    * [ ] [Own synchronizators](#own-synchronizators)
+  * [x] [Model](#model)
 * [ ] [API](#api)
-	* [ ] [New object](#new-object) 
-	* [ ] [Requests](#requests)
-	* [ ] [Forms](#forms)
-	* [ ] [Synchronizations API](#synchronizations-api)
-	* [ ] [Errors handling](#errors-handling)
+  * [ ] [New object](#new-object)
+  * [ ] [Requests](#requests)
+  * [ ] [Forms](#forms)
+  * [ ] [Synchronizations API](#synchronizations-api)
+  * [ ] [Errors handling](#errors-handling)
 * [ ] [Roadmap](#using-alternate-response-formats)
 
 # About this module
@@ -51,9 +53,9 @@ The idea behind this module is to make those boring and generic data manipulatio
 
 # Demo
 
-### [Live demo] (http://jakubrohleder.github.io/angular-jsonapi)
+## [Live demo](http://jakubrohleder.github.io/angular-jsonapi)
 
-### Local
+## Local
 
 * Clone this module and install npm/bower dependencies:
 
@@ -78,21 +80,21 @@ gulp serve
 # from the terminal at the root of your project
 bower install angular-jsonapi --save
 ~~~
-  
+
 * Include `angular-jsonapi` and synchronization modules (`angular-jsonapi-rest`, `angular-jsonapi-local`) in your module's dependencies:
-  
+
 ~~~javascript
 // in your js app's module definition
 angular.module('myApp', [
-	'angular-jsonapi',
-	'angular-jsonapi-rest',
-	'angular-jsonapi-local'
+  'angular-jsonapi',
+  'angular-jsonapi-rest',
+  'angular-jsonapi-local'
 ]);
 ~~~
 
 # Configuration
 
-Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any confiuration options. All the configuration shoud be made in the `run` phase using `$jsonapi`. The only option as the moment is `$jsonapi.addModel`, it takes two arguments: [schema](#schema) and [synchronizer](#synchronizers). 
+Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any confiuration options. All the configuration shoud be made in the `run` phase using `$jsonapi`. The only option as the moment is `$jsonapi.addModel`, it takes two arguments: [schema](#schema) and [synchronizer](#synchronizers).
 
 ## Schema
 
@@ -180,7 +182,7 @@ function awesomeValidator(attributeValue, attributeName) {
   if (attributeValue !== 'awesome') {
     return [attributeName + ' is not awesome'];
   }
-  
+
   return [];
 }
 ~~~
@@ -196,6 +198,8 @@ Each relationship is decribed by separate schema with following properties:
 | `polymorphic ` | `false`  | Can the relationship link to objects with different type? |
 | `reflection ` | object type  | Name of the inversed relationship in the related object. If set to `false` the relationship will not update inversed relationship in the related object. |
 | `included ` | `true` for `hasOne`, `false` for `hasMany`  | Should the related resource be returned in the `GET` request as well. **Does not affect `ALL` requests!** If you want to extra resources to be returned with `ALL` request use [include schema](#include-schema).  |
+
+If you want all of the properties (besides type) to have default value, you can shorten the schema to just `'hasOne'` or `'hasMany'`.
 
 ### Include schema
 
@@ -216,14 +220,14 @@ Include schema object should have not more then two properties, one for each typ
 
 All `get` requests will look like this:
 
-~~~
+~~~http
 GET /novels/1?include=characters.friends HTTP/1.1
 Accept: application/vnd.api+json
 ~~~
 
 ### Custom functions schema
 
-Custom functions schema is nothing more they just simple object with function names as keys and functions as a value. All of the functions will be runned with an object instance binded to `this` and no arguments. 
+Custom functions schema is nothing more they just simple object with function names as keys and functions as a value. All of the functions will be runned with an object instance binded to `this` and no arguments.
 
 Custom functions are extremly helpfull if you need to inject some methods common for the object type into its prototype.
 
@@ -243,13 +247,14 @@ In most cases `AngularJsonAPISynchronizerSimple` is enought. But if for example,
 
 ### Own Synchronizers
 
-**todo**
+todo
 
 ## Synchronizations
 
 Synchronizations are strategies of updating model with given source. At the moment two synchronization types are supported:
 
 ### AngularJsonAPISynchronizationLocal
+
 Saves data in the local store and loads them each time you visit the site, in this way your users can access data immidiately even if they are offline. All the data are cleared when the users logs out.
 
 Date is saved each time it changes and loaded during initialization of the module.
@@ -265,6 +270,7 @@ var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
 ~~~
 
 ### AngularJsonAPISynchronizationRest
+
 Is a simple synchronizator with the RESTAPI supporting JSON API format. It performs following operations:
 `remove`, `unlink`, `link`, `update`, `add`, `all`, `get`. Everytime the data changes the suitable request is made to keep your data synchronized.
 
@@ -280,11 +286,11 @@ var novelsSynchro = new AngularJsonAPISynchronizationRest('localhost:3000/novels
 
 ### Own synchronizations
 
-**todo**
+todo
 
 ## Model
 
-After performing `$jsonapi.addModel(schema, synchronizer);` the model factory is accesible by return `$jsonapi.getModel(schema.type);`. The easiest way to use it is to create `angular.factory` for each model and then inject it to your controllers. 
+After performing `$jsonapi.addModel(schema, synchronizer);` the model factory is accesible by return `$jsonapi.getModel(schema.type);`. The easiest way to use it is to create `angular.factory` for each model and then inject it to your controllers.
 
 All in all configuration of the factory for novels can look like this:
 
@@ -293,7 +299,7 @@ All in all configuration of the factory for novels can look like this:
   'use strict';
 
   angular.module('angularJsonapiExample')
-  
+
   .run(function(
     $jsonapi,
     AngularJsonAPISynchronizationLocal,
@@ -348,5 +354,6 @@ All in all configuration of the factory for novels can look like this:
 
 # Roadmap
 
-
-r
+* Readonly attributes
+* More keys formats
+* Offline support

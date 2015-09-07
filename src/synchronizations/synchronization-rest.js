@@ -64,8 +64,10 @@
       function unlink(config) {
         var deferred = $q.defer();
 
-        if (config.object.removed === true || config.target === undefined) {
-          deferred.reject();
+        if (config.object.removed === true) {
+          deferred.reject({errors: [{status: 0, statusText: 'Object has been removed'}]});
+        } else if (config.target === undefined || config.target.data.id === undefined) {
+          deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink object without id through rest call'}]});
         } else {
           $http({
             method: 'DELETE',
@@ -80,8 +82,10 @@
       function link(config) {
         var deferred = $q.defer();
 
-        if (config.object.removed === true || config.target === undefined) {
-          deferred.reject();
+        if (config.object.removed === true) {
+          deferred.reject({errors: [{status: 0, statusText: 'Object has been removed'}]});
+        } else if (config.target === undefined || config.target.data.id === undefined) {
+          deferred.reject({errors: [{status: 0, statusText: 'Can\'t link object without id through rest call'}]});
         } else {
           $http({
             method: 'POST',
@@ -95,6 +99,7 @@
       }
 
       function update(config) {
+        console.log(config.object.form.toJson());
         return $http({
           method: 'PUT',
           headers: headers,
@@ -113,11 +118,32 @@
       }
 
       function resolveHttp(response) {
-        return response.data;
+        return $q.resolve(response.data);
       }
 
       function rejectHttp(response) {
-        return response.data;
+        var deferred = $q.defer();
+
+        console.log(response);
+
+        if (response.status === 0) {
+          $http({
+            method: 'GET',
+            url: 'https://status.cloud.google.com/incidents.schema.json'
+          }).then(rejectServerOffline, rejectNoConnection);
+        } else {
+          deferred.reject({status: response.status, statusText: response.statusText});
+        }
+
+        return deferred.promise;
+
+        function rejectServerOffline() {
+          deferred.reject({status: response.status, statusText: 'Server is offline'});
+        }
+
+        function rejectNoConnection() {
+          deferred.reject({status: response.status, statusText: 'No internet connection'});
+        }
       }
     }
   }

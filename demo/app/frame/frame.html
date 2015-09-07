@@ -1,1 +1,25 @@
-<ui-view></ui-view>
+<div class="ui container">
+  <div class="ui secondary pointing menu">
+    <a class="toc item">
+      <i class="sidebar icon"></i>
+    </a>
+    <a
+      ng-repeat="name in names"
+      class="item"
+      ui-sref="frame.request.all({type: name})"
+      ui-sref-active="active"
+    >
+      {{name}}
+    </a>
+    <div class="right item">
+      <a href="mailto:jakubrohleder@gmailc.com?subject=Angular JsonAPI">
+        <i class="mail outline icon"></i>
+        Any questions? Contact me!
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="ui divider hidden"></div>
+
+<ui-view class="ui container"></ui-view>

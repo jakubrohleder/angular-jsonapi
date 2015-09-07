@@ -6,7 +6,8 @@
 
   function AngularJsonAPICollectionWrapper(
     $rootScope,
-    $injector
+    $injector,
+    $q
   ) {
 
     AngularJsonAPICollection.prototype.fetch = fetch;
@@ -24,13 +25,21 @@
       var _this = this;
 
       _this.factory = factory;
+      _this.type = factory.schema.type;
       _this.params = params;
 
       _this.errors = {
-        synchronization: []
+        synchronization: {
+          name: 'Synchronization',
+          description: 'Errors during synchronization',
+          errors: []
+        }
       };
-      _this.data = [];
-      _this.step = 'initialized';
+
+      _this.error = false;
+
+      _this.data = _this.factory.cache.index(_this.params);
+      _this.synchronized = false;
     }
 
     /**
@@ -50,39 +59,49 @@
      */
     function fetch() {
       var _this = this;
+      var deferred = $q.defer();
       var $jsonapi = $injector.get('$jsonapi');
       var config = {
         action: 'all',
         params: _this.params
       };
 
-      return _this.factory.synchronizer.synchronize(config).then(resolved, rejected, notify);
+      _this.factory.synchronizer.synchronize(config).then(resolve, reject, notify);
 
-      function resolved(results) {
+      return deferred.promise;
+
+      function resolve(results) {
         $rootScope.$emit('angularJsonAPI:collection:fetch', 'resolved', results);
 
-        _this.errors.synchronization = [];
+        _this.errors.synchronization.errors = [];
         _this.data = $jsonapi.proccesResults(results.data);
+        _this.error = false;
+
+        _this.updatedAt = Date.now();
+        _this.synchronized = true;
+
+        _this.factory.cache.setIndexIds(_this.data);
 
         results.finish();
 
-        return _this;
+        deferred.resolve(_this);
       }
 
-      function rejected(results) {
+      function reject(results) {
         $rootScope.$emit('angularJsonAPI:collection:fetch', 'rejected', results);
 
-        _this.errors.synchronization = results.errors;
+        _this.errors.synchronization.errors = results.errors;
+        _this.error = true;
 
         results.finish();
 
-        return _this;
+        deferred.reject(results);
       }
 
       function notify(results) {
         $rootScope.$emit('angularJsonAPI:collection:fetch', 'notify', results);
 
-        return _this;
+        deferred.notify(results);
       }
     }
   }

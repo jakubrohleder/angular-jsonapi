@@ -23,11 +23,6 @@
           type: 'hasOne',
           reflection: 'entity'
         },
-        origin: {
-          included: true,
-          type: 'hasOne',
-          model: 'locations'
-        },
         robotModel: {
           included: true,
           type: 'hasOne',
@@ -38,17 +33,22 @@
         },
         laserGuns: {
           included: true,
-          type: 'hasMany'
+          type: 'hasMany',
+          reflection: 'owner'
         },
         powerArmors: {
           included: true,
-          type: 'hasMany'
+          type: 'hasMany',
+          reflection: 'owner'
         },
         spaceships: {
           included: true,
           type: 'hasMany',
           reflection: 'pilot'
         }
+      },
+      include: {
+        get: ['location.planet']
       },
       functions: {
         toString: function() {

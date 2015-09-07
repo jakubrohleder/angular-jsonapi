@@ -5,10 +5,13 @@
   .factory('AngularJsonAPICache', AngularJsonAPICacheWrapper);
 
   function AngularJsonAPICacheWrapper(
+    uuid4,
     $log
   ) {
 
     AngularJsonAPICache.prototype.get = get;
+    AngularJsonAPICache.prototype.index = index;
+    AngularJsonAPICache.prototype.setIndexIds = setIndexIds;
     AngularJsonAPICache.prototype.addOrUpdate = addOrUpdate;
 
     AngularJsonAPICache.prototype.fromJson = fromJson;
@@ -31,6 +34,8 @@
       _this.data = {};
       _this.removed = {};
       _this.size = 0;
+
+      _this.indexIds = [];
     }
 
     /**
@@ -67,8 +72,9 @@
       var _this = this;
       var collection = angular.fromJson(json);
 
-      if (collection !== null && collection.data !== undefined) {
+      if (angular.isObject(collection) && collection.data !== undefined) {
         _this.updatedAt = collection.updatedAt;
+        _this.indexIds = collection.indexIds;
 
         angular.forEach(collection.data, function(objectData) {
           var data = objectData.data;
@@ -85,7 +91,8 @@
       var _this = this;
       var json = {
         data: {},
-        updatedAt: _this.updatedAt
+        updatedAt: _this.updatedAt,
+        indexIds: _this.indexIds
       };
 
       angular.forEach(_this.data, function(object, key) {
@@ -115,10 +122,39 @@
       var _this = this;
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.factory.Model({id: id, type: _this.factory.Model.prototype.schema.type});
+        _this.data[id] = new _this.factory.Model({id: id, type: _this.factory.Model.prototype.schema.type}, true, true);
       }
 
       return _this.data[id];
+    }
+
+    /**
+     * Low level get used internally, does not run any synchronization
+     * @param  {objec} params
+     * @return {AngularJsonAPIModel} Model associated with id
+     */
+    function index(params) {
+      var _this = this;
+
+      return _this.indexIds.map(_this.get.bind(_this));
+    }
+
+    /**
+     * Cache ids of objects returned by index request
+     * @param {ids array or AngularJsonAPIModel array} array Objects or ids to be cached
+     */
+    function setIndexIds(array) {
+      var _this = this;
+
+      _this.indexIds = [];
+
+      angular.forEach(array, function(element) {
+        if (angular.isString(element) && uuid4.validate(element)) {
+          _this.indexIds.push(element);
+        } else if (angular.isObject(element) && uuid4.validate(element.data.id)) {
+          _this.indexIds.push(element.data.id);
+        }
+      });
     }
 
     /**

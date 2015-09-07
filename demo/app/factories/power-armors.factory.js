@@ -9,7 +9,7 @@
     AngularJsonAPISynchronizerSimple
   ) {
     var schema = {
-      type: 'power-armors',
+      type: 'powerArmors',
       id: 'uuid4',
       attributes: {
         name: 'string',
@@ -38,7 +38,7 @@
     };
 
     var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
-    var restSynchro = new AngularJsonAPISynchronizationRest('http://localhost:3000/power-armors');
+    var restSynchro = new AngularJsonAPISynchronizationRest('http://localhost:3000/powerArmors');
     var synchronizer = new AngularJsonAPISynchronizerSimple([localeSynchro, restSynchro]);
 
     $jsonapi.addFactory(schema, synchronizer);
@@ -48,6 +48,6 @@
   function PowerArmors(
     $jsonapi
   ) {
-    return $jsonapi.getFactory('power-armors');
+    return $jsonapi.getFactory('powerArmors');
   }
 })();

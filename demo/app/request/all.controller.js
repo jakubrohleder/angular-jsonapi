@@ -7,7 +7,6 @@
   function RequestAllCtrl(
     $scope, collection
   ) {
-    console.log(collection);
     $scope.collection = collection;
   }
 })();

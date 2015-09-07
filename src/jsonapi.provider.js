@@ -6,6 +6,7 @@
 
   function jsonapiProvider() {
     var memory = {};
+    var names = [];
     this.$get = jsonapiFactory;
 
     function jsonapiFactory($log, AngularJsonAPIFactory) {
@@ -17,13 +18,17 @@
         addFactory: addFactory,
         getFactory: getFactory,
         clearAll: clearAll,
-        proccesResults: proccesResults
+        proccesResults: proccesResults,
+
+        allFactories: memory,
+        factoriesNames: names
       };
 
       function addFactory(schema, synchronization) {
         var factory = new AngularJsonAPIFactory(schema, synchronization);
 
         memory[schema.type] = factory;
+        names.push(schema.type);
       }
 
       function getFactory(type) {
@@ -35,7 +40,7 @@
           $log.error('Can\t add not existing object type: ' + type + '. Use initialize(Model, datas).');
         }
 
-        return memory[type].isNew.form;
+        return memory[type].saved.form;
       }
 
       function get(type, id) {
@@ -73,19 +78,20 @@
           $log.error('Can\'t proccess results:', results);
         }
 
-        console.log(results);
-
-        var objects = [];
-
-        angular.forEach(results.data, function(data) {
-          objects.push(getFactory(data.type).cache.addOrUpdate(data));
-        });
-
         angular.forEach(results.included, function(data) {
           getFactory(data.type).cache.addOrUpdate(data);
         });
 
-        return objects;
+        if (angular.isArray(results.data)) {
+          var objects = [];
+          angular.forEach(results.data, function(data) {
+            objects.push(getFactory(data.type).cache.addOrUpdate(data));
+          });
+
+          return objects;
+        } else {
+          return getFactory(results.data.type).cache.addOrUpdate(results.data);
+        }
       }
     }
   }

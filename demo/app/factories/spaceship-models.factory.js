@@ -9,7 +9,7 @@
     AngularJsonAPISynchronizerSimple
   ) {
     var schema = {
-      type: 'spaceship-models',
+      type: 'spaceshipModels',
       id: 'uuid4',
       attributes: {
         name: 'string',
@@ -36,7 +36,7 @@
     };
 
     var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
-    var restSynchro = new AngularJsonAPISynchronizationRest('http://localhost:3000/spaceship-models');
+    var restSynchro = new AngularJsonAPISynchronizationRest('http://localhost:3000/spaceshipModels');
     var synchronizer = new AngularJsonAPISynchronizerSimple([localeSynchro, restSynchro]);
 
     $jsonapi.addFactory(schema, synchronizer);
@@ -46,6 +46,6 @@
   function SpaceshipModels(
     $jsonapi
   ) {
-    return $jsonapi.getFactory('spaceship-models');
+    return $jsonapi.getFactory('spaceshipModels');
   }
 })();

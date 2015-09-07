@@ -9,7 +9,7 @@
     AngularJsonAPISynchronizerSimple
   ) {
     var schema = {
-      type: 'laser-guns',
+      type: 'laserGuns',
       id: 'uuid4',
       attributes: {
         name: 'string',
@@ -35,7 +35,7 @@
     };
 
     var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
-    var restSynchro = new AngularJsonAPISynchronizationRest('http://localhost:3000/laser-guns');
+    var restSynchro = new AngularJsonAPISynchronizationRest('http://localhost:3000/laserGuns');
     var synchronizer = new AngularJsonAPISynchronizerSimple([localeSynchro, restSynchro]);
 
     $jsonapi.addFactory(schema, synchronizer);
@@ -45,6 +45,6 @@
   function Jobs(
     $jsonapi
   ) {
-    return $jsonapi.getFactory('laser-guns');
+    return $jsonapi.getFactory('laserGuns');
   }
 })();

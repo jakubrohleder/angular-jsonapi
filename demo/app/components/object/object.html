@@ -1,0 +1,132 @@
+<div class="ui padded segment">
+  <div
+    class="ui stackable grid"
+  >
+    <div class="four wide column" style="padding-left:0">
+      <h4 clip-copy="object.data.id">{{object.toString()}}</h4>
+    </div>
+    <div class="twelve wide column">
+      <button
+        class="ui mini button"
+        ng-click="showMore = !showMore"
+        ng-class="{yellow: showMore, olive: !showMore, disabled: object.removed}"
+      >
+        Show more
+      </button>
+      <button
+        ng-class="{disabled: object.removed}"
+        class="ui primary mini button"
+        clip-copy="object.data.id"
+      >
+        Copy ID
+      </button>
+      <button promise-button
+        ng-class="{disabled: object.removed}"
+        class="ui red mini button"
+        ng-click="object.remove()"
+        style="margin-left: 5px"
+        ng-hide="object.removed"
+      >
+        Remove
+      </button>
+      <button promise-button
+        ng-class="{disabled: object.removed}"
+        class="ui green mini button"
+        ng-click="object.refresh()"
+        style="margin-left: 5px"
+      >
+        Refresh
+      </button>
+      <button promise-button
+        ng-class="{disabled: object.removed}"
+        class="ui blue mini button"
+        ng-show="showMore"
+        ng-click="object.save()"
+        style="margin-left: 5px"
+      >
+        Save
+      </button>
+
+      <div class="ui red basic mini right floated button" ng-hide="object.synchronized" ng-if="showMore">Synchronizing...</div>
+      <div
+        class="ui basic mini right floated button"
+        ng-if="showMore"
+        ng-show="object.synchronized"
+        ng-class="{
+          green: updateDiff <= 30,
+          yellow: updateDiff > 30 && updateDiff < 240,
+          red: updateDiff >= 240
+        }"
+      >Synchronized {{updateDiff}} seconds from now</div>
+    </div>
+  </div>
+
+  <div ng-if="showMore">
+
+    <error-message ng-show="object.error" data="object.errors"></error-message>
+
+    <div class="ui stackable grid">
+      <div class="eight wide column">
+        <div class="ui segment">
+          <div class="ui list">
+            <div class="item" ng-repeat="(attributeName, attributeValue) in object.data.attributes">
+              <div class="content">
+                <div class="header">{{attributeValue}}</div>
+                <div class="description">{{attributeName | toTitleCase}}</div>
+              </div>
+            </div>
+
+            <div class="item">
+              <div class="content">
+                <div class="header">Relationships</div>
+                <div class="description">{{object.data.relationships}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="eight wide column">
+        <div class="ui segment">
+          <form class="ui small form">
+            <div class="field" ng-repeat="(attributeName, attributeValue) in object.form.data.attributes">
+              <label>{{attributeName | toTitleCase}}</label>
+              <input type="text" name="{{attributeName}}" ng-model="attributeValue">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="ui divider hidden"></div>
+
+    <div class="ui padded segment" ng-repeat="(relationshipName, relationshipCollection) in object.relationships">
+      <div class="ui stackable grid">
+        <div class="four wide column" style="padding-left:0">
+          <h4 clip-copy="object.data.id">{{object.schema.relationships[relationshipName].model}}</h4>
+        </div>
+        <div class="twelve wide column">
+          <button
+            class="ui mini primary  button"
+            ui-sref="frame.request.all({type: object.schema.relationships[relationshipName].model})"
+          >
+            Go to {{object.schema.relationships[relationshipName].model}}
+          </button>
+        </div>
+      </div>
+
+      <div ng-show="relationshipCollection !== undefined" class="ui divider hidden"></div>
+
+      <div ng-show="relationshipCollection === undefined">
+        <strong>Relationship data undefined</strong>
+        <div>The relationship data hasn't been fetched yet, refresh the model to fetch it.</div>
+      </div>
+
+      <angular-jsonapi-object data="object" ng-if="relationshipCollection !== undefined && isArray(relationshipCollection)" ng-repeat="object in relationshipCollection"></angular-jsonapi-object>
+      <angular-jsonapi-object data="relationshipCollection" ng-if="relationshipCollection !== undefined && !isArray(relationshipCollection) && relationshipCollection !== null"></angular-jsonapi-object>
+
+      </conditional-compiler>
+    </div>
+
+  </div>
+</div>
+<div ng-show="showMore" class="ui divider hidden"></div>

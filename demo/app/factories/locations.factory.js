@@ -12,8 +12,8 @@
       type: 'locations',
       id: 'uuid4',
       attributes: {
-        cordX: 'number',
-        cordY: 'number'
+        cordsX: 'number',
+        cordsY: 'number'
       },
       relationships: {
         planet: {
@@ -23,12 +23,13 @@
         entity: {
           included: true,
           type: 'hasOne',
-          polymorphic: true
+          polymorphic: true,
+          reflection: 'location'
         }
       },
       functions: {
         toString: function() {
-          if (!this.relationships.planet.data.attributes.name) {
+          if (!this.relationships.planet || !this.relationships.planet.data.attributes.name) {
             return this.data.id;
           }
 
