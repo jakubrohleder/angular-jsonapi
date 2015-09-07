@@ -26,7 +26,7 @@
       yellow: updateDiff > 30 && updateDiff < 240,
       red: updateDiff >= 240
     }"
-  >Synchronized {{updateDiff}} seconds from now</div>
+  >Synchronized {{updateDiff}} s. ago</div>
 </div>
 
 <div class="ui divider"></div>
@@ -42,6 +42,6 @@
 
 <div ng-show="collection.error" class="ui divider hidden"></div>
 
-<angular-jsonapi-object data="object" ng-repeat="object in collection.data"></angular-jsonapi-object>
+<angular-jsonapi-object nested="false" data="object" ng-repeat="object in collection.data"></angular-jsonapi-object>
 
 <div class="ui black button fixed" ng-click="close()">Close all models</div>

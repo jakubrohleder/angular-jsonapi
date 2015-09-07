@@ -106,7 +106,6 @@
       }
 
       function update(config) {
-        console.log(config.object.form.toJson());
         return $http({
           method: 'PUT',
           headers: headers,
@@ -130,8 +129,6 @@
 
       function rejectHttp(response) {
         var deferred = $q.defer();
-
-        console.log(response);
 
         if (response.status === 0) {
           $http({

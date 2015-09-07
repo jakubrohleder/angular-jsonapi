@@ -6,20 +6,38 @@
 
   function logEvents($rootScope) {
     var events = [
-      'angularJsonAPI:factory:init',
-      'angularJsonAPI:factory:clear',
-      'angularJsonAPI:object:save',
-      'angularJsonAPI:object:refresh',
-      'angularJsonAPI:object:remove',
-      'angularJsonAPI:object:link',
-      'angularJsonAPI:object:unlink'
+      'factory:init',
+      'factory:clear',
+      'object:save',
+      'object:refresh',
+      'object:remove',
+      'object:link',
+      'object:linkReflection',
+      'object:unlink',
+      'object:unlinkReflection',
+      'collection:fetch'
     ];
 
-    angular.forEach(events, logOnEvent);
+    var factories = [
+      'jobs',
+      'laserGuns',
+      'locations',
+      'planets',
+      'powerArmors',
+      'robotModels',
+      'robots',
+      'spaceshipModels',
+      'spaceships'
+    ];
+    angular.forEach(events, function(eventName) {
+      angular.forEach(factories, function(factoryName) {
+        logOnEvent(eventName, factoryName);
+      });
+    });
 
-    function logOnEvent(eventName) {
-      $rootScope.$on(eventName, function(event, status, results) {
-        console.debug(eventName, status, results);
+    function logOnEvent(eventName, factory) {
+      $rootScope.$on('angularJsonAPI:' + factory + ':' + eventName, function(event, status, results) {
+        console.info(factory, eventName, status, results);
       });
     }
   }

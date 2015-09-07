@@ -40,6 +40,21 @@
 
       _this.data = _this.factory.cache.index(_this.params);
       _this.synchronized = false;
+
+      $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
+
+      function remove(event, status, object) {
+        var index;
+
+        if (status === 'resolved') {
+
+          index = _this.data.indexOf(object);
+          if (index > -1) {
+            _this.data.splice(index, 1);
+            _this.factory.cache.setIndexIds(_this.data);
+          }
+        }
+      }
     }
 
     /**
@@ -71,7 +86,7 @@
       return deferred.promise;
 
       function resolve(results) {
-        $rootScope.$emit('angularJsonAPI:collection:fetch', 'resolved', results);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'resolved', _this, results);
 
         _this.errors.synchronization.errors = [];
         _this.data = $jsonapi.proccesResults(results.data);
@@ -88,7 +103,7 @@
       }
 
       function reject(results) {
-        $rootScope.$emit('angularJsonAPI:collection:fetch', 'rejected', results);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'rejected', _this, results);
 
         _this.errors.synchronization.errors = results.errors;
         _this.error = true;
@@ -99,7 +114,7 @@
       }
 
       function notify(results) {
-        $rootScope.$emit('angularJsonAPI:collection:fetch', 'notify', results);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'notify', _this, results);
 
         deferred.notify(results);
       }

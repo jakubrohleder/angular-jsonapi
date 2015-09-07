@@ -22,29 +22,26 @@
       </button>
       <button promise-button
         ng-class="{disabled: object.removed}"
-        class="ui red mini button"
-        ng-click="object.remove()"
-        style="margin-left: 5px"
-        ng-hide="object.removed"
-      >
-        Remove
-      </button>
-      <button promise-button
-        ng-class="{disabled: object.removed}"
         class="ui green mini button"
         ng-click="object.refresh()"
-        style="margin-left: 5px"
       >
         Refresh
       </button>
       <button promise-button
         ng-class="{disabled: object.removed}"
-        class="ui blue mini button"
-        ng-show="showMore"
-        ng-click="object.save()"
-        style="margin-left: 5px"
+        class="ui orange mini button"
+        ng-show="nested"
+        ng-click="unlink()"
       >
-        Save
+        Unlink
+      </button>
+      <button promise-button
+        ng-class="{disabled: object.removed}"
+        class="ui red mini button"
+        ng-click="object.remove()"
+        ng-hide="object.removed"
+      >
+        Remove
       </button>
 
       <!-- <div class="ui basic mini right floated button" ng-class="{red: !object.saved, green: object.saved}">Saved</div> -->
@@ -60,7 +57,7 @@
           yellow: updateDiff > 30 && updateDiff < 240,
           red: updateDiff >= 240
         }"
-      >Synchronized {{updateDiff}} seconds from now</div>
+      >Synchronized {{updateDiff}} s. ago</div>
     </div>
   </div>
 
@@ -95,6 +92,14 @@
               <label>{{attributeName | toTitleCase}}</label>
               <input type="text" name="{{attributeName}}" ng-model="attributeValue">
             </div>
+
+            <button promise-button
+              ng-class="{disabled: object.removed}"
+              class="ui blue mini button"
+              ng-click="object.save()"
+            >
+              Save
+            </button>
           </form>
         </div>
       </div>
@@ -124,8 +129,20 @@
         <div>The relationship data hasn't been fetched yet, refresh the model to fetch it.</div>
       </div>
 
-      <angular-jsonapi-object data="object" ng-if="relationshipCollection !== undefined && isArray(relationshipCollection)" ng-repeat="object in relationshipCollection"></angular-jsonapi-object>
-      <angular-jsonapi-object data="relationshipCollection" ng-if="relationshipCollection !== undefined && !isArray(relationshipCollection) && relationshipCollection !== null"></angular-jsonapi-object>
+      <angular-jsonapi-object
+        data="object"
+        nested="true"
+        unlink="object.unlink(relationshipName, relationshipObject)"
+        ng-if="relationshipCollection !== undefined && isArray(relationshipCollection)"
+        ng-repeat="relationshipObject in relationshipCollection"
+      ></angular-jsonapi-object>
+
+      <angular-jsonapi-object
+        data="relationshipCollection"
+        nested="true"
+        unlink="unlink(relationshipName, relationshipCollection)"
+        ng-if="relationshipCollection !== undefined && !isArray(relationshipCollection) && relationshipCollection !== null"
+      ></angular-jsonapi-object>
 
       </conditional-compiler>
     </div>

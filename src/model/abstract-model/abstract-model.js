@@ -100,7 +100,7 @@
       return deferred.promise;
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:object:save', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:save', 'resolved', _this, response);
         _this.update(_this.form.data);
 
         response.finish();
@@ -109,14 +109,14 @@
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:object:save', 'rejected', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:save', 'rejected', _this, response);
         response.finish();
 
         deferred.reject(response.errors);
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:object:save', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:save', 'notify', _this, response);
 
         deferred.notify(response.errors);
       }
@@ -154,7 +154,7 @@
       }
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:object:refresh', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:refresh', 'resolved', _this, response);
         $jsonapi.proccesResults(response.data);
         response.finish();
 
@@ -165,14 +165,14 @@
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:object:refresh', 'rejected', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:refresh', 'rejected', _this, response);
         response.finish();
 
         deferred.reject(response);
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:object:refresh', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:refresh', 'notify', _this, response);
 
         deferred.notify(response);
       }
@@ -224,7 +224,7 @@
       }
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:object:remove', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:remove', 'resolved', _this, response);
         _this.removed = true;
         _this.unlinkAll();
         _this.parentFactory.cache.clearRemoved(_this.data.id);
@@ -234,7 +234,7 @@
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:object:remove', 'rejected', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:remove', 'rejected', _this, response);
         _this.parentFactory.cache.revertRemove(_this.data.id);
         response.finish();
 
@@ -242,7 +242,7 @@
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:object:remove', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:remove', 'notify', _this, response);
 
         deferred.notify(response);
       }
@@ -287,8 +287,6 @@
         var reflectionSchema = target.schema.relationships[reflectionKey];
         AngularJsonAPIModelLinkerService.unlink(target, reflectionKey, _this, reflectionSchema);
 
-        console.log(target);
-
         target.synchronize({
           action: 'unlinkReflection',
           object: target,
@@ -297,21 +295,21 @@
         }).then(resolve, reject, notify);
 
         function resolve(response) {
-          $rootScope.$emit('angularJsonAPI:object:unlinkReflection', 'resolve', response);
+          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'resolve', _this, response);
 
           response.finish();
           deferred.resolve(_this);
         }
 
         function reject(response) {
-          $rootScope.$emit('angularJsonAPI:object:unlinkReflection', 'rejected', response);
+          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'rejected', _this, response);
 
           response.finish();
           deferred.reject(response);
         }
 
         function notify(response) {
-          $rootScope.$emit('angularJsonAPI:object:unlinkReflection', 'notify', response);
+          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'notify', _this, response);
 
           response.finish();
           deferred.notify(response);
@@ -338,9 +336,6 @@
 
       var reflectionSchema = target.schema.relationships[reflectionKey];
 
-      AngularJsonAPIModelLinkerService.link(_this, key, target, schema);
-      AngularJsonAPIModelLinkerService.link(target, reflectionKey, _this, reflectionSchema);
-
       _this.synchronize({
         action: 'link',
         object: _this,
@@ -351,7 +346,10 @@
       return deferred.promise;
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:object:link', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:link', 'resolved', _this, response);
+
+        AngularJsonAPIModelLinkerService.link(_this, key, target, schema);
+        AngularJsonAPIModelLinkerService.link(target, reflectionKey, _this, reflectionSchema);
 
         _this.stable = true;
         response.finish();
@@ -364,21 +362,21 @@
         }).then(resolveReflection, rejectReflection, notifyReflection);
 
         function resolveReflection(response) {
-          $rootScope.$emit('angularJsonAPI:object:linkReflection', 'resolve', response);
+          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:linkReflection', 'resolve', _this, response);
 
           response.finish();
           deferred.resolve(_this);
         }
 
         function rejectReflection(response) {
-          $rootScope.$emit('angularJsonAPI:object:linkReflection', 'rejected', response);
+          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:linkReflection', 'rejected', _this, response);
 
           response.finish();
           deferred.reject(response);
         }
 
         function notifyReflection(response) {
-          $rootScope.$emit('angularJsonAPI:object:linkReflection', 'notify', response);
+          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:linkReflection', 'notify', _this, response);
 
           response.finish();
           deferred.notify(response);
@@ -386,10 +384,7 @@
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:object:link', 'rejected', response);
-
-        AngularJsonAPIModelLinkerService.unlink(_this, key, target, schema);
-        AngularJsonAPIModelLinkerService.unlink(target, reflectionKey, _this, reflectionSchema);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:link', 'rejected', _this, response);
 
         deferred.reject(response.errors);
         response.finish();
@@ -397,7 +392,7 @@
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:object:link', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:link', 'notify', _this, response);
 
         deferred.notify(response);
       }
@@ -422,9 +417,6 @@
 
       var reflectionSchema = target.schema.relationships[reflectionKey];
 
-      AngularJsonAPIModelLinkerService.unlink(_this, key, target, schema);
-      AngularJsonAPIModelLinkerService.unlink(target, reflectionKey, _this, reflectionSchema);
-
       _this.synchronize({
         action: 'unlink',
         object: _this,
@@ -435,7 +427,10 @@
       return deferred.promise;
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:object:unlink', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlink', 'resolved', _this, response);
+
+        AngularJsonAPIModelLinkerService.unlink(_this, key, target, schema);
+        AngularJsonAPIModelLinkerService.unlink(target, reflectionKey, _this, reflectionSchema);
 
         _this.stable = true;
         response.finish();
@@ -448,21 +443,21 @@
         }).then(resolveReflection, rejectReflection, notifyReflection);
 
         function resolveReflection(response) {
-          $rootScope.$emit('angularJsonAPI:object:unlinkReflection', 'resolve', response);
+          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'resolve', _this, response);
 
           response.finish();
           deferred.resolve(_this);
         }
 
         function rejectReflection(response) {
-          $rootScope.$emit('angularJsonAPI:object:unlinkReflection', 'rejected', response);
+          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'rejected', _this, response);
 
           response.finish();
           deferred.reject(response);
         }
 
         function notifyReflection(response) {
-          $rootScope.$emit('angularJsonAPI:object:unlinkReflection', 'notify', response);
+          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'notify', _this, response);
 
           response.finish();
           deferred.notify(response);
@@ -470,10 +465,7 @@
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:object:unlink', 'rejected', response);
-
-        AngularJsonAPIModelLinkerService.link(_this, key, target, schema);
-        AngularJsonAPIModelLinkerService.link(target, reflectionKey, _this, reflectionSchema);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlink', 'rejected', _this, response);
 
         deferred.reject(response.errors);
         response.finish();
@@ -481,7 +473,7 @@
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:object:unlink', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlink', 'notify', _this, response);
 
         deferred.notify(response);
       }

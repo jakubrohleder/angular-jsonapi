@@ -9,7 +9,9 @@
       restrict: 'E',
       templateUrl: 'app/components/object/object.html',
       scope: {
-        object: '=data'
+        object: '=data',
+        unlink: '&',
+        nested: '='
       },
       require: '^angularJsonapiObject',
       compile: RecursionHelper.compile,
@@ -22,7 +24,15 @@
       $scope.showMore = false;
       $scope.isArray = angular.isArray;
 
-      $scope.$watch('showMore', function(value) {
+      $scope.$watch('showMore', toggleTimmer);
+
+      $scope.$on('close', function() {
+        $scope.showMore = false;
+      });
+
+      $scope.equals = angular.equals;
+
+      function toggleTimmer(value) {
         if (value === true) {
           $scope.updateDiff = (Date.now() - $scope.object.updatedAt) / 1000;
           interval = $interval(function() {
@@ -31,13 +41,7 @@
         } else if (value === false) {
           $interval.cancel(interval);
         }
-      });
-
-      $scope.$on('close', function() {
-        $scope.showMore = false;
-      });
-
-      $scope.equals = angular.equals;
+      }
     }
   }
 

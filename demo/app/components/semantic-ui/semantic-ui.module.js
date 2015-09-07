@@ -29,7 +29,6 @@
           ngModel: '='
         },
         link: function(scope, iElement) {
-          console.log('Init', module);
 
           if (!scope.options) {
             scope.options = {};

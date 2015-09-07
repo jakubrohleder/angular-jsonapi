@@ -45,13 +45,14 @@
       );
 
       _this.initialized = false;
+      _this.type = _this.schema.type;
 
       synchronizer.factory = _this;
 
       _this.synchronizer.synchronize(config).then(resolve, reject, notify);
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:factory:init', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:init', 'resolved', response);
         _this.cache.fromJson(response.data);
         _this.initialized = true;
 
@@ -59,13 +60,13 @@
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:factory:init', 'rejected', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:init', 'rejected', response);
         response.finish();
         _this.initialized = true;
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:factory:init', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:init', 'notify', response);
       }
     }
 
@@ -124,7 +125,7 @@
       var _this = this;
 
       var data = {
-        type: _this.schema.type,
+        type: _this.type,
         id: uuid4.generate(),
         attributes: {},
         relationships: {}
@@ -153,21 +154,21 @@
       return deferred;
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:factory:clear', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clear', 'resolved', response);
         response.finish();
 
         deferred.resolve(response);
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:factory:clear', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clear', 'resolved', response);
         response.finish();
 
         deferred.reject(response);
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:factory:clear', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clear', 'notify', response);
 
         deferred.notify(response);
       }

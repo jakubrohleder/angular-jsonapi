@@ -122,13 +122,12 @@
       $log.debug('addHasMany', object, key, target, schema);
 
       if (angular.isArray(object.relationships[key]) && object.relationships[key].indexOf(target) > -1) {
-        $log.warn(target.data.type + ':' + target.data.id, 'is already linked to', object.data.type + ':' + object.data.id, 'as', key);
+        // $log.warn(target.data.type + ':' + target.data.id, 'is already linked to', object.data.type + ':' + object.data.id, 'as', key);
         return false;
       } else {
         object.relationships[key] = object.relationships[key] || [];
         object.relationships[key].push(target);
         object.data.relationships[key].data = object.data.relationships[key].data || [];
-        $log.warn(target.data.type + ':' + target.data.id, 'is being linked to', object.data.type + ':' + object.data.id, 'as', key);
         object.data.relationships[key].data.push(linkData);
       }
 
@@ -136,7 +135,7 @@
     }
 
     function __removeHasOne(object, key, target, schema) {
-      $log.log('removeHasOne', object, key, target, schema);
+      $log.debug('removeHasOne', object, key, target, schema);
 
       if (target !== undefined && object.relationships[key] !== target) {
         // $log.warn(target.data.type + ':' + target.data.id, 'is not linked to', object.data.type + ':' + object.data.id, 'as', key);
@@ -156,7 +155,7 @@
         object.relationships[key] = [];
         object.data.relationships[key].data = [];
       } else if (object.relationships[key] === undefined) {
-        $log.warn(target.data.type + ':' + target.data.id, 'is links with key', key, 'are undefined');
+        // $log.warn(target.data.type + ':' + target.data.id, 'is links with key', key, 'are undefined');
         return;
       } else {
         var index = object.relationships[key].indexOf(target);
