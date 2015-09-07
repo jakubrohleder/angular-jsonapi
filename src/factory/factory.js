@@ -123,12 +123,14 @@
     function initialize() {
       var _this = this;
 
-      var model = new _this.Model({
+      var data = {
         type: _this.schema.type,
         id: uuid4.generate(),
         attributes: {},
         relationships: {}
-      }, false);
+      };
+
+      var model = new _this.Model(data, false, false);
 
       return model;
     }

@@ -79,18 +79,18 @@
         }
 
         angular.forEach(results.included, function(data) {
-          getFactory(data.type).cache.addOrUpdate(data);
+          getFactory(data.type).cache.addOrUpdate(data, true);
         });
 
         if (angular.isArray(results.data)) {
           var objects = [];
           angular.forEach(results.data, function(data) {
-            objects.push(getFactory(data.type).cache.addOrUpdate(data));
+            objects.push(getFactory(data.type).cache.addOrUpdate(data, true));
           });
 
           return objects;
         } else {
-          return getFactory(results.data.type).cache.addOrUpdate(results.data);
+          return getFactory(results.data.type).cache.addOrUpdate(results.data, true);
         }
       }
     }

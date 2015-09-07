@@ -66,8 +66,15 @@
 
         if (config.object.removed === true) {
           deferred.reject({errors: [{status: 0, statusText: 'Object has been removed'}]});
-        } else if (config.target === undefined || config.target.data.id === undefined) {
+        } else if (config.target !== undefined && config.target.data.id === undefined) {
           deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink object without id through rest call'}]});
+        } else if (config.target === undefined) {
+          $http({
+            method: 'PUT',
+            headers: headers,
+            data: {data: []},
+            url: url + '/' + config.object.data.id + '/relationships/' + toKebabCase(config.key)
+          }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
         } else {
           $http({
             method: 'DELETE',
