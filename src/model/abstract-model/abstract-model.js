@@ -339,6 +339,7 @@
       _this.synchronize({
         action: 'link',
         object: _this,
+        schema: schema,
         target: target,
         key: key
       }).then(resolve, reject, notify);
@@ -356,6 +357,7 @@
 
         target.synchronize({
           action: 'linkReflection',
+          schema: reflectionSchema,
           object: target,
           target: _this,
           key: reflectionKey
@@ -421,6 +423,7 @@
         action: 'unlink',
         object: _this,
         target: target,
+        schema: schema,
         key: key
       }).then(resolve, reject, notify);
 
@@ -439,6 +442,7 @@
           action: 'unlinkReflection',
           object: target,
           target: _this,
+          schema: reflectionSchema,
           key: reflectionKey
         }).then(resolveReflection, rejectReflection, notifyReflection);
 

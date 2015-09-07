@@ -1,3 +1,13 @@
+@mixin word-wrap() {
+  word-break:     break-word;
+  -webkit-hyphens: auto;
+  -moz-hyphens:    auto;
+  hyphens:         auto;
+}
+
+.ui.list .list > .item .description, .ui.list > .item .description {
+  @include word-wrap();
+}
 .ui.grid {
   margin-left: 0;
   margin-right: 0;

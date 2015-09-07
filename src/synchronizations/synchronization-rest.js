@@ -68,19 +68,27 @@
           deferred.reject({errors: [{status: 0, statusText: 'Object has been removed'}]});
         } else if (config.target !== undefined && config.target.data.id === undefined) {
           deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink object without id through rest call'}]});
-        } else if (config.target === undefined) {
-          $http({
-            method: 'PUT',
-            headers: headers,
-            data: {data: []},
-            url: url + '/' + config.object.data.id + '/relationships/' + toKebabCase(config.key)
-          }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
-        } else {
+        } else if (config.schema.type === 'hasOne') {
           $http({
             method: 'DELETE',
             headers: headers,
-            url: url + '/' + config.object.data.id + '/relationships/' + toKebabCase(config.key) + '/' + config.target.data.id
+            url: url + '/' + config.object.data.id + '/relationships/' + config.key
           }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
+        } else if (config.schema.type === 'hasMany') {
+          if (config.target === undefined) {
+            $http({
+              method: 'PUT',
+              headers: headers,
+              data: {data: []},
+              url: url + '/' + config.object.data.id + '/relationships/' + config.key
+            }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
+          } else {
+            $http({
+              method: 'DELETE',
+              headers: headers,
+              url: url + '/' + config.object.data.id + '/relationships/' + config.key + '/' + config.target.data.id
+            }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
+          }
         }
 
         return deferred.promise;
@@ -93,12 +101,19 @@
           deferred.reject({errors: [{status: 0, statusText: 'Object has been removed'}]});
         } else if (config.target === undefined || config.target.data.id === undefined) {
           deferred.reject({errors: [{status: 0, statusText: 'Can\'t link object without id through rest call'}]});
-        } else {
+        } else if (config.schema.type === 'hasOne') {
+          $http({
+            method: 'PUT',
+            headers: headers,
+            data: {data: AngularJsonAPIModelLinkerService.toLinkData(config.target)},
+            url: url + '/' + config.object.data.id + '/relationships/' + config.key
+          }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
+        } else if (config.schema.type === 'hasMany') {
           $http({
             method: 'POST',
             headers: headers,
-            url: url + '/' + config.object.data.id + '/relationships/' + toKebabCase(config.key),
-            data: {data: [AngularJsonAPIModelLinkerService.toLinkData(config.target)]}
+            data: {data: [AngularJsonAPIModelLinkerService.toLinkData(config.target)]},
+            url: url + '/' + config.object.data.id + '/relationships/' + config.key + '/' + config.target.data.id
           }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
         }
 

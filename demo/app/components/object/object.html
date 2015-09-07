@@ -2,8 +2,10 @@
   <div
     class="ui stackable grid"
   >
-    <div class="four wide column" style="padding-left:0">
-      <h4 clip-copy="object.data.id">{{object.toString()}}</h4>
+    <div class="four wide column" style="padding: 0;">
+      <small>{{object.data.type}}</small>
+      <h4 style="margin-bottom: 0; margin-top: 0;" clip-copy="object.data.id">{{object.toString()}}</h4>
+      <small>{{object.data.id}}</small>
     </div>
     <div class="twelve wide column">
       <button
@@ -62,7 +64,7 @@
   </div>
 
   <div ng-if="showMore">
-
+    <div class="ui divider hidden"></div>
     <error-message ng-show="object.error" data="object.errors"></error-message>
 
     <div class="ui stackable grid">
@@ -79,7 +81,9 @@
             <div class="item">
               <div class="content">
                 <div class="header">Relationships</div>
-                <div class="description">{{object.data.relationships}}</div>
+                <div class="description">
+                  <json-formatter json="object.data.relationships" open="0"></json-formatter>
+                </div>
               </div>
             </div>
           </div>
@@ -122,15 +126,25 @@
         </div>
       </div>
 
-      <div ng-show="relationshipCollection !== undefined" class="ui divider hidden"></div>
+      <div ng-hide="emptyRelationship(relationshipCollection)" class="ui divider hidden"></div>
 
       <div ng-show="relationshipCollection === undefined">
         <strong>Relationship data undefined</strong>
         <div>The relationship data hasn't been fetched yet, refresh the model to fetch it.</div>
       </div>
 
+      <div ng-show="relationshipCollection === null">
+        <strong>Has one relationship null</strong>
+        <div>Set something as relationship object.</div>
+      </div>
+
+      <div ng-show="isArray(relationshipCollection) && relationshipCollection.length === 0">
+        <strong>Has many relationship empty</strong>
+        <div>Add something to the relationship array.</div>
+      </div>
+
       <angular-jsonapi-object
-        data="object"
+        data="relationshipObject"
         nested="true"
         unlink="object.unlink(relationshipName, relationshipObject)"
         ng-if="relationshipCollection !== undefined && isArray(relationshipCollection)"
@@ -140,7 +154,7 @@
       <angular-jsonapi-object
         data="relationshipCollection"
         nested="true"
-        unlink="unlink(relationshipName, relationshipCollection)"
+        unlink="object.unlink(relationshipName, relationshipCollection)"
         ng-if="relationshipCollection !== undefined && !isArray(relationshipCollection) && relationshipCollection !== null"
       ></angular-jsonapi-object>
 
