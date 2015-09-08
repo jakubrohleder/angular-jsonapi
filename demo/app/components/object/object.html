@@ -10,6 +10,7 @@
     <div class="twelve wide column">
       <button
         class="ui mini button"
+        ng-init="showMore = $parent.$first && !nested"
         ng-click="showMore = !showMore"
         ng-class="{yellow: showMore, olive: !showMore, disabled: object.removed}"
       >
@@ -117,8 +118,10 @@
           <h4 clip-copy="object.data.id">{{object.schema.relationships[relationshipName].model}}</h4>
         </div>
         <div class="twelve wide column">
+          <angular-jsonapi-search object="object" key="relationshipName" class="ui left floated"></angular-jsonapi-search>
+
           <button
-            class="ui mini primary  button"
+            class="ui mini primary right floated button"
             ui-sref="frame.request.all({type: object.schema.relationships[relationshipName].model})"
           >
             Go to {{object.schema.relationships[relationshipName].model}}

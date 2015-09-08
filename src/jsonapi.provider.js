@@ -20,9 +20,17 @@
         clearAll: clearAll,
         proccesResults: proccesResults,
 
-        allFactories: memory,
-        factoriesNames: names
+        allFactories: allFactories,
+        factoriesNames: factoriesNames
       };
+
+      function allFactories() {
+        return memory;
+      }
+
+      function factoriesNames() {
+        return names;
+      }
 
       function addFactory(schema, synchronization) {
         var factory = new AngularJsonAPIFactory(schema, synchronization);

@@ -113,7 +113,7 @@
             method: 'POST',
             headers: headers,
             data: {data: [AngularJsonAPIModelLinkerService.toLinkData(config.target)]},
-            url: url + '/' + config.object.data.id + '/relationships/' + config.key + '/' + config.target.data.id
+            url: url + '/' + config.object.data.id + '/relationships/' + config.key
           }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
         }
 

@@ -579,6 +579,12 @@
         }
 
         var factory = $jsonapi.getFactory(data.type);
+
+        if (factory === undefined) {
+          $log.error('Factory not found', data.type, data);
+          return;
+        }
+
         var target = factory.cache.get(data.id);
         var reflectionKey = schema.reflection;
         var reflectionSchema = target.schema.relationships[reflectionKey];

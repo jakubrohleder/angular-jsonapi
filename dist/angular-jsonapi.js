@@ -1015,6 +1015,12 @@
         }
 
         var factory = $jsonapi.getFactory(data.type);
+
+        if (factory === undefined) {
+          $log.error('Factory not found', data.type, data);
+          return;
+        }
+
         var target = factory.cache.get(data.id);
         var reflectionKey = schema.reflection;
         var reflectionSchema = target.schema.relationships[reflectionKey];
@@ -1587,7 +1593,7 @@
             method: 'POST',
             headers: headers,
             data: {data: [AngularJsonAPIModelLinkerService.toLinkData(config.target)]},
-            url: url + '/' + config.object.data.id + '/relationships/' + config.key + '/' + config.target.data.id
+            url: url + '/' + config.object.data.id + '/relationships/' + config.key
           }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
         }
 
@@ -2268,9 +2274,17 @@
         clearAll: clearAll,
         proccesResults: proccesResults,
 
-        allFactories: memory,
-        factoriesNames: names
+        allFactories: allFactories,
+        factoriesNames: factoriesNames
       };
+
+      function allFactories() {
+        return memory;
+      }
+
+      function factoriesNames() {
+        return names;
+      }
 
       function addFactory(schema, synchronization) {
         var factory = new AngularJsonAPIFactory(schema, synchronization);

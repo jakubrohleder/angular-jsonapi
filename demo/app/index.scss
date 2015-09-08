@@ -5,12 +5,26 @@
   hyphens:         auto;
 }
 
+@mixin ellipsis() {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .ui.list .list > .item .description, .ui.list > .item .description {
   @include word-wrap();
 }
 .ui.grid {
   margin-left: 0;
   margin-right: 0;
+}
+
+.ui.left.floated {
+  float: left;
+}
+
+.ui.right.floated {
+  float: right;
 }
 
 .icon.spin {
