@@ -50,7 +50,14 @@
       <!-- <div class="ui basic mini right floated button" ng-class="{red: !object.saved, green: object.saved}">Saved</div> -->
       <!-- <div class="ui basic mini right floated button" ng-class="{red: !object.stable, green: object.stable}">Stable</div> -->
 
-      <div class="ui red basic mini right floated button" ng-hide="object.synchronized" ng-if="showMore">Synchronizing...</div>
+      <div class="ui red basic mini right floated button" ng-hide="object.synchronized">Not synchronized</div>
+      <div
+        class="ui basic green mini right floated button"
+        ng-if="!showMore"
+        ng-show="object.synchronized"
+      >
+        Synchronized
+      </div>
       <div
         class="ui basic mini right floated button"
         ng-if="showMore"
@@ -60,7 +67,9 @@
           yellow: updateDiff > 30 && updateDiff < 240,
           red: updateDiff >= 240
         }"
-      >Synchronized {{updateDiff}} s. ago</div>
+      >
+        Synchronized {{updateDiff}} s. ago
+      </div>
     </div>
   </div>
 
@@ -115,10 +124,15 @@
     <div class="ui padded segment" ng-repeat="(relationshipName, relationshipCollection) in object.relationships">
       <div class="ui stackable grid">
         <div class="four wide column" style="padding-left:0">
-          <h4 clip-copy="object.data.id">{{object.schema.relationships[relationshipName].model}}</h4>
+          <h4 style="margin-bottom: 0;" clip-copy="object.data.id">{{object.schema.relationships[relationshipName].model}}</h4>
+          <small ng-show="object.schema.relationships[relationshipName].polymorphic">polymorphic</small>
         </div>
         <div class="twelve wide column">
-          <angular-jsonapi-search object="object" key="relationshipName" class="ui left floated"></angular-jsonapi-search>
+          <angular-jsonapi-search
+            object="object"
+            key="relationshipName"
+            class="ui left floated"
+          ></angular-jsonapi-search>
 
           <button
             class="ui mini primary right floated button"

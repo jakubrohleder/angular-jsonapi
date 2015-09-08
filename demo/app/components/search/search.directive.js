@@ -7,19 +7,34 @@
   function search() {
     return {
       restrict: 'E',
-      templateUrl: 'app/components/search/search.html',
+      template: '<div ng-include="contentUrl"></div>',
       controller: controller,
+      link: link,
       scope: {
         object: '=',
-        key: '='
+        key: '=',
       }
     };
 
+    function link(scope) {
+      if (scope.schema.polymorphic === true) {
+        scope.contentUrl = 'app/components/search/search-polymorphic.html';
+      } else {
+        scope.contentUrl = 'app/components/search/search.html';
+      }
+    }
+
     function controller($scope, $jsonapi) {
-      $scope.collections = {};
-      angular.forEach($jsonapi.allFactories(), function(factory, factoryName) {
-        $scope.collections[factoryName] = factory.cache.index();
-      });
+      $scope.schema = $scope.object.schema.relationships[$scope.key];
+      if ($scope.schema.polymorphic) {
+        $scope.collections = {};
+        angular.forEach($jsonapi.allFactories(), function(factory, factoryName) {
+          $scope.collections[factoryName] = factory.cache.index();
+        });
+      } else {
+        $scope.model = $scope.schema.model;
+        $scope.collection = $jsonapi.getFactory($scope.model).cache.index();
+      }
 
       $scope.show = false;
       $scope.isEmpty = isEmpty;

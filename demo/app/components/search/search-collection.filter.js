@@ -4,7 +4,7 @@
   angular.module('angularJsonapiExample')
     .filter('angularJsonapiSearchCollection', searchFilter);
 
-  function searchFilter($jsonapi) {
+  function searchFilter() {
     return function(items, search) {
       if (!search) {
         return items;
