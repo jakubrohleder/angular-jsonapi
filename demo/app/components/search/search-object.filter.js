@@ -8,7 +8,6 @@
     var names = $jsonapi.factoriesNames();
 
     return function(items, search, relationship, polymorphic) {
-      // console.log(items);
       if (!search) {
         if (polymorphic === true) {
           return [];
@@ -21,7 +20,6 @@
         }
       }
 
-      console.log(relationship);
       var results = [];
       var words = search.split(' ');
       var searchWord;
@@ -30,7 +28,6 @@
         searchWord = search;
         angular.forEach(items, function(value) {
           if (relationship.indexOf(value) === -1 && value.toString().toLowerCase().indexOf(searchWord.toLowerCase()) > -1) {
-            console.log(value.toString(), searchWord);
             results.push(value);
           }
         });
@@ -39,7 +36,6 @@
           searchWord = words.splice(1).join(' ');
           angular.forEach(items, function(value) {
             if (relationship.indexOf(value) === -1 && value.toString().toLowerCase().indexOf(searchWord.toLowerCase()) > -1) {
-              console.log(value.toString(), searchWord);
               results.push(value);
             }
           });
