@@ -44,9 +44,15 @@
             }
           });
         } else if (names.indexOf(words[0]) > -1) {
-          return items.filter(function(value) {
-            return relationship.indexOf(value) === -1;
-          });
+          if (angular.isArray(relationship)) {
+            return items.filter(function(value) {
+              return relationship.indexOf(value) === -1;
+            });
+          } else {
+            return items.filter(function(value) {
+              return relationship !== value;
+            });
+          }
         }
       }
 

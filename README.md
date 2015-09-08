@@ -356,4 +356,4 @@ All in all configuration of the factory for novels can look like this:
 
 * Readonly attributes
 * More keys formats
-* Offline support
+* Offline support ([ServiceWorkers?](http://www.html5rocks.com/en/tutorials/service-worker/introduction/))

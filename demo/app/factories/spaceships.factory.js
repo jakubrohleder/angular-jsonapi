@@ -14,9 +14,7 @@
       attributes: {
         name: 'string',
         durability: 'number',
-        cordY: 'number',
-        cordZ: 'number',
-        size: 'number'
+        quality: 'number'
       },
       relationships: {
         pilot: {
