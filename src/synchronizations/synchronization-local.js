@@ -26,7 +26,7 @@
 
       _this.synchronization('init', init);
 
-      _this.begin('clear', clear);
+      _this.begin('clearCache', clear);
       _this.begin('remove', updateStorage);
       _this.begin('refresh', updateStorage);
       _this.begin('unlink', updateStorage);
@@ -39,7 +39,7 @@
       _this.finish('all', updateStorage);
 
       _this.finish('init', updateStorage);
-      _this.finish('clear', updateStorage);
+      _this.finish('clearCache', updateStorage);
       _this.finish('remove', updateStorage);
       _this.finish('refresh', updateStorage);
       _this.finish('unlink', updateStorage);

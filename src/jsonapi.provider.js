@@ -17,7 +17,7 @@
         all: all,
         addFactory: addFactory,
         getFactory: getFactory,
-        clearAll: clearAll,
+        clearCache: clearCache,
         proccesResults: proccesResults,
 
         allFactories: allFactories,
@@ -75,9 +75,9 @@
         return memory[type].all();
       }
 
-      function clearAll() {
+      function clearCache() {
         angular.forEach(memory, function(factory) {
-          factory.clear();
+          factory.clearCache();
         });
       }
 
@@ -86,19 +86,25 @@
           $log.error('Can\'t proccess results:', results);
         }
 
+        var config = {
+          saved: true,
+          synchronized: true,
+          initialization: false
+        };
+
         angular.forEach(results.included, function(data) {
-          getFactory(data.type).cache.addOrUpdate(data, true);
+          getFactory(data.type).cache.addOrUpdate(data, config);
         });
 
         if (angular.isArray(results.data)) {
           var objects = [];
           angular.forEach(results.data, function(data) {
-            objects.push(getFactory(data.type).cache.addOrUpdate(data, true));
+            objects.push(getFactory(data.type).cache.addOrUpdate(data, config));
           });
 
           return objects;
         } else {
-          return getFactory(results.data.type).cache.addOrUpdate(results.data, true);
+          return getFactory(results.data.type).cache.addOrUpdate(results.data, config);
         }
       }
     }

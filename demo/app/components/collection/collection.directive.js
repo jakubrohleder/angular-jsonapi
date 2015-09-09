@@ -4,7 +4,7 @@
   angular.module('angularJsonapiExample')
     .directive('angularJsonapiCollection', collection);
 
-  function collection(RecursionHelper) {
+  function collection(RecursionHelper, $jsonapi) {
     return {
       restrict: 'E',
       templateUrl: 'app/components/collection/collection.html',
@@ -20,9 +20,14 @@
         $scope.equals = angular.equals;
 
         $scope.close = close;
+        $scope.clear = clear;
 
         function close() {
           $scope.$broadcast('close');
+        }
+
+        function clear() {
+          $jsonapi.clearCache();
         }
       }
     };

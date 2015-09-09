@@ -7,7 +7,7 @@
   function logEvents($rootScope) {
     var events = [
       'factory:init',
-      'factory:clear',
+      'factory:clearCache',
       'object:save',
       'object:refresh',
       'object:remove',

@@ -42,6 +42,7 @@
       _this.synchronized = false;
 
       $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
+      $rootScope.$on('angularJsonAPI:' + _this.type + ':factory:clearCache', clear);
 
       function remove(event, status, object) {
         var index;
@@ -54,6 +55,10 @@
             _this.factory.cache.setIndexIds(_this.data);
           }
         }
+      }
+
+      function clear() {
+        _this.data = undefined;
       }
     }
 

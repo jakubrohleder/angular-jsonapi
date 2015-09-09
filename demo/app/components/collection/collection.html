@@ -17,6 +17,11 @@
     ng-click="collection.refresh()"
   >Refresh</button>
 
+  <button promise-button
+    class="ui button mini yellow"
+    ng-click="collection.refresh()"
+  >Add</button>
+
   <div class="ui red basic mini right floated button" ng-hide="collection.synchronized">Synchronizing...</div>
   <div
     class="ui basic mini right floated button"
@@ -32,10 +37,17 @@
 <div class="ui divider"></div>
 
 <div
-  ng-hide="collection.synchronized || collection.data.length > 0"
+  ng-show="!collection.synchronized && collection.data === undefined"
   class="ui large active text loader"
 >
   Loading collection for the first time
+</div>
+
+<div
+  ng-show="collection.synchronized && collection.data === undefined"
+  class="ui large active text loader"
+>
+  Collection not synchronized, refresh it to fetch data
 </div>
 
 <error-message ng-show="collection.error" data="collection.errors"></error-message>
@@ -44,4 +56,7 @@
 
 <angular-jsonapi-object nested="false" data="object" ng-repeat="object in collection.data"></angular-jsonapi-object>
 
-<div class="ui black button fixed" ng-click="close()">Close all models</div>
+<div class="ui basic segment fixed bottom">
+  <div class="ui black button" ng-click="close()">Close all models</div>
+  <div class="ui grey button" ng-click="clear()">Clear cache</div>
+</div>

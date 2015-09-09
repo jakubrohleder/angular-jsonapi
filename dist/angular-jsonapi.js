@@ -1216,7 +1216,7 @@
       _this.removed = {};
       _this.size = 0;
 
-      _this.indexIds = [];
+      _this.indexIds = undefined;
     }
 
     /**
@@ -1224,7 +1224,7 @@
      * @param {object} validatedData Data that are used to update or create an object, has to be valid
      * @return {AngularJsonAPIModel} Created model
      */
-    function addOrUpdate(validatedData, synchronized, initialization) {
+    function addOrUpdate(validatedData, config) {
       var _this = this;
       var id = validatedData.id;
 
@@ -1234,10 +1234,10 @@
       }
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.factory.Model(validatedData, true, synchronized);
+        _this.data[id] = new _this.factory.Model(validatedData, config.saved, config.synchronized);
         _this.size += 1;
       } else {
-        _this.data[id].update(validatedData, true, initialization);
+        _this.data[id].update(validatedData, config.saved, config.initialization);
       }
 
       return _this.data[id];
@@ -1253,6 +1253,12 @@
       var _this = this;
       var collection = angular.fromJson(json);
 
+      var config = {
+        saved: true,
+        synchronized: false,
+        initialization: true
+      };
+
       if (angular.isObject(collection) && collection.data !== undefined) {
         _this.updatedAt = collection.updatedAt;
         _this.indexIds = collection.indexIds;
@@ -1260,7 +1266,7 @@
         angular.forEach(collection.data, function(objectData) {
           var data = objectData.data;
           console.log('fromJson', data.id);
-          _this.addOrUpdate(data, false, true);
+          _this.addOrUpdate(data, config);
         });
       }
     }
@@ -1291,6 +1297,7 @@
     function clear() {
       var _this = this;
 
+      _this.indexIds = undefined;
       _this.data = {};
       _this.removed = {};
     }
@@ -1319,6 +1326,10 @@
       var _this = this;
 
       $log.warn('Unused params', params);
+
+      if (_this.indexIds === undefined) {
+        return _this.indexIds;
+      }
 
       return _this.indexIds.map(_this.get.bind(_this));
     }
@@ -1817,7 +1828,7 @@
         'init',
         'get',
         'all',
-        'clear',
+        'clearCache',
         'remove',
         'unlink',
         'unlinkReflection',
@@ -1911,7 +1922,7 @@
 
       _this.synchronization('init', init);
 
-      _this.begin('clear', clear);
+      _this.begin('clearCache', clear);
       _this.begin('remove', updateStorage);
       _this.begin('refresh', updateStorage);
       _this.begin('unlink', updateStorage);
@@ -1924,7 +1935,7 @@
       _this.finish('all', updateStorage);
 
       _this.finish('init', updateStorage);
-      _this.finish('clear', updateStorage);
+      _this.finish('clearCache', updateStorage);
       _this.finish('remove', updateStorage);
       _this.finish('refresh', updateStorage);
       _this.finish('unlink', updateStorage);
@@ -2115,7 +2126,7 @@
     AngularJsonAPIFactory.prototype.remove = remove;
     AngularJsonAPIFactory.prototype.initialize = initialize;
 
-    AngularJsonAPIFactory.prototype.clear = clear;
+    AngularJsonAPIFactory.prototype.clearCache = clearCache;
 
     return AngularJsonAPIFactory;
 
@@ -2241,20 +2252,24 @@
         relationships: relationships
       };
 
-      var model = new _this.Model(data, false, false);
+      var config = {
+        saved: false,
+        synchronized: false,
+        initialization: false
+      };
 
-      return model;
+      return _this.cache.addOrUpdate(data, config);
     }
 
     /**
      * Clears localy saved data
      * @return {promise} Promise associated with the synchronization resolves to nothing
      */
-    function clear() {
+    function clearCache() {
       var _this = this;
       var deferred = $q.defer();
       var config = {
-        action: 'clear'
+        action: 'clearCache'
       };
 
       _this.cache.clear();
@@ -2264,21 +2279,21 @@
       return deferred;
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clear', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clearCache', 'resolved', response);
         response.finish();
 
         deferred.resolve(response);
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clear', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clearCache', 'resolved', response);
         response.finish();
 
         deferred.reject(response);
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clear', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clearCache', 'notify', response);
 
         deferred.notify(response);
       }
@@ -2331,6 +2346,7 @@
       _this.synchronized = false;
 
       $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
+      $rootScope.$on('angularJsonAPI:' + _this.type + ':factory:clearCache', clear);
 
       function remove(event, status, object) {
         var index;
@@ -2343,6 +2359,10 @@
             _this.factory.cache.setIndexIds(_this.data);
           }
         }
+      }
+
+      function clear() {
+        _this.data = undefined;
       }
     }
 
@@ -2431,7 +2451,7 @@
         all: all,
         addFactory: addFactory,
         getFactory: getFactory,
-        clearAll: clearAll,
+        clearCache: clearCache,
         proccesResults: proccesResults,
 
         allFactories: allFactories,
@@ -2489,9 +2509,9 @@
         return memory[type].all();
       }
 
-      function clearAll() {
+      function clearCache() {
         angular.forEach(memory, function(factory) {
-          factory.clear();
+          factory.clearCache();
         });
       }
 
@@ -2500,19 +2520,25 @@
           $log.error('Can\'t proccess results:', results);
         }
 
+        var config = {
+          saved: true,
+          synchronized: true,
+          initialization: false
+        };
+
         angular.forEach(results.included, function(data) {
-          getFactory(data.type).cache.addOrUpdate(data, true);
+          getFactory(data.type).cache.addOrUpdate(data, config);
         });
 
         if (angular.isArray(results.data)) {
           var objects = [];
           angular.forEach(results.data, function(data) {
-            objects.push(getFactory(data.type).cache.addOrUpdate(data, true));
+            objects.push(getFactory(data.type).cache.addOrUpdate(data, config));
           });
 
           return objects;
         } else {
-          return getFactory(results.data.type).cache.addOrUpdate(results.data, true);
+          return getFactory(results.data.type).cache.addOrUpdate(results.data, config);
         }
       }
     }

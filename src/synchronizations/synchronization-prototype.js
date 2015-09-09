@@ -20,7 +20,7 @@
         'init',
         'get',
         'all',
-        'clear',
+        'clearCache',
         'remove',
         'unlink',
         'unlinkReflection',

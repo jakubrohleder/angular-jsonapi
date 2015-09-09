@@ -19,7 +19,7 @@
     AngularJsonAPIFactory.prototype.remove = remove;
     AngularJsonAPIFactory.prototype.initialize = initialize;
 
-    AngularJsonAPIFactory.prototype.clear = clear;
+    AngularJsonAPIFactory.prototype.clearCache = clearCache;
 
     return AngularJsonAPIFactory;
 
@@ -145,20 +145,24 @@
         relationships: relationships
       };
 
-      var model = new _this.Model(data, false, false);
+      var config = {
+        saved: false,
+        synchronized: false,
+        initialization: false
+      };
 
-      return model;
+      return _this.cache.addOrUpdate(data, config);
     }
 
     /**
      * Clears localy saved data
      * @return {promise} Promise associated with the synchronization resolves to nothing
      */
-    function clear() {
+    function clearCache() {
       var _this = this;
       var deferred = $q.defer();
       var config = {
-        action: 'clear'
+        action: 'clearCache'
       };
 
       _this.cache.clear();
@@ -168,21 +172,21 @@
       return deferred;
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clear', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clearCache', 'resolved', response);
         response.finish();
 
         deferred.resolve(response);
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clear', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clearCache', 'resolved', response);
         response.finish();
 
         deferred.reject(response);
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clear', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clearCache', 'notify', response);
 
         deferred.notify(response);
       }

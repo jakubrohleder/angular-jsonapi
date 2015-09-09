@@ -35,7 +35,7 @@
       _this.removed = {};
       _this.size = 0;
 
-      _this.indexIds = [];
+      _this.indexIds = undefined;
     }
 
     /**
@@ -43,7 +43,7 @@
      * @param {object} validatedData Data that are used to update or create an object, has to be valid
      * @return {AngularJsonAPIModel} Created model
      */
-    function addOrUpdate(validatedData, synchronized, initialization) {
+    function addOrUpdate(validatedData, config) {
       var _this = this;
       var id = validatedData.id;
 
@@ -53,10 +53,10 @@
       }
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.factory.Model(validatedData, true, synchronized);
+        _this.data[id] = new _this.factory.Model(validatedData, config.saved, config.synchronized);
         _this.size += 1;
       } else {
-        _this.data[id].update(validatedData, true, initialization);
+        _this.data[id].update(validatedData, config.saved, config.initialization);
       }
 
       return _this.data[id];
@@ -72,6 +72,12 @@
       var _this = this;
       var collection = angular.fromJson(json);
 
+      var config = {
+        saved: true,
+        synchronized: false,
+        initialization: true
+      };
+
       if (angular.isObject(collection) && collection.data !== undefined) {
         _this.updatedAt = collection.updatedAt;
         _this.indexIds = collection.indexIds;
@@ -79,7 +85,7 @@
         angular.forEach(collection.data, function(objectData) {
           var data = objectData.data;
           console.log('fromJson', data.id);
-          _this.addOrUpdate(data, false, true);
+          _this.addOrUpdate(data, config);
         });
       }
     }
@@ -110,6 +116,7 @@
     function clear() {
       var _this = this;
 
+      _this.indexIds = undefined;
       _this.data = {};
       _this.removed = {};
     }
@@ -138,6 +145,10 @@
       var _this = this;
 
       $log.warn('Unused params', params);
+
+      if (_this.indexIds === undefined) {
+        return _this.indexIds;
+      }
 
       return _this.indexIds.map(_this.get.bind(_this));
     }
