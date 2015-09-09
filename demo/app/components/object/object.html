@@ -46,9 +46,18 @@
       >
         Remove
       </button>
-
-      <!-- <div class="ui basic mini right floated button" ng-class="{red: !object.saved, green: object.saved}">Saved</div> -->
-      <!-- <div class="ui basic mini right floated button" ng-class="{red: !object.stable, green: object.stable}">Stable</div> -->
+      <button promise-button
+        ng-class="{red: !object.stable, green: object.stable}"
+        class="ui mini basic button"
+      >
+        Stable
+      </button>
+      <button promise-button
+        ng-class="{red: !object.saved, green: object.saved}"
+        class="ui mini basic button"
+      >
+        Saved
+      </button>
 
       <div class="ui red basic mini right floated button" ng-hide="object.synchronized">Not synchronized</div>
       <div

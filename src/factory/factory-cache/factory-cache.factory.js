@@ -43,7 +43,7 @@
      * @param {object} validatedData Data that are used to update or create an object, has to be valid
      * @return {AngularJsonAPIModel} Created model
      */
-    function addOrUpdate(validatedData, stable) {
+    function addOrUpdate(validatedData, synchronized) {
       var _this = this;
       var id = validatedData.id;
 
@@ -53,7 +53,7 @@
       }
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.factory.Model(validatedData, true, stable);
+        _this.data[id] = new _this.factory.Model(validatedData, true, synchronized);
         _this.size += 1;
       } else {
         _this.data[id].update(validatedData);

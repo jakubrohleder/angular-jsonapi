@@ -11,6 +11,7 @@
     AngularJsonAPICollection,
     uuid4,
     $rootScope,
+    $log,
     $q
   ) {
     AngularJsonAPIFactory.prototype.get = get;
@@ -121,14 +122,27 @@
      * Initialize new AngularJsonAPIModel
      * @return {AngularJsonAPIModel} New model
      */
-    function initialize() {
+    function initialize(key, target) {
       var _this = this;
+      var relationships = {};
+
+      if (key !== undefined && target !== undefined) {
+        var schema = _this.schema[key];
+
+        if (schema.type === 'hasOne') {
+          relationships[key] = {
+            data: target.data.id
+          };
+        } else if (schema.type === 'hasMany') {
+          $log.warn('Initialize with relationship disallowed for hasMany relationships');
+        }
+      }
 
       var data = {
         type: _this.type,
         id: uuid4.generate(),
         attributes: {},
-        relationships: {}
+        relationships: relationships
       };
 
       var model = new _this.Model(data, false, false);

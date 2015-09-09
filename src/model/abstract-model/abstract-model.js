@@ -33,14 +33,28 @@
      * @param {json}  data      Validated data used to create an object
      * @param {Boolean} saved   Is object new (for form)
      */
-    function AngularJsonAPIAbstractModel(data, saved, stable) {
+    function AngularJsonAPIAbstractModel(data, saved, synchronized) {
       var _this = this;
 
       data.relationships = data.relationships || {};
 
-      _this.saved = saved || true;
-      _this.stable = stable || true;
-      _this.synchronized = false;
+      /**
+       * Is not a new record
+       * @type {Boolean}
+       */
+      _this.saved = saved === undefined ? true : saved;
+
+      /**
+       * Is present on the server
+       * @type {Boolean}
+       */
+      _this.stable = synchronized === undefined ? true : synchronized;
+
+      /**
+       * Has been synchronized with the server
+       * @type {Boolean}
+       */
+      _this.synchronized = synchronized === undefined ? true : synchronized;
 
       _this.removed = false;
       _this.loadingCount = 0;
@@ -75,13 +89,9 @@
       var deferred = $q.defer();
       var hasErrors = false;
       var config = {
-        action: 'update',
+        action: _this.saved === false ? 'add' : 'update',
         object: _this
       };
-
-      if (_this.saved === false) {
-        config.action = 'add';
-      }
 
       var errors = _this.form.validate();
 
@@ -102,6 +112,10 @@
       function resolve(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:save', 'resolved', _this, response);
         _this.update(_this.form.data);
+
+        _this.synchronized = true;
+        _this.saved = true;
+        _this.stable = true;
 
         response.finish();
 
@@ -147,11 +161,12 @@
       };
 
       if (_this.saved === false) {
-        $log.error('Can\'t refresh new object');
-        deferred.reject('Can\'t refresh new object');
+        deferred.reject({errors: [{status: 0, statusText: 'Can\'t refresh new object'}]});
       } else {
         _this.synchronize(config).then(resolve, reject, notify);
       }
+
+      return deferred.promise;
 
       function resolve(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:refresh', 'resolved', _this, response);
@@ -176,8 +191,6 @@
 
         deferred.notify(response);
       }
-
-      return deferred.promise;
     }
 
     /**
@@ -223,6 +236,8 @@
         _this.synchronize(config).then(resolve, reject, notify);
       }
 
+      return deferred.promise;
+
       function resolve(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:remove', 'resolved', _this, response);
         _this.removed = true;
@@ -246,8 +261,6 @@
 
         deferred.notify(response);
       }
-
-      return deferred.promise;
     }
 
     /**
@@ -328,25 +341,27 @@
       var _this = this;
       var schema = _this.schema.relationships[key];
       var reflectionKey = schema.reflection;
-
-      if (target === undefined) {
-        deferred.reject({errors: [{status: 0, statusText: 'Can\'t link undefined'}]});
-        return deferred.promise;
-      }
-
-      var reflectionSchema = target.schema.relationships[reflectionKey];
-
-      _this.synchronize({
+      var config = {
         action: 'link',
         object: _this,
         schema: schema,
         target: target,
         key: key
-      }).then(resolve, reject, notify);
+      };
+
+      if (target === undefined) {
+        deferred.reject({errors: [{status: 0, statusText: 'Can\'t link undefined'}]});
+      } else if (_this.saved === false) {
+        deferred.reject({errors: [{status: 0, statusText: 'Can\'t link new object'}]});
+      } else {
+        _this.synchronize(config).then(resolve, reject, notify);
+      }
 
       return deferred.promise;
 
       function resolve(response) {
+        var reflectionSchema = target.schema.relationships[reflectionKey];
+
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:link', 'resolved', _this, response);
 
         AngularJsonAPIModelLinkerService.link(_this, key, target, schema);
@@ -411,25 +426,26 @@
       var _this = this;
       var schema = _this.schema.relationships[key];
       var reflectionKey = schema.reflection;
-
-      if (target === undefined) {
-        deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink undefined'}]});
-        return deferred.promise;
-      }
-
-      var reflectionSchema = target.schema.relationships[reflectionKey];
-
-      _this.synchronize({
+      var config = {
         action: 'unlink',
         object: _this,
         target: target,
         schema: schema,
         key: key
-      }).then(resolve, reject, notify);
+      };
+
+      if (target === undefined) {
+        deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink undefined'}]});
+      } else if (_this.saved === false) {
+        deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink new object'}]});
+      } else {
+        _this.synchronize(config).then(resolve, reject, notify);
+      }
 
       return deferred.promise;
 
       function resolve(response) {
+        var reflectionSchema = target.schema.relationships[reflectionKey];
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlink', 'resolved', _this, response);
 
         AngularJsonAPIModelLinkerService.unlink(_this, key, target, schema);
@@ -494,6 +510,7 @@
       if (__setData(_this, validatedData) === true) {
         _this.reset();
         _this.synchronized = true;
+        _this.stable = true;
         _this.updatedAt = Date.now();
 
         return true;
