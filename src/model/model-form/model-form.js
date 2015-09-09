@@ -77,14 +77,6 @@
     function reset(auto) {
       var _this = this;
 
-      if (auto === true && _this.parent.synchronized === true) {
-        return;
-      }
-
-      angular.forEach(_this.schema.attributes, function(validator, key) {
-        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]) || '';
-      });
-
       angular.forEach(_this.schema.relationships, function(data, key) {
         _this.data.relationships[key] = angular.copy(_this.parent.data.relationships[key]) || {};
         if (angular.isArray(_this.relationships[key])) {
@@ -92,6 +84,14 @@
         } else {
           _this.relationships[key] = _this.parent.relationships[key];
         }
+      });
+
+      if (auto === true && _this.parent.synchronized === true) {
+        return;
+      }
+
+      angular.forEach(_this.schema.attributes, function(validator, key) {
+        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]) || '';
       });
 
       _this.errors = {

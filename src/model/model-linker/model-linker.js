@@ -37,6 +37,8 @@
     function link(object, key, target, oneWay) {
       var schema;
 
+      console.log(object, key, target, oneWay);
+
       if (object === undefined) {
         $log.error('Can\'t add link to non existing object', object, key, target);
         $log.error('Object:', object.data.type, object);
@@ -76,13 +78,13 @@
 
       if (schema.type === 'hasMany') {
         if (oneWay === true) {
-          return __addHasMany(object, key, target);
+          return __addHasMany(object, key, target, false);
         } else {
           return __processAddHasMany(object, key, target);
         }
       } else if (schema.type === 'hasOne') {
         if (oneWay === true) {
-          return __addHasOne(object, key, target);
+          return __addHasOne(object, key, target, false);
         } else {
           return __processAddHasOne(object, key, target);
         }
@@ -119,7 +121,7 @@
       }
 
       if (oneWay === true) {
-        return __removeHasMany(object, key, target);
+        return __removeHasMany(object, key, target, false);
       } else {
         return __processRemove(object, key, target);
       }
@@ -149,29 +151,30 @@
 
     function __processAddHasOne(object, key, target) {
       var reflectionKey = object.schema.relationships[key].reflection;
+      var oldReflection = object.relationships[key];
       var reflectionSchema;
-      var reflection = object.relationships[key];
+      var oldReflectionSchema;
 
       __addHasOne(object, key, target);
 
-      if (reflectionKey === false) {
-        return;
+      if (oldReflection !== undefined && oldReflection !== null) {
+        oldReflectionSchema = oldReflection.schema.relationships[reflectionKey];
+
+        if (oldReflectionSchema.type === 'hasOne') {
+          __removeHasOne(oldReflection, reflectionKey, object);
+        } else if (oldReflectionSchema.type === 'hasMany') {
+          __removeHasMany(oldReflection, reflectionKey, object);
+        }
       }
 
-      reflectionSchema = target.schema.relationships[reflectionKey];
+      if (target !== undefined && target !== null && reflectionKey !== false) {
+        reflectionSchema = target.schema.relationships[reflectionKey];
 
-      if (reflectionSchema.type === 'hasOne') {
-        if (reflection !== undefined && reflection !== null) {
-          __removeHasOne(reflection, reflectionKey, object);
+        if (reflectionSchema.type === 'hasOne') {
+          __addHasOne(target, reflectionKey, object);
+        } else if (reflectionSchema.type === 'hasMany') {
+          __addHasMany(target, reflectionKey, object);
         }
-
-        __addHasOne(target, reflectionKey, object);
-      } else if (reflectionSchema.type === 'hasMany') {
-        if (reflection !== undefined && reflection !== null) {
-          __removeHasMany(reflection, reflectionKey, object);
-        }
-
-        __addHasMany(target, reflectionKey, object);
       }
     }
 
@@ -199,16 +202,19 @@
       }
     }
 
-    function __addHasOne(object, key, target) {
+    function __addHasOne(object, key, target, reset) {
       $log.debug('addHasOne', object, key, target);
 
       object.relationships[key] = target;
       object.data.relationships[key].data = toLinkData(target);
+      if (reset !== false) {
+        object.reset(true);
+      }
 
       return true;
     }
 
-    function __addHasMany(object, key, target) {
+    function __addHasMany(object, key, target, reset) {
       var linkData = toLinkData(target);
       $log.debug('addHasMany', object, key, target);
 
@@ -221,11 +227,14 @@
 
       object.relationships[key].push(target);
       object.data.relationships[key].data.push(linkData);
+      if (reset !== false) {
+        object.reset(true);
+      }
 
       return true;
     }
 
-    function __removeHasOne(object, key, target) {
+    function __removeHasOne(object, key, target, reset) {
       $log.debug('removeHasOne', object, key, target);
 
       if (target !== undefined && object.relationships[key] !== target) {
@@ -234,11 +243,14 @@
 
       object.relationships[key] = null;
       object.data.relationships[key].data = undefined;
+      if (reset !== false) {
+        object.reset(true);
+      }
 
       return true;
     }
 
-    function __removeHasMany(object, key, target) {
+    function __removeHasMany(object, key, target, reset) {
       $log.debug('removeHasMany', object, key, target);
 
       if (object.relationships[key] === undefined) {
@@ -248,6 +260,10 @@
       if (target === undefined) {
         object.relationships[key] = [];
         object.data.relationships[key].data = [];
+        if (reset !== false) {
+          object.reset(true);
+        }
+
         return true;
       }
 
@@ -259,6 +275,9 @@
 
       object.relationships[key].splice(index, 1);
       object.data.relationships[key].data.splice(index, 1);
+      if (reset !== false) {
+        object.reset(true);
+      }
 
       return true;
     }

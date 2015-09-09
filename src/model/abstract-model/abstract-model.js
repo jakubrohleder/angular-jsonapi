@@ -134,7 +134,9 @@
     function reset() {
       var _this = this;
 
-      return _this.form.reset();
+      if (_this.form !== undefined) {
+        _this.form.reset();
+      }
     }
 
     /**
@@ -562,19 +564,27 @@
         if (schema.type === 'hasOne') {
           linkOne(object, key, relationshipData.data);
         } else if (schema.type === 'hasMany') {
-          if (angular.isArray(relationshipData.data) && relationshipData.data.length === 0) {
-            object.data.relationships[key].data = [];
-            object.unlinkAll(key);
-          } else {
-            angular.forEach(
-              relationshipData.data,
-              linkOne.bind(undefined, object, key)
-            );
+          if (angular.isArray(relationshipData.data)) {
+            if (relationshipData.data.length === 0) {
+              object.data.relationships[key].data = [];
+              object.unlinkAll(key);
+            } else {
+              angular.forEach(
+                object.relationships[key],
+                unlinkOne.bind(undefined, object, key, relationshipData.data)
+              );
+              angular.forEach(
+                relationshipData.data,
+                linkOne.bind(undefined, object, key)
+              );
+            }
           }
         }
       }
 
       function linkOne(object, key, data) {
+        var factory;
+
         if (data === null) {
           AngularJsonAPIModelLinkerService.link(object, key, null);
           return;
@@ -584,7 +594,7 @@
           return;
         }
 
-        var factory = $jsonapi.getFactory(data.type);
+        factory = $jsonapi.getFactory(data.type);
 
         if (factory === undefined) {
           $log.error('Factory not found', data.type, data);
@@ -596,20 +606,13 @@
         AngularJsonAPIModelLinkerService.link(object, key, target);
       }
 
-      // function unlinkOne(object, key) {
-      //   var target = object.relationships[key];
-      //   var reflectionKey;
-      //   var reflectionSchema;
+      function unlinkOne(object, key, relationshipData, target) {
+        if (relationshipData.indexOf(target.data.id) > -1) {
+          return;
+        }
 
-      //   if (target === undefined) {
-      //     return;
-      //   }
-
-      //   reflectionKey = schema.reflection;
-      //   reflectionSchema = target.schema.relationships[reflectionKey];
-
-      //   AngularJsonAPIModelLinkerService.unlink(object, key, target, schema);
-      // }
+        AngularJsonAPIModelLinkerService.unlink(object, key, target);
+      }
     }
   }
 })();

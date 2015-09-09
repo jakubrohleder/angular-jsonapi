@@ -141,6 +141,14 @@
             >
               Save
             </button>
+
+            <button promise-button
+              ng-class="{disabled: object.removed}"
+              class="ui red mini button"
+              ng-click="object.reset()"
+            >
+              Reset
+            </button>
           </form>
         </div>
       </div>
