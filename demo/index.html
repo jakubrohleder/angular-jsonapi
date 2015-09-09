@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>angularJsonapi</title>
     <meta name="description" content="">
-    <meta name="viewport" content="width=device-width">
+    <meta name="viewport" content="initial-scale=1">
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
     <!-- build:css({.tmp/serve,src}) styles/vendor.css -->
@@ -20,14 +20,14 @@
     <!-- endinject -->
     <!-- endbuild -->
   </head>
-  <body>
+  <body class="pushable">
     <!--[if lt IE 10]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
     <!-- <div class="btn btn-danger ng-scope" style="position:fixed; top:80px;left:20px;z-index:100;" ng-class="{'active': stats}" ng-click="stats=!stats">Stats</div>
     <div class="btn btn-primary ng-scope" style="position:fixed; top:120px;left:20px;z-index:100;" ng-click="clear()">Clear</div> -->
-
-    <ui-view></ui-view>
+    <sidebar></sidebar>
+    <ui-view class="pusher site"></ui-view>
     <!-- <div ng-class="{'show-stats': stats}">
       <div class="site">
         <div class="ui container" ui-view='site'></div>

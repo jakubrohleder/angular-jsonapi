@@ -11,12 +11,44 @@
   text-overflow: ellipsis;
 }
 
+.site {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
 .ui.list .list > .item .description, .ui.list > .item .description {
   @include word-wrap();
 }
 .ui.grid {
   margin-left: 0;
   margin-right: 0;
+}
+
+.ui.container {
+  position: relative;
+}
+
+.ui.sidebar.menu {
+  z-index: 20000;
+}
+
+.pushable > .pusher.dimmed .ui.loading.segment:before {
+  z-index: 1;
+}
+
+.pushable > .pusher {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.ui.left.sidebar {
+  transform: translate3d(-260px, 0, 0);
 }
 
 .ui.left.floated {
@@ -133,3 +165,8 @@ a[ui-sref] {
   }
 }
 
+@media only screen and (min-width: 1201px){
+  .secondary.pointing.menu .toc.item {
+    display: none;
+  }
+}

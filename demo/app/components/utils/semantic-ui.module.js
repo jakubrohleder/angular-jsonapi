@@ -2,18 +2,11 @@
   'use strict';
   /* global $:false */
 
-  var app = angular
-      .module('correctme.semantic-ui', ['correctme.constants']);
+  var app = angular.module('angularJsonapiExample');
 
   $.each($.site.settings.modules, function(index, module) {
     var fn = $.fn[module];
-    var name;
-
-    if (module === 'form' || module === 'api' || module === 'state' || module === 'visibility') {
-      name = 'se' + module.charAt(0).toUpperCase() + module.substring(1);
-    }else {
-      name = module;
-    }
+    var name = 'ui' + module.charAt(0).toUpperCase() + module.substring(1);
 
     /** @ngInject */
     app.directive(name, ['$timeout', '_', '$rootScope', function($timeout, _, $rootScope) {
