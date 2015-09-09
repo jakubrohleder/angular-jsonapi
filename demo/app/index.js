@@ -1,7 +1,7 @@
 (function() {
-'use strict';
+  'use strict';
 
-angular.module('angularJsonapiExample', [
+  angular.module('angularJsonapiExample', [
     'ui.router',
     'angular-jsonapi',
     'angular-jsonapi-local',

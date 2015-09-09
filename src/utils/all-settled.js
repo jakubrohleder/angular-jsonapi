@@ -21,7 +21,7 @@
         return $q.all(wrapped);
 
         function wrap(promise) {
-          return $q.when(promise)
+          return $q.resolve(promise)
             .then(function(value) {
               if (angular.isFunction(resolvedCallback)) {
                 resolvedCallback(value);

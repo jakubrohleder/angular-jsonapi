@@ -53,7 +53,7 @@
 
       function init() {
         var type = _this.synchronizer.factory.schema.type;
-        return $q.when($window.localStorage.getItem(prefix + '.' + type));
+        return $q.resolve($window.localStorage.getItem(prefix + '.' + type));
       }
 
       function clear() {

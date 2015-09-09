@@ -36,8 +36,8 @@
     });
 
     function logOnEvent(eventName, factory) {
-      $rootScope.$on('angularJsonAPI:' + factory + ':' + eventName, function(event, status, results) {
-        console.info(factory, eventName, status, results);
+      $rootScope.$on('angularJsonAPI:' + factory + ':' + eventName, function(event, status, object, response) {
+        console.info(factory, eventName, status, object, response);
       });
     }
   }

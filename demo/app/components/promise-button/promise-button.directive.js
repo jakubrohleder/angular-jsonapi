@@ -29,7 +29,7 @@
             element.addClass(loadingClass);
             element.removeClass(errorClass);
             element.removeClass(successClass);
-            $q.when(fn(scope, {$event:event})).then(resolve, reject);
+            $q.resolve(fn(scope, {$event:event})).then(resolve, reject);
           };
 
           function resolve(response) {
