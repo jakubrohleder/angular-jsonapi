@@ -26,6 +26,7 @@
 
     function controller($scope, $jsonapi) {
       $scope.schema = $scope.object.schema.relationships[$scope.key];
+      $scope.disabled = $scope.object.relationships[$scope.key] === undefined;
       if ($scope.schema.polymorphic) {
         $scope.collections = {};
         angular.forEach($jsonapi.allFactories(), function(factory, factoryName) {
@@ -48,7 +49,6 @@
       }
 
       function addLink(target) {
-        console.log(target);
         $scope.loading = true;
         $scope.object.link($scope.key, target).then(resolve, reject);
         $scope.show = false;

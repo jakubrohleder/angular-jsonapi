@@ -89,6 +89,15 @@
     <div class="ui stackable grid">
       <div class="eight wide column">
         <div class="ui segment">
+          <h4>Data</h4>
+          <div
+            class="ui basic mini button"
+            style="position: absolute; top: 10px; right: 10px;"
+            ng-class="{purple: !showFormRelationships}"
+            ng-click="showFormRelationships = !showFormRelationships"
+          >
+            Show relationships
+          </div>
           <div class="ui list">
             <div class="item" ng-repeat="(attributeName, attributeValue) in object.data.attributes">
               <div class="content">
@@ -109,11 +118,20 @@
         </div>
       </div>
       <div class="eight wide column">
-        <div class="ui segment">
+        <div class="ui segment" ng-class="{loading: !object.synchronized}">
+          <h4>Form</h4>
+          <div
+            class="ui basic mini button"
+            style="position: absolute; top: 10px; right: 10px;"
+            ng-class="{purple: showFormRelationships}"
+            ng-click="showFormRelationships = !showFormRelationships"
+          >
+            Show relationships
+          </div>
           <form class="ui small form">
             <div class="field" ng-repeat="(attributeName, attributeValue) in object.form.data.attributes">
               <label>{{attributeName | toTitleCase}}</label>
-              <input type="text" name="{{attributeName}}" ng-model="attributeValue">
+              <input type="text" name="{{attributeName}}" ng-model="object.form.data.attributes[attributeName]">
             </div>
 
             <button promise-button
@@ -130,62 +148,8 @@
 
     <div class="ui divider hidden"></div>
 
-    <div class="ui padded segment" ng-repeat="(relationshipName, relationshipCollection) in object.relationships">
-      <div class="ui stackable grid">
-        <div class="four wide column" style="padding-left:0">
-          <h4 style="margin-bottom: 0;" clip-copy="object.data.id">{{object.schema.relationships[relationshipName].model}}</h4>
-          <small ng-show="object.schema.relationships[relationshipName].polymorphic">polymorphic</small>
-        </div>
-        <div class="twelve wide column">
-          <angular-jsonapi-search
-            object="object"
-            key="relationshipName"
-            class="ui left floated"
-          ></angular-jsonapi-search>
-
-          <button
-            class="ui mini primary right floated button"
-            ui-sref="frame.request.all({type: object.schema.relationships[relationshipName].model})"
-          >
-            Go to {{object.schema.relationships[relationshipName].model}}
-          </button>
-        </div>
-      </div>
-
-      <div ng-hide="emptyRelationship(relationshipCollection)" class="ui divider hidden"></div>
-
-      <div ng-show="relationshipCollection === undefined">
-        <strong>Relationship data undefined</strong>
-        <div>The relationship data hasn't been fetched yet, refresh the model to fetch it.</div>
-      </div>
-
-      <div ng-show="relationshipCollection === null">
-        <strong>Has one relationship null</strong>
-        <div>Set something as relationship object.</div>
-      </div>
-
-      <div ng-show="isArray(relationshipCollection) && relationshipCollection.length === 0">
-        <strong>Has many relationship empty</strong>
-        <div>Add something to the relationship array.</div>
-      </div>
-
-      <angular-jsonapi-object
-        data="relationshipObject"
-        nested="true"
-        unlink="object.unlink(relationshipName, relationshipObject)"
-        ng-if="relationshipCollection !== undefined && isArray(relationshipCollection)"
-        ng-repeat="relationshipObject in relationshipCollection"
-      ></angular-jsonapi-object>
-
-      <angular-jsonapi-object
-        data="relationshipCollection"
-        nested="true"
-        unlink="object.unlink(relationshipName, relationshipCollection)"
-        ng-if="relationshipCollection !== undefined && !isArray(relationshipCollection) && relationshipCollection !== null"
-      ></angular-jsonapi-object>
-
-      </conditional-compiler>
-    </div>
+    <angular-jsonapi-object-relationships ng-hide="showFormRelationships" data="object"></angular-jsonapi-object-relationships>
+    <angular-jsonapi-object-relationships ng-show="showFormRelationships" data="object.form"></angular-jsonapi-object-relationships>
 
   </div>
 </div>

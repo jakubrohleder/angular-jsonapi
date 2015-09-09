@@ -31,14 +31,6 @@
       });
 
       $scope.equals = angular.equals;
-      $scope.emptyRelationship = emptyRelationship;
-
-      function emptyRelationship(relationship) {
-        return relationship === undefined ||
-          relationship === null ||
-          angular.isArray(relationship) &&
-          relationship.length === 0;
-      }
 
       function toggleTimmer(value) {
         if (value === true) {
