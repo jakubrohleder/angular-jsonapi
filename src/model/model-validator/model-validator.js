@@ -4,7 +4,9 @@
   angular.module('angular-jsonapi')
   .service('AngularJsonAPIModelValidatorService', AngularJsonAPIModelValidatorService);
 
-  function AngularJsonAPIModelValidatorService() {
+  function AngularJsonAPIModelValidatorService(
+    $q
+  ) {
     var _this = this;
     _this.validateForm = validateForm;
     _this.validateField = validateField;
@@ -19,7 +21,7 @@
     function validateForm(schema, data) {
       var _this = this;
 
-      return {};
+      return $q.resolve({});
     }
 
     /**
@@ -30,7 +32,7 @@
     function validateField(schema, key) {
       var _this = this;
 
-      return [];
+      return $q.resolve([]);
     }
 
     // function __validate(validator, attributeValue, attributeName) {

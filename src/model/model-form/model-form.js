@@ -6,7 +6,8 @@
 
   function AngularJsonAPIModelFormWrapper(
     AngularJsonAPIModelValidatorService,
-    AngularJsonAPIModelLinkerService
+    AngularJsonAPIModelLinkerService,
+    $q
   ) {
 
     AngularJsonAPIModelForm.prototype.save = save;
@@ -73,16 +74,24 @@
      * Resets form to state of a parent
      * @return {undefined}
      */
-    function reset() {
+    function reset(auto) {
       var _this = this;
 
+      if (auto === true && _this.parent.synchronized === true) {
+        return;
+      }
+
       angular.forEach(_this.schema.attributes, function(validator, key) {
-        _this.data.attributes[key] = _this.parent.data.attributes[key] || '';
+        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]) || '';
       });
 
       angular.forEach(_this.schema.relationships, function(data, key) {
-        _this.data.relationships[key] = _this.parent.data.relationships[key] || {};
-        _this.relationships[key] = _this.parent.relationships[key];
+        _this.data.relationships[key] = angular.copy(_this.parent.data.relationships[key]) || {};
+        if (angular.isArray(_this.relationships[key])) {
+          _this.relationships[key] = _this.parent.relationships[key].slice();
+        } else {
+          _this.relationships[key] = _this.parent.relationships[key];
+        }
       });
 
       _this.errors = {
@@ -92,35 +101,41 @@
 
     /**
      * Validates form
-     * @return {objec} Errors object indexed by keys
+     * @return {promise} Promise rejected to errors object indexed by keys
      */
     function validate() {
       var _this = this;
-      var errors;
+      var deferred = $q.defer();
 
-      errors = AngularJsonAPIModelValidatorService.validateForm(_this.data);
+      AngularJsonAPIModelValidatorService.validateForm(_this.data).then(deferred.resolve, reject);
 
-      _this.errors.validation = errors;
+      function reject(erorrs) {
+        _this.errors.validation = erorrs;
 
-      return errors;
+        deferred.reject(erorrs);
+      }
+
+      return deferred.promise;
     }
 
     /**
      * Validates single field
      * @param  {string} key Field key
-     * @return {array}     Errors array
+     * @return {promise} Promise rejected to errors array
      */
     function validateField(key) {
       var _this = this;
-      var errors;
-      errors = AngularJsonAPIModelValidatorService.validateField(
-        _this.data[key],
-        key
-      );
+      var deferred = $q.defer();
 
-      _this.errors.validation[key] = errors;
+      AngularJsonAPIModelValidatorService.validateForm(_this.data[key], key).then(deferred.resolve, reject);
 
-      return errors;
+      function reject(erorrs) {
+        _this.errors.validation[key] = erorrs;
+
+        deferred.reject(erorrs);
+      }
+
+      return deferred.promise;
     }
 
     /**
@@ -131,9 +146,8 @@
      */
     function link(key, target) {
       var _this = this;
-      var schema = _this.schema.relationships[key];
 
-      return AngularJsonAPIModelLinkerService.link(_this, key, target, schema);
+      return $q.resolve(AngularJsonAPIModelLinkerService.link(_this, key, target, true));
     }
 
     /**
@@ -144,9 +158,8 @@
      */
     function unlink(key, target) {
       var _this = this;
-      var schema = _this.schema.relationships[key];
 
-      return AngularJsonAPIModelLinkerService.unlink(_this, key, target, schema);
+      return $q.resolve(AngularJsonAPIModelLinkerService.unlink(_this, key, target, true));
     }
   }
 })();
