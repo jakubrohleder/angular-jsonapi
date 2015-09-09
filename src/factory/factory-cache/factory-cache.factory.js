@@ -43,7 +43,7 @@
      * @param {object} validatedData Data that are used to update or create an object, has to be valid
      * @return {AngularJsonAPIModel} Created model
      */
-    function addOrUpdate(validatedData, synchronized) {
+    function addOrUpdate(validatedData, synchronized, initialization) {
       var _this = this;
       var id = validatedData.id;
 
@@ -56,7 +56,7 @@
         _this.data[id] = new _this.factory.Model(validatedData, true, synchronized);
         _this.size += 1;
       } else {
-        _this.data[id].update(validatedData);
+        _this.data[id].update(validatedData, true, initialization);
       }
 
       return _this.data[id];
@@ -78,7 +78,8 @@
 
         angular.forEach(collection.data, function(objectData) {
           var data = objectData.data;
-          _this.addOrUpdate(data, false);
+          console.log('fromJson', data.id);
+          _this.addOrUpdate(data, false, true);
         });
       }
     }
@@ -135,6 +136,8 @@
      */
     function index(params) {
       var _this = this;
+
+      $log.warn('Unused params', params);
 
       return _this.indexIds.map(_this.get.bind(_this));
     }

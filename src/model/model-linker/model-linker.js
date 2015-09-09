@@ -34,19 +34,21 @@
      * @param {AngularJsonAPIModel} target     Object to be linked
      * @param {AngularJsonAPISchema} schema     Relationship schema
      */
-    function link(object, key, target, schema) {
+    function link(object, key, target, oneWay) {
+      var schema;
 
-      if (target === undefined) {
-        $log.error('Can\'t link non existing object', object, key, target, schema);
+      if (object === undefined) {
+        $log.error('Can\'t add link to non existing object', object, key, target);
         $log.error('Object:', object.data.type, object);
         $log.error('Target:', target.data.type, target);
         $log.error('Key:', key);
-        $log.error('Schema:', schema);
         return false;
       }
 
-      if (object === undefined) {
-        $log.error('Can\'t add link to non existing object', object, key, target, schema);
+      schema = object.schema.relationships[key];
+
+      if (target === undefined) {
+        $log.error('Can\'t link non existing object', object, key, target, schema);
         $log.error('Object:', object.data.type, object);
         $log.error('Target:', target.data.type, target);
         $log.error('Key:', key);
@@ -73,9 +75,17 @@
       }
 
       if (schema.type === 'hasMany') {
-        return __addHasMany(object, key, target, schema);
+        if (oneWay === true) {
+          return __addHasMany(object, key, target);
+        } else {
+          return __processAddHasMany(object, key, target);
+        }
       } else if (schema.type === 'hasOne') {
-        return __addHasOne(object, key, target, schema);
+        if (oneWay === true) {
+          return __addHasOne(object, key, target);
+        } else {
+          return __processAddHasOne(object, key, target);
+        }
       }
     }
 
@@ -86,16 +96,32 @@
      * @param {AngularJsonAPIModel} target     Object to be unlinked
      * @param {AngularJsonAPISchema} schema     Relationship schema
      */
-    function unlink(object, key, target, schema) {
-      if (schema === undefined) {
-        $log.error('Can\'t remove link not present in schema: ' + key);
-        return;
+    function unlink(object, key, target, oneWay) {
+      var schema;
+
+      if (object === undefined) {
+        $log.error('Can\'t remove link from non existing object', object, key, target);
+        $log.error('Object:', object.data.type, object);
+        $log.error('Target:', target.data.type, target);
+        $log.error('Key:', key);
+        return false;
       }
 
-      if (schema.type === 'hasMany') {
-        return __removeHasMany(object, key, target, schema);
-      } else if (schema.type === 'hasOne') {
-        return __removeHasOne(object, key, target, schema);
+      schema = object.schema.relationships[key];
+
+      if (schema === undefined) {
+        $log.error('Can\'t remove link not present in schema:', object, key, target, schema);
+        $log.error('Object:', object.data.type, object);
+        $log.error('Target:', target.data.type, target);
+        $log.error('Key:', key);
+        $log.error('Schema:', schema);
+        return false;
+      }
+
+      if (oneWay === true) {
+        return __removeHasMany(object, key, target);
+      } else {
+        return __processRemove(object, key, target);
       }
     }
 
@@ -103,74 +129,138 @@
     // Private //
     /////////////
 
-    function __addHasOne(object, key, target, schema) {
-      $log.debug('addHasOne', object, key, target, schema);
+    function __processAddHasMany(object, key, target) {
+      var reflectionKey = object.schema.relationships[key].reflection;
+      var reflectionSchema;
 
-      if (target !== null && object.relationships[key] === target) {
-        // $log.warn(target.data.type + ':' + target.data.id, 'is already linked to', object.data.type + ':' + object.data.id, 'as', key);
-        return false;
-      } else {
-        object.relationships[key] = target;
-        object.data.relationships[key].data = toLinkData(target);
+      if (reflectionKey === false) {
+        return __addHasMany(object, key, target);
       }
+
+      reflectionSchema = target.schema.relationships[reflectionKey];
+
+      if (reflectionSchema.type === 'hasOne') {
+        __processAddHasOne(target, reflectionKey, object);
+      } else if (reflectionSchema.type === 'hasMany') {
+        __addHasMany(object, key, target);
+        __addHasMany(target, reflectionKey, object);
+      }
+    }
+
+    function __processAddHasOne(object, key, target) {
+      var reflectionKey = object.schema.relationships[key].reflection;
+      var reflectionSchema;
+      var reflection = object.relationships[key];
+
+      __addHasOne(object, key, target);
+
+      if (reflectionKey === false) {
+        return;
+      }
+
+      reflectionSchema = target.schema.relationships[reflectionKey];
+
+      if (reflectionSchema.type === 'hasOne') {
+        if (reflection !== undefined && reflection !== null) {
+          __removeHasOne(reflection, reflectionKey, object);
+        }
+
+        __addHasOne(target, reflectionKey, object);
+      } else if (reflectionSchema.type === 'hasMany') {
+        if (reflection !== undefined && reflection !== null) {
+          __removeHasMany(reflection, reflectionKey, object);
+        }
+
+        __addHasMany(target, reflectionKey, object);
+      }
+    }
+
+    function __processRemove(object, key, target) {
+      var schema = object.schema.relationships[key];
+      var reflectionKey = schema.reflection;
+      var reflectionSchema;
+
+      if (schema.type === 'hasMany') {
+        __removeHasMany(object, key, target);
+      } else if (schema.type === 'hasOne') {
+        __removeHasOne(object, key, target);
+      }
+
+      if (reflectionKey === false) {
+        return;
+      }
+
+      reflectionSchema = target.schema.relationships[reflectionKey];
+
+      if (reflectionSchema.type === 'hasOne') {
+        __removeHasOne(target, reflectionKey, object);
+      } else if (reflectionSchema.type === 'hasMany') {
+        __removeHasMany(target, reflectionKey, object);
+      }
+    }
+
+    function __addHasOne(object, key, target) {
+      $log.debug('addHasOne', object, key, target);
+
+      object.relationships[key] = target;
+      object.data.relationships[key].data = toLinkData(target);
 
       return true;
     }
 
-    function __addHasMany(object, key, target, schema) {
+    function __addHasMany(object, key, target) {
       var linkData = toLinkData(target);
-      $log.debug('addHasMany', object, key, target, schema);
+      $log.debug('addHasMany', object, key, target);
 
       if (angular.isArray(object.relationships[key]) && object.relationships[key].indexOf(target) > -1) {
-        // $log.warn(target.data.type + ':' + target.data.id, 'is already linked to', object.data.type + ':' + object.data.id, 'as', key);
         return false;
-      } else {
-        object.relationships[key] = object.relationships[key] || [];
-        object.relationships[key].push(target);
-        object.data.relationships[key].data = object.data.relationships[key].data || [];
-        object.data.relationships[key].data.push(linkData);
       }
+
+      object.relationships[key] = object.relationships[key] || [];
+      object.data.relationships[key].data = object.data.relationships[key].data || [];
+
+      object.relationships[key].push(target);
+      object.data.relationships[key].data.push(linkData);
 
       return true;
     }
 
-    function __removeHasOne(object, key, target, schema) {
-      $log.debug('removeHasOne', object, key, target, schema);
+    function __removeHasOne(object, key, target) {
+      $log.debug('removeHasOne', object, key, target);
 
       if (target !== undefined && object.relationships[key] !== target) {
-        // $log.warn(target.data.type + ':' + target.data.id, 'is not linked to', object.data.type + ':' + object.data.id, 'as', key);
         return false;
-      } else {
-        object.relationships[key] = null;
-        object.data.relationships[key].data = undefined;
       }
+
+      object.relationships[key] = null;
+      object.data.relationships[key].data = undefined;
 
       return true;
     }
 
-    function __removeHasMany(object, key, target, schema) {
-      $log.debug('removeHasMany', object, key, target, schema);
+    function __removeHasMany(object, key, target) {
+      $log.debug('removeHasMany', object, key, target);
+
+      if (object.relationships[key] === undefined) {
+        return;
+      }
 
       if (target === undefined) {
         object.relationships[key] = [];
         object.data.relationships[key].data = [];
-      } else if (object.relationships[key] === undefined) {
-        // $log.warn(target.data.type + ':' + target.data.id, 'is links with key', key, 'are undefined');
-        return;
-      } else {
-        var index = object.relationships[key].indexOf(target);
-
-        if (index === -1) {
-          // $log.warn(target.data.type + ':' + target.data.id, 'is not linked to', object.data.type + ':' + object.data.id, 'as', key);
-          return false;
-        } else {
-          object.relationships[key].splice(index, 1);
-          object.data.relationships[key].data.splice(index, 1);
-        }
+        return true;
       }
+
+      var index = object.relationships[key].indexOf(target);
+
+      if (index === -1) {
+        return false;
+      }
+
+      object.relationships[key].splice(index, 1);
+      object.data.relationships[key].data.splice(index, 1);
 
       return true;
     }
-
   }
 })();

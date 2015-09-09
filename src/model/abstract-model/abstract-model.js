@@ -58,6 +58,7 @@
 
       _this.removed = false;
       _this.loadingCount = 0;
+      _this.updatedAt = Date.now();
 
       _this.data = {
         relationships: {},
@@ -87,25 +88,15 @@
     function save() {
       var _this = this;
       var deferred = $q.defer();
-      var hasErrors = false;
       var config = {
         action: _this.saved === false ? 'add' : 'update',
         object: _this
       };
 
-      var errors = _this.form.validate();
-
-      for (var error in errors) {
-        if (errors.hasOwnProperty(error)) {
-          hasErrors = true;
-        }
-      }
-
-      if (hasErrors === true) {
-        deferred.reject(errors);
-      } else {
-        _this.synchronize(config).then(resolve, reject, notify);
-      }
+      _this.form.validate().then(
+        _this.synchronize(config).then(resolve, reject, notify),
+        deferred.reject
+      );
 
       return deferred.promise;
 
@@ -364,8 +355,7 @@
 
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:link', 'resolved', _this, response);
 
-        AngularJsonAPIModelLinkerService.link(_this, key, target, schema);
-        AngularJsonAPIModelLinkerService.link(target, reflectionKey, _this, reflectionSchema);
+        AngularJsonAPIModelLinkerService.link(_this, key, target);
 
         _this.stable = true;
         response.finish();
@@ -449,7 +439,6 @@
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlink', 'resolved', _this, response);
 
         AngularJsonAPIModelLinkerService.unlink(_this, key, target, schema);
-        AngularJsonAPIModelLinkerService.unlink(target, reflectionKey, _this, reflectionSchema);
 
         _this.stable = true;
         response.finish();
@@ -504,13 +493,13 @@
      * @param  {object} validatedData JsonAPI object with data
      * @return {bool}               Result
      */
-    function update(validatedData) {
+    function update(validatedData, auto, initialization) {
       var _this = this;
 
       if (__setData(_this, validatedData) === true) {
-        _this.reset();
-        _this.synchronized = true;
-        _this.stable = true;
+        _this.reset(auto);
+        _this.synchronized = initialization === true ? false : true;
+        _this.stable = initialization === true ? false : true;
         _this.updatedAt = Date.now();
 
         return true;
@@ -571,7 +560,7 @@
         object.data.relationships[key].links = relationshipData.links;
 
         if (schema.type === 'hasOne') {
-          linkOne(object, key, schema, relationshipData.data);
+          linkOne(object, key, relationshipData.data);
         } else if (schema.type === 'hasMany') {
           if (angular.isArray(relationshipData.data) && relationshipData.data.length === 0) {
             object.data.relationships[key].data = [];
@@ -579,15 +568,15 @@
           } else {
             angular.forEach(
               relationshipData.data,
-              linkOne.bind(undefined, object, key, schema)
+              linkOne.bind(undefined, object, key)
             );
           }
         }
       }
 
-      function linkOne(object, key, schema, data) {
+      function linkOne(object, key, data) {
         if (data === null) {
-          AngularJsonAPIModelLinkerService.link(object, key, null, schema);
+          AngularJsonAPIModelLinkerService.link(object, key, null);
           return;
         }
 
@@ -603,15 +592,24 @@
         }
 
         var target = factory.cache.get(data.id);
-        var reflectionKey = schema.reflection;
-        var reflectionSchema = target.schema.relationships[reflectionKey];
 
-        AngularJsonAPIModelLinkerService.link(object, key, target, schema);
-
-        if (reflectionKey !== false) {
-          AngularJsonAPIModelLinkerService.link(target, reflectionKey, object, reflectionSchema);
-        }
+        AngularJsonAPIModelLinkerService.link(object, key, target);
       }
+
+      // function unlinkOne(object, key) {
+      //   var target = object.relationships[key];
+      //   var reflectionKey;
+      //   var reflectionSchema;
+
+      //   if (target === undefined) {
+      //     return;
+      //   }
+
+      //   reflectionKey = schema.reflection;
+      //   reflectionSchema = target.schema.relationships[reflectionKey];
+
+      //   AngularJsonAPIModelLinkerService.unlink(object, key, target, schema);
+      // }
     }
   }
 })();
