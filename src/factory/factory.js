@@ -164,6 +164,8 @@
       var config = {
         saved: false,
         synchronized: false,
+        stable: false,
+        pristine: false,
         initialization: false
       };
 

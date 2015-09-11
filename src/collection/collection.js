@@ -36,10 +36,13 @@
         }
       };
 
-      _this.error = false;
-
       _this.data = _this.factory.cache.index(_this.params);
+
+      _this.error = false;
+      _this.loading = false;
+      _this.loadingCount = 0;
       _this.synchronized = false;
+      _this.pristine = _this.data === undefined;
 
       $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
       $rootScope.$on('angularJsonAPI:' + _this.type + ':factory:clearCache', clear);
@@ -48,8 +51,7 @@
       function remove(event, status, object) {
         var index;
 
-        if (status === 'resolved') {
-
+        if (status === 'resolved' && _this.data !== undefined) {
           index = _this.data.indexOf(object);
           if (index > -1) {
             _this.data.splice(index, 1);
@@ -60,10 +62,12 @@
 
       function clear() {
         _this.data = undefined;
+        _this.pristine = true;
       }
 
       function add(event, status, object, response, addToIndex) {
         if (addToIndex === true && status === 'resolved') {
+          _this.data = _this.data || [];
           _this.data.push(object);
         }
       }
@@ -93,7 +97,13 @@
         params: _this.params
       };
 
-      _this.factory.synchronizer.synchronize(config).then(resolve, reject, notify);
+      __incrementLoadingCounter(this);
+
+      angular.forEach(_this.data, __incrementLoadingCounter);
+
+      _this.factory.synchronizer.synchronize(config)
+        .then(resolve, reject, notify)
+        .finally(__decrementLoadingCounter.bind(_this));
 
       return deferred.promise;
 
@@ -101,6 +111,8 @@
         var results = $jsonapi.proccesResults(response.data);
         $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'resolved', _this, response);
         $q.allSettled(results.included.map(synchronizeIncluded)).then(resolveIncluded, deferred.reject);
+
+        angular.forEach(_this.data, __decrementLoadingCounter);
 
         _this.data = results.data;
         _this.errors.synchronization.errors = [];
@@ -113,16 +125,19 @@
         response.finish();
 
         function synchronizeIncluded(object) {
+          __incrementLoadingCounter.bind(object);
+
           return object.synchronize({
             action: 'include',
             object: object
-          });
+          }).finally(__decrementLoadingCounter.bind(object));
         }
 
         function resolveIncluded(includedResponse) {
           angular.forEach(includedResponse, function(operation, key) {
             if (operation.success === true) {
               $rootScope.$emit('angularJsonAPI:' + results.included[key].data.type + ':object:include', 'resolved', results.included[key], operation);
+
               operation.value.finish();
             }
           });
@@ -136,6 +151,7 @@
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'rejected', _this, response);
 
+        angular.forEach(_this.data, __decrementLoadingCounter);
         _this.errors.synchronization.errors = response.errors;
         _this.error = true;
 
@@ -150,5 +166,17 @@
         deferred.notify(response);
       }
     }
+  }
+
+  function __incrementLoadingCounter(object) {
+    object = object === undefined ? this : object;
+    object.loadingCount += 1;
+    object.loading = true;
+  }
+
+  function __decrementLoadingCounter(object) {
+    object = object === undefined ? this : object;
+    object.loadingCount -= 1;
+    object.loading = object.loadingCount === 0;
   }
 })();

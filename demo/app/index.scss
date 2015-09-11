@@ -139,6 +139,7 @@ main {
   position: fixed;
   bottom: 1em;
   right: 1em;
+  z-index: 200;
 }
 
 a[ui-sref] {

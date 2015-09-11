@@ -31,9 +31,9 @@
     /**
      * Constructor
      * @param {json}  data      Validated data used to create an object
-     * @param {Boolean} saved   Is object new (for form)
+     * @param {object} config   Is object new (for form)
      */
-    function AngularJsonAPIAbstractModel(data, saved, synchronized) {
+    function AngularJsonAPIAbstractModel(data, config, updatedAt) {
       var _this = this;
 
       data.relationships = data.relationships || {};
@@ -42,23 +42,34 @@
        * Is not a new record
        * @type {Boolean}
        */
-      _this.saved = saved === undefined ? true : saved;
+      _this.saved = config.saved === undefined ? true : config.saved;
 
       /**
        * Is present on the server
        * @type {Boolean}
        */
-      _this.stable = synchronized === undefined ? true : synchronized;
+      _this.stable = config.stable === undefined ? true : config.stable;
 
       /**
        * Has been synchronized with the server
        * @type {Boolean}
        */
-      _this.synchronized = synchronized === undefined ? true : synchronized;
+      _this.synchronized = config.synchronized === undefined ? true : config.synchronized;
+
+      /**
+       * Has just been created by request and may not exist on the server
+       * @type {Boolean}
+       */
+      _this.pristine = config.pristine === undefined ? true : config.pristine;
 
       _this.removed = false;
+      _this.error = false;
+      _this.loading = false;
+      _this.saving = false;
+      _this.updatedAt = _this.synchronized === true ? Date.now() : updatedAt;
+
       _this.loadingCount = 0;
-      _this.updatedAt = Date.now();
+      _this.savingCount = 0;
 
       _this.data = {
         relationships: {},
@@ -71,7 +82,8 @@
       });
 
       _this.errors = {
-        validation: {}
+        validation: {},
+        synchronization: {}
       };
 
       _this.promises = {};
@@ -96,9 +108,13 @@
       addToIndex = addToIndex === undefined ? true : addToIndex;
 
       _this.form.validate().then(
-        _this.synchronize(config).then(resolve, reject, notify),
+        _this.synchronize(config)
+          .then(resolve, reject, notify)
+          .finally(__decrementSavingCounter.bind(_this)),
         deferred.reject
       );
+
+      __incrementSavingCounter(_this);
 
       return deferred.promise;
 
@@ -124,13 +140,13 @@
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:save', 'rejected', _this, response);
         response.finish();
 
-        deferred.reject(response.errors);
+        deferred.reject(response);
       }
 
       function notify(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:save', 'notify', _this, response);
 
-        deferred.notify(response.errors);
+        deferred.notify(response);
       }
     }
 
@@ -163,7 +179,11 @@
       if (_this.saved === false) {
         deferred.reject({errors: [{status: 0, statusText: 'Can\'t refresh new object'}]});
       } else {
-        _this.synchronize(config).then(resolve, reject, notify);
+        __incrementLoadingCounter(_this);
+
+        _this.synchronize(config)
+          .then(resolve, reject, notify)
+          .finally(__decrementLoadingCounter.bind(_this));
       }
 
       return deferred.promise;
@@ -178,10 +198,11 @@
         _this.stable = true;
 
         function synchronizeIncluded(object) {
+          __incrementLoadingCounter.bind(object);
           return object.synchronize({
             action: 'include',
             object: object
-          });
+          }).finally(__decrementLoadingCounter.bind(object));
         }
 
         function resolveIncluded(includedResponse) {
@@ -228,7 +249,8 @@
       data.relationships = relationships;
 
       return {
-        data: data
+        data: data,
+        updatedAt: _this.updatedAt
       };
     }
 
@@ -250,7 +272,11 @@
       if (_this.saved === false) {
         deferred.resolve();
       } else {
-        _this.synchronize(config).then(resolve, reject, notify);
+        __incrementSavingCounter.bind(_this);
+
+        _this.synchronize(config)
+          .then(resolve, reject, notify)
+          .finally(__decrementSavingCounter.bind(_this));
       }
 
       return deferred.promise;
@@ -288,11 +314,15 @@
       var _this = this;
       var deferred = $q.defer();
 
+      __incrementLoadingCounter(_this);
+
       if (key === undefined) {
         angular.forEach(_this.relationships, removeLink);
       } else {
         removeLink(_this.relationships[key], key);
       }
+
+      __decrementLoadingCounter(_this);
 
       return deferred.promise;
 
@@ -315,14 +345,19 @@
 
       function removeReflectionLink(reflectionKey, target) {
         var reflectionSchema = target.schema.relationships[reflectionKey];
-        AngularJsonAPIModelLinkerService.unlink(target, reflectionKey, _this, reflectionSchema);
-
-        target.synchronize({
+        var config = {
           action: 'unlinkReflection',
           object: target,
           target: _this,
           key: reflectionKey
-        }).then(resolve, reject, notify);
+        };
+
+        __incrementLoadingCounter(target);
+        AngularJsonAPIModelLinkerService.unlink(target, reflectionKey, _this, reflectionSchema);
+
+        target.synchronize(config)
+          .then(resolve, reject, notify)
+          .__decrementLoadingCounter.bind(target);
 
         function resolve(response) {
           $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'resolve', _this, response);
@@ -370,7 +405,11 @@
         $log.error('Can\'t link new object');
         deferred.reject({errors: [{status: 0, statusText: 'Can\'t link new object'}]});
       } else {
-        _this.synchronize(config).then(resolve, reject, notify);
+        __incrementSavingCounter(_this);
+
+        _this.synchronize(config)
+          .then(resolve, reject, notify)
+          .finally(__decrementSavingCounter.bind(_this));
       }
 
       return deferred.promise;
@@ -380,43 +419,32 @@
 
         var targets = AngularJsonAPIModelLinkerService.link(_this, key, target);
 
-        console.log(targets);
-
         _this.stable = true;
         response.finish();
 
         $q.allSettled(targets.map(synchronize))
-          .then(resolveReflection, rejectReflection, notifyReflection);
+          .then(resolveReflection, deferred.reject);
 
         function synchronize(result) {
-          console.log(result);
+          __incrementLoadingCounter(target);
+
           return target.synchronize({
             action: 'linkReflection',
             object: result.object,
             target: result.target,
             key: result.key
-          });
+          }).finally(__decrementLoadingCounter.bind(target));
         }
 
         function resolveReflection(response) {
-          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:linkReflection', 'resolve', _this, response);
+          angular.forEach(response, function(operation) {
+            if (operation.success === true) {
+              $rootScope.$emit('angularJsonAPI:' + targets[key].data.type + ':object:linkReflection', 'resolved', targets[key], operation);
+              response.value.finish();
+            }
+          });
 
-          response.finish();
           deferred.resolve(_this);
-        }
-
-        function rejectReflection(response) {
-          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:linkReflection', 'rejected', _this, response);
-
-          response.finish();
-          deferred.reject(response);
-        }
-
-        function notifyReflection(response) {
-          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:linkReflection', 'notify', _this, response);
-
-          response.finish();
-          deferred.notify(response);
         }
       }
 
@@ -456,7 +484,11 @@
       } else if (_this.saved === false) {
         deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink new object'}]});
       } else {
-        _this.synchronize(config).then(resolve, reject, notify);
+        __incrementSavingCounter(_this);
+
+        _this.synchronize(config)
+          .then(resolve, reject, notify)
+          .finally(__decrementSavingCounter.bind(_this));
       }
 
       return deferred.promise;
@@ -470,37 +502,28 @@
         response.finish();
 
         $q.allSettled(targets.map(synchronize))
-          .then(resolveReflection, rejectReflection, notifyReflection);
+          .then(resolveReflection, deferred.reject);
 
         function synchronize(result) {
-          console.log(result);
+          __incrementLoadingCounter(target);
+
           return target.synchronize({
             action: 'unlinkReflection',
             object: result.object,
             target: result.target,
             key: result.key
-          });
+          }).finally(__decrementLoadingCounter.bind(target));
         }
 
         function resolveReflection(response) {
-          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'resolve', _this, response);
+          angular.forEach(response, function(operation) {
+            if (operation.success === true) {
+              $rootScope.$emit('angularJsonAPI:' + targets[key].data.type + ':object:unlinkReflection', 'resolved', targets[key], operation);
+              response.value.finish();
+            }
+          });
 
-          response.finish();
           deferred.resolve(_this);
-        }
-
-        function rejectReflection(response) {
-          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'rejected', _this, response);
-
-          response.finish();
-          deferred.reject(response);
-        }
-
-        function notifyReflection(response) {
-          $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'notify', _this, response);
-
-          response.finish();
-          deferred.notify(response);
         }
       }
 
@@ -527,16 +550,15 @@
     function update(validatedData, auto, initialization) {
       var _this = this;
 
-      if (__setData(_this, validatedData) === true) {
-        _this.reset(auto);
-        _this.synchronized = initialization === true ? false : true;
-        _this.stable = initialization === true ? false : true;
-        _this.updatedAt = Date.now();
+      __incrementLoadingCounter(_this);
 
-        return true;
-      } else {
-        return false;
-      }
+      __setData(_this, validatedData);
+      _this.reset(auto);
+      _this.synchronized = initialization === true ? false : true;
+      _this.stable = initialization === true ? false : true;
+      _this.updatedAt = Date.now();
+
+      __decrementLoadingCounter(_this);
     }
 
     /////////////
@@ -643,5 +665,33 @@
         AngularJsonAPIModelLinkerService.unlink(object, key, target);
       }
     }
+  }
+
+  /////////////
+  // Private //
+  /////////////
+
+  function __incrementLoadingCounter(object) {
+    object = object === undefined ? this : object;
+    object.loadingCount += 1;
+    object.loading = true;
+  }
+
+  function __decrementLoadingCounter(object) {
+    object = object === undefined ? this : object;
+    object.loadingCount -= 1;
+    object.loading = object.loadingCount === 0;
+  }
+
+  function __incrementSavingCounter(object) {
+    object = object === undefined ? this : object;
+    object.savingCount += 1;
+    object.saving = true;
+  }
+
+  function __decrementSavingCounter(object) {
+    object = object === undefined ? this : object;
+    object.savingCount -= 1;
+    object.saving = object.savingCount === 0;
   }
 })();

@@ -3,9 +3,9 @@
     class="ui stackable grid"
   >
     <div class="four wide column" style="padding: 0;">
-      <small>{{object.data.type}}</small>
+      <small>Loading {{object.loadingCount}}:{{object.loading}} Saving {{object.savingCount}}:{{object.saving}}</small>
       <h4 style="margin-bottom: 0; margin-top: 0;" clip-copy="object.data.id">{{object.toString()}}</h4>
-      <small>{{object.data.id}}</small>
+      <small>{{object.data.type}}:{{object.data.id}}</small>
     </div>
     <div class="twelve wide column">
       <button

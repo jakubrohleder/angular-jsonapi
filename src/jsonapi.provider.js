@@ -94,6 +94,8 @@
         var config = {
           saved: true,
           synchronized: true,
+          stable: true,
+          pristine: false,
           initialization: false
         };
 

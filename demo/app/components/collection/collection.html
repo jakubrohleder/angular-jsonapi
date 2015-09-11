@@ -1,6 +1,7 @@
 
 
 <h3 class="h3">{{collection.type}}</h3>
+<small>Loading {{collection.loadingCount}}:{{collection.loading}}</small>
 
 <div class="row">
   <div class="ui mini icon input">
@@ -36,35 +37,47 @@
 
 <div class="ui divider"></div>
 
-<div
-  ng-show="!collection.synchronized && collection.data === undefined"
-  class="ui large active text loader"
->
-  Loading collection for the first time
-</div>
-
-<div
-  ng-show="collection.synchronized && collection.data === undefined"
-  class="ui large active text loader"
->
-  Collection not synchronized, refresh it to fetch data
-</div>
-
 <error-message ng-show="collection.error" data="collection.errors"></error-message>
 
 <div ng-show="collection.error" class="ui divider hidden"></div>
 
-<h3 ng-show="filteredObjects.length > 0">New objects</h3>
+<div class="collection" ng-show="filteredObjects.length > 0">
+  <h3>New objects</h3>
 
-<angular-jsonapi-object nested="false" data="object" ng-repeat="object in filteredObjects = (newObjects | filter: {saved: false})"></angular-jsonapi-object>
+  <angular-jsonapi-object
+    nested="false"
+    data="object"
+    ng-repeat="object in filteredObjects = (newObjects | filter: {saved: false})"
+  ></angular-jsonapi-object>
 
-<div class="ui divider" ng-show="filteredObjects.length > 0"></div>
+</div>
 
-<h3>All objects</h3>
 
-<angular-jsonapi-object nested="false" data="object" ng-repeat="object in collection.data"></angular-jsonapi-object>
+<div class="collection">
+  <h3>All objects</h3>
 
-<div class="ui basic segment fixed bottom">
-  <div class="ui black button" ng-click="close()">Close all models</div>
-  <div class="ui grey button" ng-click="clear()">Clear cache</div>
+  <div
+    ng-show="!collection.synchronized && collection.data === undefined"
+    class="ui large active text loader"
+  >
+    Loading collection for the first time
+  </div>
+
+  <div
+    ng-show="collection.synchronized && collection.data === undefined"
+    class="ui large active text loader"
+  >
+    Collection not synchronized, refresh it to fetch data
+  </div>
+
+  <angular-jsonapi-object
+    nested="false"
+    data="object"
+    ng-repeat="object in collection.data"
+  ></angular-jsonapi-object>
+
+  <div class="ui basic segment fixed bottom">
+    <div class="ui black button" ng-click="close()">Close all models</div>
+    <div class="ui grey button" ng-click="clear()">Clear cache</div>
+  </div>
 </div>

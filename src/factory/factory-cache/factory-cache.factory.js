@@ -53,7 +53,7 @@
       }
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.factory.Model(validatedData, config.saved, config.synchronized);
+        _this.data[id] = new _this.factory.Model(validatedData, config);
         _this.size += 1;
       } else {
         _this.data[id].update(validatedData, config.saved, config.initialization);
@@ -75,6 +75,8 @@
       var config = {
         saved: true,
         synchronized: false,
+        stable: false,
+        pristine: false,
         initialization: true
       };
 
@@ -84,7 +86,7 @@
 
         angular.forEach(collection.data, function(objectData) {
           var data = objectData.data;
-          _this.addOrUpdate(data, config);
+          _this.addOrUpdate(data, config, objectData.updatedAt);
         });
       }
     }
@@ -96,13 +98,15 @@
     function toJson() {
       var _this = this;
       var json = {
-        data: {},
+        data: [],
         updatedAt: _this.updatedAt,
         indexIds: _this.indexIds
       };
 
-      angular.forEach(_this.data, function(object, key) {
-        json.data[key] = object.toJson();
+      angular.forEach(_this.data, function(object) {
+        if (object.error === false) {
+          json.data.push(object.toJson());
+        }
       });
 
       return angular.toJson(json);
@@ -128,8 +132,20 @@
     function get(id) {
       var _this = this;
 
+      var data = {
+        id: id,
+        type: _this.factory.Model.prototype.schema.type
+      };
+
+      var config = {
+        saved: true,
+        synchronized: false,
+        stable: false,
+        pristine: true
+      };
+
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.factory.Model({id: id, type: _this.factory.Model.prototype.schema.type}, true, false);
+        _this.data[id] = new _this.factory.Model(data, config);
       }
 
       return _this.data[id];
