@@ -82,6 +82,11 @@
       }
 
       function proccesResults(results) {
+        var objects = {
+          data: [],
+          included: []
+        };
+
         if (results === undefined) {
           $log.error('Can\'t proccess results:', results);
         }
@@ -93,19 +98,18 @@
         };
 
         angular.forEach(results.included, function(data) {
-          getFactory(data.type).cache.addOrUpdate(data, config);
+          objects.included.push(getFactory(data.type).cache.addOrUpdate(data, config));
         });
 
         if (angular.isArray(results.data)) {
-          var objects = [];
           angular.forEach(results.data, function(data) {
-            objects.push(getFactory(data.type).cache.addOrUpdate(data, config));
+            objects.data.push(getFactory(data.type).cache.addOrUpdate(data, config));
           });
-
-          return objects;
         } else {
-          return getFactory(results.data.type).cache.addOrUpdate(results.data, config);
+          objects.data.push(getFactory(results.data.type).cache.addOrUpdate(results.data, config));
         }
+
+        return objects;
       }
     }
   }

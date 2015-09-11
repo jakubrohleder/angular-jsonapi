@@ -24,9 +24,8 @@
       }
     }
 
-    function controller($scope, $jsonapi) {
+    function controller($scope, $jsonapi, $timeout) {
       $scope.schema = $scope.object.schema.relationships[$scope.key];
-      $scope.disabled = $scope.object.relationships[$scope.key] === undefined;
       if ($scope.schema.polymorphic) {
         $scope.collections = {};
         angular.forEach($jsonapi.allFactories(), function(factory, factoryName) {
@@ -43,6 +42,7 @@
       $scope.showResults = showResults;
       $scope.hideResults = hideResults;
       $scope.setInput = setInput;
+      $scope.getIndex = getIndex;
 
       function isEmpty(obj) {
         return Object.keys(obj).length === 0;
@@ -76,6 +76,12 @@
 
       function setInput(value) {
         $scope.input = value;
+      }
+
+      function getIndex(modelName) {
+        $timeout(function() {
+          $scope.collection = $jsonapi.getFactory(modelName).all().data;
+        });
       }
     }
   }

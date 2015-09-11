@@ -43,6 +43,7 @@
 
       $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
       $rootScope.$on('angularJsonAPI:' + _this.type + ':factory:clearCache', clear);
+      $rootScope.$on('angularJsonAPI:' + _this.type + ':factory:add', add);
 
       function remove(event, status, object) {
         var index;
@@ -59,6 +60,12 @@
 
       function clear() {
         _this.data = undefined;
+      }
+
+      function add(event, status, object, response, addToIndex) {
+        if (addToIndex === true && status === 'resolved') {
+          _this.data.push(object);
+        }
       }
     }
 
@@ -90,38 +97,57 @@
 
       return deferred.promise;
 
-      function resolve(results) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'resolved', _this, results);
+      function resolve(response) {
+        var results = $jsonapi.proccesResults(response.data);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'resolved', _this, response);
+        $q.allSettled(results.included.map(synchronizeIncluded)).then(resolveIncluded, deferred.reject);
 
+        _this.data = results.data;
         _this.errors.synchronization.errors = [];
-        _this.data = $jsonapi.proccesResults(results.data);
         _this.error = false;
 
         _this.updatedAt = Date.now();
         _this.synchronized = true;
 
         _this.factory.cache.setIndexIds(_this.data);
+        response.finish();
 
-        results.finish();
+        function synchronizeIncluded(object) {
+          return object.synchronize({
+            action: 'include',
+            object: object
+          });
+        }
+
+        function resolveIncluded(includedResponse) {
+          angular.forEach(includedResponse, function(operation, key) {
+            if (operation.success === true) {
+              $rootScope.$emit('angularJsonAPI:' + results.included[key].data.type + ':object:include', 'resolved', results.included[key], operation);
+              operation.value.finish();
+            }
+          });
+
+          deferred.resolve(response);
+        }
 
         deferred.resolve(_this);
       }
 
-      function reject(results) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'rejected', _this, results);
+      function reject(response) {
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'rejected', _this, response);
 
-        _this.errors.synchronization.errors = results.errors;
+        _this.errors.synchronization.errors = response.errors;
         _this.error = true;
 
-        results.finish();
+        response.finish();
 
-        deferred.reject(results);
+        deferred.reject(response);
       }
 
-      function notify(results) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'notify', _this, results);
+      function notify(response) {
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'notify', _this, response);
 
-        deferred.notify(results);
+        deferred.notify(response);
       }
     }
   }

@@ -17,10 +17,12 @@
           $scope.updateDiff = (Date.now() - $scope.collection.updatedAt) / 1000;
         }, 100);
 
-        $scope.equals = angular.equals;
+        $scope.newObjects = [];
 
         $scope.close = close;
         $scope.clear = clear;
+        $scope.add = add;
+        add();
 
         function close() {
           $scope.$broadcast('close');
@@ -28,6 +30,11 @@
 
         function clear() {
           $jsonapi.clearCache();
+        }
+
+        function add() {
+          console.log($scope.newObjects);
+          $scope.newObjects.push($scope.collection.factory.initialize());
         }
       }
     };

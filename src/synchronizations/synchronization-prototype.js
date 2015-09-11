@@ -27,7 +27,8 @@
         'link',
         'linkReflection',
         'update',
-        'refresh'
+        'refresh',
+        'include'
       ];
 
       _this.state = {};

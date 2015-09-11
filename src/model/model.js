@@ -10,7 +10,7 @@
       model: modelFactory
     };
 
-    function modelFactory(schemaObj, parentFactory) {
+    function modelFactory(schemaObj, factory) {
       var Model = function(data, updatedAt, saved) {
         var _this = this;
 
@@ -27,8 +27,8 @@
       Model.prototype.constructor = Model;
 
       Model.prototype.schema = schemaObj;
-      Model.prototype.parentFactory = parentFactory;
-      Model.prototype.synchronize = parentFactory.synchronizer.synchronize.bind(parentFactory.synchronizer);
+      Model.prototype.factory = factory;
+      Model.prototype.synchronize = factory.synchronizer.synchronize.bind(factory.synchronizer);
 
       angular.forEach(schemaObj.functions, function(metaFunction, metaFunctionName) {
         Model.prototype[metaFunctionName] = function() {

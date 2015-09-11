@@ -37,14 +37,12 @@
     function link(object, key, target, oneWay) {
       var schema;
 
-      console.log(object, key, target, oneWay);
-
       if (object === undefined) {
         $log.error('Can\'t add link to non existing object', object, key, target);
         $log.error('Object:', object.data.type, object);
         $log.error('Target:', target.data.type, target);
         $log.error('Key:', key);
-        return false;
+        return [];
       }
 
       schema = object.schema.relationships[key];
@@ -55,7 +53,7 @@
         $log.error('Target:', target.data.type, target);
         $log.error('Key:', key);
         $log.error('Schema:', schema);
-        return false;
+        return [];
       }
 
       if (schema === undefined) {
@@ -64,7 +62,7 @@
         $log.error('Target:', target.data.type, target);
         $log.error('Key:', key);
         $log.error('Schema:', schema);
-        return false;
+        return [];
       }
 
       if (target !== null && schema.polymorphic === false && schema.model !== target.data.type) {
@@ -73,18 +71,20 @@
         $log.error('Target:', target.data.type, target);
         $log.error('Key:', key);
         $log.error('Schema:', schema);
-        return false;
+        return [];
       }
 
       if (schema.type === 'hasMany') {
         if (oneWay === true) {
-          return __addHasMany(object, key, target, false);
+          __addHasMany(object, key, target, false);
+          return [];
         } else {
           return __processAddHasMany(object, key, target);
         }
       } else if (schema.type === 'hasOne') {
         if (oneWay === true) {
-          return __addHasOne(object, key, target, false);
+          __addHasOne(object, key, target, false);
+          return [];
         } else {
           return __processAddHasOne(object, key, target);
         }
@@ -106,7 +106,7 @@
         $log.error('Object:', object.data.type, object);
         $log.error('Target:', target.data.type, target);
         $log.error('Key:', key);
-        return false;
+        return [];
       }
 
       schema = object.schema.relationships[key];
@@ -117,11 +117,12 @@
         $log.error('Target:', target.data.type, target);
         $log.error('Key:', key);
         $log.error('Schema:', schema);
-        return false;
+        return [];
       }
 
       if (oneWay === true) {
-        return __removeHasMany(object, key, target, false);
+        __removeHasMany(object, key, target, false);
+        return [];
       } else {
         return __processRemove(object, key, target);
       }
@@ -136,16 +137,22 @@
       var reflectionSchema;
 
       if (reflectionKey === false) {
-        return __addHasMany(object, key, target);
+        __addHasMany(object, key, target);
+        return [];
       }
 
       reflectionSchema = target.schema.relationships[reflectionKey];
 
       if (reflectionSchema.type === 'hasOne') {
-        __processAddHasOne(target, reflectionKey, object);
+        return __swapResults(
+          __wrapResults(object, key, target),
+          __wrapResults(target, reflectionKey, object),
+          __processAddHasOne(target, reflectionKey, object)
+        );
       } else if (reflectionSchema.type === 'hasMany') {
         __addHasMany(object, key, target);
         __addHasMany(target, reflectionKey, object);
+        return [__wrapResults(target, reflectionKey, object)];
       }
     }
 
@@ -154,6 +161,7 @@
       var oldReflection = object.relationships[key];
       var reflectionSchema;
       var oldReflectionSchema;
+      var result = [];
 
       __addHasOne(object, key, target);
 
@@ -165,6 +173,8 @@
         } else if (oldReflectionSchema.type === 'hasMany') {
           __removeHasMany(oldReflection, reflectionKey, object);
         }
+
+        result.push(oldReflection, reflectionKey, object);
       }
 
       if (target !== undefined && target !== null && reflectionKey !== false) {
@@ -175,7 +185,11 @@
         } else if (reflectionSchema.type === 'hasMany') {
           __addHasMany(target, reflectionKey, object);
         }
+
+        result.push(target, reflectionKey, object);
       }
+
+      return result;
     }
 
     function __processRemove(object, key, target) {
@@ -190,7 +204,7 @@
       }
 
       if (reflectionKey === false) {
-        return;
+        return [];
       }
 
       reflectionSchema = target.schema.relationships[reflectionKey];
@@ -200,6 +214,8 @@
       } else if (reflectionSchema.type === 'hasMany') {
         __removeHasMany(target, reflectionKey, object);
       }
+
+      return [__wrapResults(target, reflectionKey, object)];
     }
 
     function __addHasOne(object, key, target, reset) {
@@ -280,6 +296,31 @@
       }
 
       return true;
+    }
+
+    function __wrapResults(object, key, target) {
+      return {
+        object: object,
+        key: key,
+        target: target
+      };
+    }
+
+    function __swapResults(value, newValue, array) {
+      var index = -1;
+      angular.forEach(array, function(item, i) {
+        if (item.object === value.object && item.key === value.key && item.target === value.target) {
+          index = i;
+        }
+      });
+
+      if (index > -1) {
+        array[index] = newValue;
+      } else {
+        array.push(newValue);
+      }
+
+      return array;
     }
   }
 })();

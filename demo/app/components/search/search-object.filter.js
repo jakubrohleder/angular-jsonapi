@@ -8,6 +8,10 @@
     var names = $jsonapi.factoriesNames();
 
     return function(items, search, relationship, polymorphic) {
+      if(items === undefined) {
+        return;
+      }
+
       if (!search) {
         if (polymorphic === true) {
           return [];

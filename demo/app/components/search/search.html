@@ -1,7 +1,7 @@
 <div class="ui category search focus">
   <div class="ui mini left icon input" ng-class="{loading: loading, error: error, 'right action': show}">
 
-    <input ng-focus="showResults()" ng-model="input" placeholder="Add model" autocomplete="off" ng-disabled="loading || disabled">
+    <input ng-focus="showResults()" ng-model="input" placeholder="Add model" autocomplete="off" ng-disabled="loading || object.relationships[key] === undefined || object.saved === false">
     <i class="plus icon"></i>
     <button class="ui red mini icon button" ng-show="show" ng-focus="hideResults()">
       <i class="remove icon"></i>
@@ -32,6 +32,14 @@
           <div class="description">Type full name of model to unroll or typeahead with new word</div>
         </div>
       </a>
+
+      <a class="result" ng-show="filteredCollection === undefined" ng-click="getIndex(model)">
+        <div class="content">
+          <div class="title">Not synchronized</div>
+          <div class="description">These collection hasn't been synchronized yet by ALL request, click to do it.</div>
+        </div>
+      </a>
+
     </div>
   </div>
 </div>

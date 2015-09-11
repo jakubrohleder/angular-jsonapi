@@ -8,12 +8,15 @@
     var events = [
       'factory:init',
       'factory:clearCache',
-      'object:save',
+      'factory:initialize',
+      'object:add',
+      'object:update',
       'object:refresh',
       'object:remove',
       'object:link',
       'object:linkReflection',
       'object:unlink',
+      'object:include',
       'object:unlinkReflection',
       'collection:fetch'
     ];

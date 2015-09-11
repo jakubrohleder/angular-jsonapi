@@ -35,8 +35,9 @@
       _this.begin('linkReflection', updateStorage);
       _this.begin('update', updateStorage);
       _this.begin('add', updateStorage);
-      _this.finish('get', updateStorage);
-      _this.finish('all', updateStorage);
+      _this.begin('get', updateStorage);
+      _this.begin('all', updateStorage);
+      _this.begin('include', updateStorage);
 
       _this.finish('init', updateStorage);
       _this.finish('clearCache', updateStorage);
@@ -50,6 +51,7 @@
       _this.finish('add', updateStorage);
       _this.finish('get', updateStorage);
       _this.finish('all', updateStorage);
+      _this.finish('include', updateStorage);
 
       function init() {
         var type = _this.synchronizer.factory.schema.type;

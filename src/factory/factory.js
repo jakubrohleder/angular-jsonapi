@@ -83,7 +83,11 @@
         return $q.reject({errors: [{status: 0, statusText: 'Invalid id not uuid4'}]});
       }
 
-      return _this.cache.get(id).refresh();
+      var object = _this.cache.get(id);
+
+      object.refresh();
+
+      return object;
     }
 
     /**
@@ -126,6 +130,18 @@
       var _this = this;
       var relationships = {};
 
+      angular.forEach(_this.schema.relationships, function(relationshipSchema, relationshipName) {
+        if (relationshipSchema.type === 'hasOne') {
+          relationships[relationshipName] = {
+            data: null
+          };
+        } else if (relationshipSchema.type === 'hasMany') {
+          relationships[relationshipName] = {
+            data: []
+          };
+        }
+      });
+
       if (key !== undefined && target !== undefined) {
         var schema = _this.schema[key];
 
@@ -151,7 +167,11 @@
         initialization: false
       };
 
-      return _this.cache.addOrUpdate(data, config);
+      var object = _this.cache.addOrUpdate(data, config);
+
+      $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:initialize', 'resolved', object);
+
+      return object;
     }
 
     /**

@@ -356,4 +356,7 @@ All in all configuration of the factory for novels can look like this:
 
 * Readonly attributes
 * More keys formats
+* global $emit alternative in options
+* $emit alternative in addModel
+* default synchronization in options
 * Offline support ([ServiceWorkers?](http://www.html5rocks.com/en/tutorials/service-worker/introduction/))

@@ -85,13 +85,15 @@
      * Saves model's form
      * @return {promise} Promise associated with synchronization that resolves to this
      */
-    function save() {
+    function save(addToIndex) {
       var _this = this;
       var deferred = $q.defer();
       var config = {
         action: _this.saved === false ? 'add' : 'update',
         object: _this
       };
+
+      addToIndex = addToIndex === undefined ? true : addToIndex;
 
       _this.form.validate().then(
         _this.synchronize(config).then(resolve, reject, notify),
@@ -101,8 +103,13 @@
       return deferred.promise;
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:save', 'resolved', _this, response);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response, addToIndex);
         _this.update(_this.form.data);
+
+        if (_this.saved === false && addToIndex === true) {
+          _this.factory.cache.indexIds = _this.factory.cache.indexIds || [];
+          _this.factory.cache.indexIds.push(_this.data.id);
+        }
 
         _this.synchronized = true;
         _this.saved = true;
@@ -162,14 +169,31 @@
       return deferred.promise;
 
       function resolve(response) {
+        var results = $jsonapi.proccesResults(response.data);
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:refresh', 'resolved', _this, response);
-        $jsonapi.proccesResults(response.data);
-        response.finish();
+        $q.allSettled(results.included.map(synchronizeIncluded)).then(resolveIncluded, deferred.reject);
 
+        response.finish();
         _this.synchronized = true;
         _this.stable = true;
 
-        deferred.resolve(response);
+        function synchronizeIncluded(object) {
+          return object.synchronize({
+            action: 'include',
+            object: object
+          });
+        }
+
+        function resolveIncluded(includedResponse) {
+          angular.forEach(includedResponse, function(operation, key) {
+            if (operation.success === true) {
+              $rootScope.$emit('angularJsonAPI:' + results.included[key].data.type + ':object:include', 'resolved', results.included[key], operation);
+              operation.value.finish();
+            }
+          });
+
+          deferred.resolve(response);
+        }
       }
 
       function reject(response) {
@@ -221,7 +245,7 @@
         object: _this
       };
 
-      _this.parentFactory.cache.remove(_this.data.id);
+      _this.factory.cache.remove(_this.data.id);
 
       if (_this.saved === false) {
         deferred.resolve();
@@ -235,7 +259,7 @@
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:remove', 'resolved', _this, response);
         _this.removed = true;
         _this.unlinkAll();
-        _this.parentFactory.cache.clearRemoved(_this.data.id);
+        _this.factory.cache.clearRemoved(_this.data.id);
         response.finish();
 
         deferred.resolve(response);
@@ -243,7 +267,7 @@
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:remove', 'rejected', _this, response);
-        _this.parentFactory.cache.revertRemove(_this.data.id);
+        _this.factory.cache.revertRemove(_this.data.id);
         response.finish();
 
         deferred.reject(response);
@@ -332,19 +356,18 @@
     function link(key, target) {
       var deferred = $q.defer();
       var _this = this;
-      var schema = _this.schema.relationships[key];
-      var reflectionKey = schema.reflection;
       var config = {
         action: 'link',
         object: _this,
-        schema: schema,
         target: target,
         key: key
       };
 
       if (target === undefined) {
+        $log.error('Can\'t link undefined');
         deferred.reject({errors: [{status: 0, statusText: 'Can\'t link undefined'}]});
       } else if (_this.saved === false) {
+        $log.error('Can\'t link new object');
         deferred.reject({errors: [{status: 0, statusText: 'Can\'t link new object'}]});
       } else {
         _this.synchronize(config).then(resolve, reject, notify);
@@ -353,22 +376,27 @@
       return deferred.promise;
 
       function resolve(response) {
-        var reflectionSchema = target.schema.relationships[reflectionKey];
-
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:link', 'resolved', _this, response);
 
-        AngularJsonAPIModelLinkerService.link(_this, key, target);
+        var targets = AngularJsonAPIModelLinkerService.link(_this, key, target);
+
+        console.log(targets);
 
         _this.stable = true;
         response.finish();
 
-        target.synchronize({
-          action: 'linkReflection',
-          schema: reflectionSchema,
-          object: target,
-          target: _this,
-          key: reflectionKey
-        }).then(resolveReflection, rejectReflection, notifyReflection);
+        $q.allSettled(targets.map(synchronize))
+          .then(resolveReflection, rejectReflection, notifyReflection);
+
+        function synchronize(result) {
+          console.log(result);
+          return target.synchronize({
+            action: 'linkReflection',
+            object: result.object,
+            target: result.target,
+            key: result.key
+          });
+        }
 
         function resolveReflection(response) {
           $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:linkReflection', 'resolve', _this, response);
@@ -416,13 +444,10 @@
     function unlink(key, target) {
       var deferred = $q.defer();
       var _this = this;
-      var schema = _this.schema.relationships[key];
-      var reflectionKey = schema.reflection;
       var config = {
         action: 'unlink',
         object: _this,
         target: target,
-        schema: schema,
         key: key
       };
 
@@ -437,21 +462,25 @@
       return deferred.promise;
 
       function resolve(response) {
-        var reflectionSchema = target.schema.relationships[reflectionKey];
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlink', 'resolved', _this, response);
 
-        AngularJsonAPIModelLinkerService.unlink(_this, key, target, schema);
+        var targets = AngularJsonAPIModelLinkerService.link(_this, key, target);
 
         _this.stable = true;
         response.finish();
 
-        target.synchronize({
-          action: 'unlinkReflection',
-          object: target,
-          target: _this,
-          schema: reflectionSchema,
-          key: reflectionKey
-        }).then(resolveReflection, rejectReflection, notifyReflection);
+        $q.allSettled(targets.map(synchronize))
+          .then(resolveReflection, rejectReflection, notifyReflection);
+
+        function synchronize(result) {
+          console.log(result);
+          return target.synchronize({
+            action: 'unlinkReflection',
+            object: result.object,
+            target: result.target,
+            key: result.key
+          });
+        }
 
         function resolveReflection(response) {
           $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'resolve', _this, response);
@@ -528,8 +557,8 @@
       object.data.id = validatedData.id;
       object.data.type = validatedData.type;
 
-      if (object.parentFactory.schema.type !== validatedData.type) {
-        $log.error('Different type then factory', object.parentFactory.schema.type, validatedData);
+      if (object.factory.schema.type !== validatedData.type) {
+        $log.error('Different type then factory', object.factory.schema.type, validatedData);
         return false;
       }
 

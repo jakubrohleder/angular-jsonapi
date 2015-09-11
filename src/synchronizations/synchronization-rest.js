@@ -63,18 +63,19 @@
 
       function unlink(config) {
         var deferred = $q.defer();
+        var schema = config.object.schema.relationships[config.key];
 
         if (config.object.removed === true) {
           deferred.reject({errors: [{status: 0, statusText: 'Object has been removed'}]});
         } else if (config.target !== undefined && config.target.data.id === undefined) {
           deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink object without id through rest call'}]});
-        } else if (config.schema.type === 'hasOne') {
+        } else if (schema.type === 'hasOne') {
           $http({
             method: 'DELETE',
             headers: headers,
             url: url + '/' + config.object.data.id + '/relationships/' + config.key
           }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
-        } else if (config.schema.type === 'hasMany') {
+        } else if (schema.type === 'hasMany') {
           if (config.target === undefined) {
             $http({
               method: 'PUT',
@@ -96,19 +97,20 @@
 
       function link(config) {
         var deferred = $q.defer();
+        var schema = config.object.schema.relationships[config.key];
 
         if (config.object.removed === true) {
           deferred.reject({errors: [{status: 0, statusText: 'Object has been removed'}]});
         } else if (config.target === undefined || config.target.data.id === undefined) {
           deferred.reject({errors: [{status: 0, statusText: 'Can\'t link object without id through rest call'}]});
-        } else if (config.schema.type === 'hasOne') {
+        } else if (schema.type === 'hasOne') {
           $http({
             method: 'PUT',
             headers: headers,
             data: {data: AngularJsonAPIModelLinkerService.toLinkData(config.target)},
             url: url + '/' + config.object.data.id + '/relationships/' + config.key
           }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
-        } else if (config.schema.type === 'hasMany') {
+        } else if (schema.type === 'hasMany') {
           $http({
             method: 'POST',
             headers: headers,

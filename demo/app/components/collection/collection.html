@@ -17,9 +17,9 @@
     ng-click="collection.refresh()"
   >Refresh</button>
 
-  <button promise-button
+  <button
     class="ui button mini yellow"
-    ng-click="collection.refresh()"
+    ng-click="add()"
   >Add</button>
 
   <div class="ui red basic mini right floated button" ng-hide="collection.synchronized">Synchronizing...</div>
@@ -53,6 +53,14 @@
 <error-message ng-show="collection.error" data="collection.errors"></error-message>
 
 <div ng-show="collection.error" class="ui divider hidden"></div>
+
+<h3 ng-show="filteredObjects.length > 0">New objects</h3>
+
+<angular-jsonapi-object nested="false" data="object" ng-repeat="object in filteredObjects = (newObjects | filter: {saved: false})"></angular-jsonapi-object>
+
+<div class="ui divider" ng-show="filteredObjects.length > 0"></div>
+
+<h3>All objects</h3>
 
 <angular-jsonapi-object nested="false" data="object" ng-repeat="object in collection.data"></angular-jsonapi-object>
 

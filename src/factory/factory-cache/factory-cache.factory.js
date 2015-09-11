@@ -84,7 +84,6 @@
 
         angular.forEach(collection.data, function(objectData) {
           var data = objectData.data;
-          console.log('fromJson', data.id);
           _this.addOrUpdate(data, config);
         });
       }
@@ -137,7 +136,7 @@
     }
 
     /**
-     * Low level get used internally, does not run any synchronization
+     * Low level get used internally, does not run any synchronization, used for index requests
      * @param  {objec} params
      * @return {AngularJsonAPIModel} Model associated with id
      */
