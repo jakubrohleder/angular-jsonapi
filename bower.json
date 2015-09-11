@@ -1,6 +1,6 @@
 {
   "name": "angular-jsonapi",
-  "version": "0.1.2",
+  "version": "1.0.0-alpha.1",
   "main": "dist/angular-jsonapi.js",
   "dependencies": {
     "angular": "1.4.x",
