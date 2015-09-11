@@ -2,9 +2,11 @@
 
 [![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)
 
-## Use with caution
+## Use with caution it's only 1.0.0-alpha.1
 
-This module is still in a WIP state, many things work fine but it lacks tests and API may change, also documentation can not reflect the real state
+*This module is still in a WIP state, many things work fine but it lacks tests and API may change, also documentation can not reflect the real state*
+
+*To see all of the features in action run and study the demo.*
 
 Simple and lightweight, yet powerfull ORM for your frontend that seamlessly integrates with your JsonAPI server.
 
@@ -53,9 +55,11 @@ The idea behind this module is to make those boring and generic data manipulatio
 
 # Demo
 
-## [Live demo](http://jakubrohleder.github.io/angular-jsonapi)
+<!-- ## [Live demo](http://jakubrohleder.github.io/angular-jsonapi) -->
 
 ## Local
+
+* Install and run the backend module: [jsonapi-robot-wars](https://github.com/jakubrohleder/jsonapi-robot-wars)
 
 * Clone this module and install npm/bower dependencies:
 
@@ -94,7 +98,7 @@ angular.module('myApp', [
 
 # Configuration
 
-Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any confiuration options. All the configuration shoud be made in the `run` phase using `$jsonapi`. The only option as the moment is `$jsonapi.addModel`, it takes two arguments: [schema](#schema) and [synchronizer](#synchronizers).
+Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any confiuration options. All the configuration shoud be made in the `run` phase using `$jsonapi`. The only option as the moment is `$jsonapi.addFactory`, it takes two arguments: [schema](#schema) and [synchronizer](#synchronizers).
 
 ## Schema
 
@@ -290,7 +294,7 @@ todo
 
 ## Model
 
-After performing `$jsonapi.addModel(schema, synchronizer);` the model factory is accesible by return `$jsonapi.getModel(schema.type);`. The easiest way to use it is to create `angular.factory` for each model and then inject it to your controllers.
+After performing `$jsonapi.addFactory(schema, synchronizer);` the model factory is accesible by return `$jsonapi.getModel(schema.type);`. The easiest way to use it is to create `angular.factory` for each model and then inject it to your controllers.
 
 All in all configuration of the factory for novels can look like this:
 
@@ -328,7 +332,7 @@ All in all configuration of the factory for novels can look like this:
       localeSynchronization, restSynchronization
     ]);
 
-    $jsonapi.addModel(novelsSchema, novelsSynchronizer);
+    $jsonapi.addFactory(novelsSchema, novelsSynchronizer);
   })
   .factory('Novels', Novels);
 
@@ -357,6 +361,6 @@ All in all configuration of the factory for novels can look like this:
 * Readonly attributes
 * More keys formats
 * global $emit alternative in options
-* $emit alternative in addModel
+* $emit alternative in addFactory
 * default synchronization in options
 * Offline support ([ServiceWorkers?](http://www.html5rocks.com/en/tutorials/service-worker/introduction/))
