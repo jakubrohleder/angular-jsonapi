@@ -1,0 +1,45 @@
+<div class="ui category search focus">
+  <div class="ui mini left icon input" ng-class="{loading: loading, error: error, 'right action': show}">
+
+    <input ng-focus="showResults()" ng-model="input" placeholder="Add model" autocomplete="off" ng-disabled="loading || object.relationships[key] === undefined || object.saved === false">
+    <i class="plus icon"></i>
+    <button class="ui red mini icon button" ng-show="show" ng-focus="hideResults()">
+      <i class="remove icon"></i>
+    </button>
+  </div>
+  <div class="ui left pointing red basic label" ng-show="error">
+      {{errorText}}
+  </div>
+  <div class="results" ng-show="show">
+    <div
+      class="category"
+    >
+      <div class="name" ng-click="setInput('')">{{model}}</div>
+      <a
+        class="result"
+        ng-repeat="object in filteredCollection = (collection | angularJsonapiSearchObject : input : object.relationships[key] : false)"
+        ng-click="addLink(object)"
+      >
+        <div class="content">
+          <div class="title">{{object.toString()}}</div>
+          <div class="description">{{object.data.id}}</div>
+        </div>
+      </a>
+
+      <a class="result" ng-show="filteredCollection.length === 0" ng-click="setInput(model)">
+        <div class="content">
+          <div class="title">{{collection.length}} objects</div>
+          <div class="description">Type full name of model to unroll or typeahead with new word</div>
+        </div>
+      </a>
+
+      <a class="result" ng-show="filteredCollection === undefined" ng-click="getIndex(model)">
+        <div class="content">
+          <div class="title">Not synchronized</div>
+          <div class="description">These collection hasn't been synchronized yet by ALL request, click to do it.</div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</div>

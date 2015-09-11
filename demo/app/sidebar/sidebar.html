@@ -1,0 +1,14 @@
+<div
+  ui-sidebar
+  class="ui vertical inverted sidebar menu left"
+  arguments="['attach events', '.toc.item']"
+>
+  <a class="item logo" ui-sref="frame.hello" ui-sref-active="active">Angular JSON API demo</a>
+
+  <a
+    ng-repeat="name in names"
+    class="item"
+    ui-sref="frame.request.all({type: name})"
+    ui-sref-active="active"
+  >{{name}}</a>
+</div>

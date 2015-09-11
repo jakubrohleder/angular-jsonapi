@@ -12,17 +12,17 @@
         object: '='
       },
       controller: function($scope, $interval) {
-        angular.forEach($scope.object.form.data, function(val, attribute) {
-          $scope.$watch('object.form.data.' + attribute, function(nv, ov) {
-            if (nv !== ov) {
-              $scope.object.form.validateField(attribute);
-            }
-          });
-        });
+        // angular.forEach($scope.object.form.data, function(val, attribute) {
+        //   $scope.$watch('object.form.data.' + attribute, function(nv, ov) {
+        //     if (nv !== ov) {
+        //       $scope.object.form.validateField(attribute);
+        //     }
+        //   });
+        // });
 
-        $interval(function() {
-          $scope.updateDiff = (Date.now() - $scope.object.updatedAt) / 1000;
-        }, 100);
+        // $interval(function() {
+        //   $scope.updateDiff = (Date.now() - $scope.object.updatedAt) / 1000;
+        // }, 100);
       }
     };
   }

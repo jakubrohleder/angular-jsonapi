@@ -1,0 +1,164 @@
+<div class="ui padded segment">
+  <div
+    class="ui stackable grid"
+  >
+    <div class="four wide column" style="padding: 0;">
+      <small>Loading {{object.loadingCount}}:{{object.loading}} Saving {{object.savingCount}}:{{object.saving}}</small>
+      <h4 style="margin-bottom: 0; margin-top: 0;" clip-copy="object.data.id">{{object.toString()}}</h4>
+      <small>{{object.data.type}}:{{object.data.id}}</small>
+    </div>
+    <div class="twelve wide column">
+      <button
+        class="ui mini button"
+        ng-init="showMore = $parent.$first && !nested"
+        ng-click="showMore = !showMore"
+        ng-class="{yellow: showMore, olive: !showMore, disabled: object.removed}"
+      >
+        Show more
+      </button>
+      <button
+        ng-class="{disabled: object.removed}"
+        class="ui primary mini button"
+        clip-copy="object.data.id"
+      >
+        Copy ID
+      </button>
+      <button promise-button
+        ng-class="{disabled: object.removed}"
+        class="ui green mini button"
+        ng-click="object.refresh()"
+      >
+        Refresh
+      </button>
+      <button promise-button
+        ng-class="{disabled: object.removed}"
+        class="ui orange mini button"
+        ng-show="nested"
+        ng-click="unlink()"
+      >
+        Unlink
+      </button>
+      <button promise-button
+        ng-class="{disabled: object.removed}"
+        class="ui red mini button"
+        ng-click="object.remove()"
+        ng-hide="object.removed"
+      >
+        Remove
+      </button>
+      <button promise-button
+        ng-class="{red: !object.stable, green: object.stable}"
+        class="ui mini basic button"
+      >
+        Stable
+      </button>
+      <button promise-button
+        ng-class="{red: !object.saved, green: object.saved}"
+        class="ui mini basic button"
+      >
+        Saved
+      </button>
+
+      <div class="ui red basic mini right floated button" ng-hide="object.synchronized">Not synchronized</div>
+      <div
+        class="ui basic green mini right floated button"
+        ng-if="!showMore"
+        ng-show="object.synchronized"
+      >
+        Synchronized
+      </div>
+      <div
+        class="ui basic mini right floated button"
+        ng-if="showMore"
+        ng-show="object.synchronized"
+        ng-class="{
+          green: updateDiff <= 30,
+          yellow: updateDiff > 30 && updateDiff < 240,
+          red: updateDiff >= 240
+        }"
+      >
+        Synchronized {{updateDiff}} s. ago
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="showMore">
+    <div class="ui divider hidden"></div>
+    <error-message ng-show="object.error" data="object.errors"></error-message>
+
+    <div class="ui stackable grid">
+      <div class="eight wide column">
+        <div class="ui segment">
+          <h4>Data</h4>
+          <div
+            class="ui basic mini button"
+            style="position: absolute; top: 10px; right: 10px;"
+            ng-class="{purple: !showFormRelationships}"
+            ng-click="showFormRelationships = !showFormRelationships"
+          >
+            Show relationships
+          </div>
+          <div class="ui list">
+            <div class="item" ng-repeat="(attributeName, attributeValue) in object.data.attributes">
+              <div class="content">
+                <div class="header">{{attributeValue}}</div>
+                <div class="description">{{attributeName | toTitleCase}}</div>
+              </div>
+            </div>
+
+            <div class="item">
+              <div class="content">
+                <div class="header">Relationships</div>
+                <div class="description">
+                  <json-formatter json="object.data.relationships" open="0"></json-formatter>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="eight wide column">
+        <div class="ui segment" ng-class="{loading: !object.synchronized && object.saved}">
+          <h4>Form</h4>
+          <div
+            class="ui basic mini button"
+            style="position: absolute; top: 10px; right: 10px;"
+            ng-class="{purple: showFormRelationships}"
+            ng-click="showFormRelationships = !showFormRelationships"
+          >
+            Show relationships
+          </div>
+          <form class="ui small form">
+            <div class="field" ng-repeat="(attributeName, attributeValue) in object.form.data.attributes">
+              <label>{{attributeName | toTitleCase}}</label>
+              <input type="text" name="{{attributeName}}" ng-model="object.form.data.attributes[attributeName]">
+            </div>
+
+            <button promise-button
+              ng-class="{disabled: object.removed}"
+              class="ui blue mini button"
+              ng-click="object.save()"
+            >
+              Save
+            </button>
+
+            <button promise-button
+              ng-class="{disabled: object.removed}"
+              class="ui red mini button"
+              ng-click="object.reset()"
+            >
+              Reset
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="ui divider hidden"></div>
+
+    <angular-jsonapi-object-relationships ng-hide="showFormRelationships" data="object"></angular-jsonapi-object-relationships>
+    <angular-jsonapi-object-relationships ng-show="showFormRelationships" data="object.form"></angular-jsonapi-object-relationships>
+
+  </div>
+</div>
+<div ng-show="showMore" class="ui divider hidden"></div>

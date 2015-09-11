@@ -1,0 +1,60 @@
+<div class="ui padded segment" ng-repeat="(relationshipName, relationshipCollection) in object.relationships" ng-class="{red: form}">
+  <div class="ui stackable grid">
+    <div class="four wide column" style="padding-left:0">
+      <h4 style="margin-bottom: 0;" clip-copy="object.data.id">{{object.schema.relationships[relationshipName].model}}</h4>
+      <small ng-show="object.schema.relationships[relationshipName].polymorphic">polymorphic</small>
+    </div>
+    <div class="twelve wide column">
+      <angular-jsonapi-search
+        object="object"
+        key="relationshipName"
+        class="ui left floated"
+      ></angular-jsonapi-search>
+
+      <button
+        class="ui mini primary right floated button"
+        ui-sref="frame.request.all({type: object.schema.relationships[relationshipName].model})"
+      >
+        Go to {{object.schema.relationships[relationshipName].model}}
+      </button>
+    </div>
+  </div>
+
+  <div class="ui divider hidden"></div>
+
+  <div ng-show="object.saved === false && form === false">
+    <strong>Relationship data locked for new object</strong>
+    <div>This object is new, you can only add relationships to its form.</div>
+  </div>
+
+  <div ng-show="object.saved === true && relationshipCollection === undefined">
+    <strong>Relationship data undefined</strong>
+    <div>The relationship data hasn't been fetched yet, refresh the model to fetch it.</div>
+  </div>
+
+  <div ng-show="object.saved === true &&relationshipCollection === null">
+    <strong>Has one relationship null</strong>
+    <div>Set something as relationship object.</div>
+  </div>
+
+  <div ng-show="(object.saved === true || (object.parent.saved === false && form === true)) && isArray(relationshipCollection) && relationshipCollection.length === 0">
+    <strong>Has many relationship empty</strong>
+    <div>Add something to the relationship array.</div>
+  </div>
+
+  <angular-jsonapi-object
+    data="relationshipObject"
+    nested="true"
+    unlink="object.unlink(relationshipName, relationshipObject)"
+    ng-if="relationshipCollection !== undefined && isArray(relationshipCollection)"
+    ng-repeat="relationshipObject in relationshipCollection"
+  ></angular-jsonapi-object>
+
+  <angular-jsonapi-object
+    data="relationshipCollection"
+    nested="true"
+    unlink="object.unlink(relationshipName, relationshipCollection)"
+    ng-if="relationshipCollection !== undefined && !isArray(relationshipCollection) && relationshipCollection !== null"
+  ></angular-jsonapi-object>
+
+</div>

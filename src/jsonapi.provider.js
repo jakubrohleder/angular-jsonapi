@@ -6,26 +6,40 @@
 
   function jsonapiProvider() {
     var memory = {};
+    var names = [];
     this.$get = jsonapiFactory;
 
-    function jsonapiFactory($log, AngularJsonAPICollection) {
+    function jsonapiFactory($log, AngularJsonAPIFactory) {
       return {
         form: form,
         get: get,
         remove: remove,
         all: all,
-        addModel: addModel,
-        getModel: getModel,
-        clearAll: clearAll
+        addFactory: addFactory,
+        getFactory: getFactory,
+        clearCache: clearCache,
+        proccesResults: proccesResults,
+
+        allFactories: allFactories,
+        factoriesNames: factoriesNames
       };
 
-      function addModel(schema, synchronization) {
-        var collection = new AngularJsonAPICollection(schema, synchronization);
-
-        memory[schema.type] = collection;
+      function allFactories() {
+        return memory;
       }
 
-      function getModel(type) {
+      function factoriesNames() {
+        return names;
+      }
+
+      function addFactory(schema, synchronization) {
+        var factory = new AngularJsonAPIFactory(schema, synchronization);
+
+        memory[schema.type] = factory;
+        names.push(schema.type);
+      }
+
+      function getFactory(type) {
         return memory[type];
       }
 
@@ -34,7 +48,7 @@
           $log.error('Can\t add not existing object type: ' + type + '. Use initialize(Model, datas).');
         }
 
-        return memory[type].isNew.form;
+        return memory[type].saved.form;
       }
 
       function get(type, id) {
@@ -61,10 +75,43 @@
         return memory[type].all();
       }
 
-      function clearAll() {
-        angular.forEach(memory, function(collection) {
-          collection.clear();
+      function clearCache() {
+        angular.forEach(memory, function(factory) {
+          factory.clearCache();
         });
+      }
+
+      function proccesResults(results) {
+        var objects = {
+          data: [],
+          included: []
+        };
+
+        if (results === undefined) {
+          $log.error('Can\'t proccess results:', results);
+        }
+
+        var config = {
+          saved: true,
+          synchronized: true,
+          stable: true,
+          pristine: false,
+          initialization: false
+        };
+
+        angular.forEach(results.included, function(data) {
+          objects.included.push(getFactory(data.type).cache.addOrUpdate(data, config));
+        });
+
+        if (angular.isArray(results.data)) {
+          angular.forEach(results.data, function(data) {
+            objects.data.push(getFactory(data.type).cache.addOrUpdate(data, config));
+          });
+        } else {
+          objects.data.push(getFactory(results.data.type).cache.addOrUpdate(results.data, config));
+        }
+
+        return objects;
       }
     }
   }

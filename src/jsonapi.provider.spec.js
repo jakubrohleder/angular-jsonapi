@@ -1,12 +1,13 @@
 /*jshint expr: true*/
-'use strict';
+(function() {
+  'use strict';
 
-describe('$jsonapi provider', function() {
+  describe('$jsonapi', function() {
 
-  beforeEach(module('angular-jsonapi'));
+    beforeEach(module('angular-jsonapi'));
 
-  it('returns valid model', inject(function($jsonapi) {
-    expect($jsonapi).to.be.ok;
-  }));
-
-});
+    it('returns valid model', inject(function($jsonapi) {
+      expect($jsonapi).toBeDefined();
+    }));
+  });
+})();

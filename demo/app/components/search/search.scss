@@ -1,0 +1,13 @@
+.ui.search > .results {
+  display: block;
+}
+
+.ui.category.search > .results .category > .name {
+  @include word-wrap();
+}
+
+.ui.search > .results .result {
+  .description, .title {
+    @include ellipsis();
+  }
+}

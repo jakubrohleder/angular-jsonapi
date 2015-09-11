@@ -1,60 +1,83 @@
+
+
+<h3 class="h3">{{collection.type}}</h3>
+<small>Loading {{collection.loadingCount}}:{{collection.loading}}</small>
+
 <div class="row">
-  <div class="col-md-4"
-    style="padding-left:0"
+  <div class="ui mini icon input">
+    <input type="text" placeholder="Object ID" ng-model="getInput">
+    <i class="search icon"></i>
+  </div>
+
+  <button promise-button
+    class="ui button mini primary"
+    ng-click="collection.get(getInput)"
+  >Get</button>
+  <button promise-button
+    class="ui button mini green"
+    ng-click="collection.refresh()"
+  >Refresh</button>
+
+  <button
+    class="ui button mini yellow"
+    ng-click="add()"
+  >Add</button>
+
+  <div class="ui red basic mini right floated button" ng-hide="collection.synchronized">Synchronizing...</div>
+  <div
+    class="ui basic mini right floated button"
+    ng-show="collection.synchronized"
     ng-class="{
-      'ok': !collection.error && collection.loadingCount === 0,
-      'error': collection.error && collection.loadingCount === 0,
-      'loading': collection.loadingCount !== 0
-  }">
-    <span class="glyphicon glyphicon-spin glyphicon-refresh show-loading" aria-hidden="true"></span>
-    <span class="glyphicon glyphicon-remove show-error" aria-hidden="true"></span>
-    <span class="glyphicon glyphicon-ok show-ok" aria-hidden="true"></span>&nbsp;
-    <span class="h3">{{collection.Model.prototype.schema.type}}</span>
-  </div>
-  <div class="col-md-3">
-    <input class="form-control" ng-model="getInput">
-  </div>
-  <div class="col-md-5">
-    <button
-      class="btn btn-danger btn-xs"
-      ng-click="collection.clear()"
-    >Clear</button>
-    <button
-      class="btn btn-success btn-xs"
-      ng-click="collection.all()"
-    >All</button>
-    <button
-      class="btn btn-primary btn-xs"
-      ng-click="collection.get(getInput)"
-    >Get</button>
-  </div>
+      green: updateDiff <= 30,
+      yellow: updateDiff > 30 && updateDiff < 240,
+      red: updateDiff >= 240
+    }"
+  >Synchronized {{updateDiff}} s. ago</div>
 </div>
-<small>Updated {{updateDiff}} seconds from now</small>
-<br>
-<br>
-<div ng-repeat="object in collection.data" class="row" style="margin-bottom: 5px"
-  ng-class="{
-    'ok': !object.error && object.loadingCount === 0,
-    'error': object.error && object.loadingCount === 0,
-    'loading': object.loadingCount !== 0
-}">
-  <div class="col-md-4" style="padding-left:0">
-    <span class="glyphicon glyphicon-spin glyphicon-refresh show-loading" aria-hidden="true"></span>
-    <span class="glyphicon glyphicon-remove show-error" aria-hidden="true"></span>
-    <span class="glyphicon glyphicon-ok show-ok" aria-hidden="true"></span>
-    <small clip-copy="object.data.id">{{object.toString()}}</small>
+
+<div class="ui divider"></div>
+
+<error-message ng-show="collection.error" data="collection.errors"></error-message>
+
+<div ng-show="collection.error" class="ui divider hidden"></div>
+
+<div class="collection" ng-show="filteredObjects.length > 0">
+  <h3>New objects</h3>
+
+  <angular-jsonapi-object
+    nested="false"
+    data="object"
+    ng-repeat="object in filteredObjects = (newObjects | filter: {saved: false})"
+  ></angular-jsonapi-object>
+
+</div>
+
+
+<div class="collection">
+  <h3>All objects</h3>
+
+  <div
+    ng-show="collection.pristine && collection.loading"
+    class="ui large active text loader"
+  >
+    Loading collection for the first time
   </div>
-  <div class="col-md-8">
-    <button class="btn btn-default btn-xs pull-left" clip-copy="object.data.id">Copy ID</button>
-    <button
-      class="btn btn-danger btn-xs pull-left"
-      ng-click="collection.remove(object.data.id)"
-      style="margin-left: 5px"
-    >Remove</button>
-    <button
-      class="btn btn-success btn-xs pull-left"
-      ng-click="object.refresh()"
-      style="margin-left: 5px"
-    >Refresh</button>
+
+  <div
+    ng-show="collection.pristine && !collection.loading"
+    class="ui large active text loader"
+  >
+    Collection not synchronized, refresh it to fetch data
+  </div>
+
+  <angular-jsonapi-object
+    nested="false"
+    data="object"
+    ng-repeat="object in collection.data"
+  ></angular-jsonapi-object>
+
+  <div class="ui basic segment fixed bottom">
+    <div class="ui black button" ng-click="close()">Close all models</div>
+    <div class="ui grey button" ng-click="clear()">Clear cache</div>
   </div>
 </div>
