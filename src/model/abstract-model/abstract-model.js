@@ -680,7 +680,7 @@
   function __decrementLoadingCounter(object) {
     object = object === undefined ? this : object;
     object.loadingCount -= 1;
-    object.loading = object.loadingCount === 0;
+    object.loading = object.loadingCount > 0;
   }
 
   function __incrementSavingCounter(object) {
@@ -692,6 +692,6 @@
   function __decrementSavingCounter(object) {
     object = object === undefined ? this : object;
     object.savingCount -= 1;
-    object.saving = object.savingCount === 0;
+    object.saving = object.savingCount > 0;
   }
 })();

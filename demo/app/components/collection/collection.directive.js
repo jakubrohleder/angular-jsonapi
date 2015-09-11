@@ -33,7 +33,6 @@
         }
 
         function add() {
-          console.log($scope.newObjects);
           $scope.newObjects.push($scope.collection.factory.initialize());
         }
       }

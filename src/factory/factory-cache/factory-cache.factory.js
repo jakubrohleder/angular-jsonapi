@@ -159,7 +159,7 @@
     function index(params) {
       var _this = this;
 
-      $log.warn('Unused params', params);
+      $log.debug('Unused params', params);
 
       if (_this.indexIds === undefined) {
         return _this.indexIds;

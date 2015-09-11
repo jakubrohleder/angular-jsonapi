@@ -1283,7 +1283,7 @@
   function __decrementLoadingCounter(object) {
     object = object === undefined ? this : object;
     object.loadingCount -= 1;
-    object.loading = object.loadingCount === 0;
+    object.loading = object.loadingCount > 0;
   }
 
   function __incrementSavingCounter(object) {
@@ -1295,7 +1295,7 @@
   function __decrementSavingCounter(object) {
     object = object === undefined ? this : object;
     object.savingCount -= 1;
-    object.saving = object.savingCount === 0;
+    object.saving = object.savingCount > 0;
   }
 })();
 
@@ -1460,7 +1460,7 @@
     function index(params) {
       var _this = this;
 
-      $log.warn('Unused params', params);
+      $log.debug('Unused params', params);
 
       if (_this.indexIds === undefined) {
         return _this.indexIds;
@@ -2644,7 +2644,7 @@
   function __decrementLoadingCounter(object) {
     object = object === undefined ? this : object;
     object.loadingCount -= 1;
-    object.loading = object.loadingCount === 0;
+    object.loading = object.loadingCount > 0;
   }
 })();
 

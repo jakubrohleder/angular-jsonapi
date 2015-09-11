@@ -177,6 +177,6 @@
   function __decrementLoadingCounter(object) {
     object = object === undefined ? this : object;
     object.loadingCount -= 1;
-    object.loading = object.loadingCount === 0;
+    object.loading = object.loadingCount > 0;
   }
 })();

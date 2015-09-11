@@ -57,14 +57,14 @@
   <h3>All objects</h3>
 
   <div
-    ng-show="!collection.synchronized && collection.data === undefined"
+    ng-show="collection.pristine && collection.loading"
     class="ui large active text loader"
   >
     Loading collection for the first time
   </div>
 
   <div
-    ng-show="collection.synchronized && collection.data === undefined"
+    ng-show="collection.pristine && !collection.loading"
     class="ui large active text loader"
   >
     Collection not synchronized, refresh it to fetch data
