@@ -4,7 +4,7 @@
   angular.module('angularJsonapiExample')
     .run(logEvents);
 
-  function logEvents($rootScope) {
+  function logEvents($rootScope, $jsonapi) {
     var events = [
       'factory:init',
       'factory:clearCache',
@@ -21,17 +21,7 @@
       'collection:fetch'
     ];
 
-    var factories = [
-      'jobs',
-      'laserGuns',
-      'locations',
-      'planets',
-      'powerArmors',
-      'robotModels',
-      'robots',
-      'spaceshipModels',
-      'spaceships'
-    ];
+    var factories = $jsonapi.factoriesNames();
     angular.forEach(events, function(eventName) {
       angular.forEach(factories, function(factoryName) {
         logOnEvent(eventName, factoryName);

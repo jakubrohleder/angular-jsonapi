@@ -15,9 +15,7 @@
     ngClipProvider.setPath('bower_components/zeroclipboard/dist/ZeroClipboard.swf');
   })
   .config(function($stateProvider, $urlRouterProvider) {
-    var types = ['jobs', 'laserGuns', 'locations', 'planets', 'powerArmors', 'robotModels', 'robots', 'spaceshipModels', 'spaceships'];
     var uuid4Regex = '[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}';
-    var typeRegex = types.join('|');
 
     $stateProvider
       .state('frame', {
@@ -31,7 +29,7 @@
         templateUrl: 'app/frame/hello.html'
       })
       .state('frame.request', {
-        url: '/{type:' + typeRegex + '}',
+        url: '/{type}',
         template: '<ui-view></ui-view>',
         controller: 'RequestCtrl',
         abstract: true,
