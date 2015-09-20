@@ -5,7 +5,8 @@
   "dependencies": {
     "angular": "1.4.x",
     "angular-uuid4": "~0.3.0",
-    "pluralize": "~1.1.5"
+    "pluralize": "~1.1.5",
+    "validate": "~0.8.0"
   },
   "ignore": [
     "demo/"
