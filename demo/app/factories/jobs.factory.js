@@ -12,8 +12,8 @@
       type: 'jobs',
       id: 'uuid4',
       attributes: {
-        name: 'string',
-        salary: 'number'
+        name: {presence: true, length: {maximum: 20, minimum: 3}},
+        salary: {presence: true, numericality: {onlyInteger: true}}
       },
       relationships: {
         robots: {

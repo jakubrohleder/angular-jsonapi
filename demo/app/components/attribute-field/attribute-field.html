@@ -1,0 +1,18 @@
+<div class="field" ng-class="{
+  error: object.errors.validation[key].length > 0,
+  success: object.errors.validation[key] === undefined || object.errors.validation[key].length === 0
+}">
+  <label>{{key | toTitleCase}}</label>
+  <input type="text"
+    name="{{key}}"
+    ng-model="object.form.data.attributes[key]"
+    ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 500, 'blur': 0 } }"
+    ng-change="object.form.validate()"
+  >
+
+  <div class="ui error message" ng-show="object.errors.validation[key].length > 0">
+    <ul class="list">
+      <li ng-repeat="errorMessage in object.errors.validation[key]">{{errorMessage}}</li>
+    </ul>
+  </div>
+</div>

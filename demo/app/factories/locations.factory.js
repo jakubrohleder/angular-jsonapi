@@ -12,8 +12,8 @@
       type: 'locations',
       id: 'uuid4',
       attributes: {
-        cordsX: 'number',
-        cordsY: 'number'
+        cordsX: {presence: true, numericality: {onlyInteger: true}},
+        cordsY: {presence: true, numericality: {onlyInteger: true}}
       },
       relationships: {
         planet: {

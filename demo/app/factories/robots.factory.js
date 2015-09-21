@@ -12,10 +12,10 @@
       type: 'robots',
       id: 'uuid4',
       attributes: {
-        nameFirst: 'string',
-        nameLast: 'string',
-        creationDate: 'date',
-        pictureUrl: 'string'
+        nameFirst: {presence: true, length: {maximum: 20, minimum: 3}},
+        nameLast: {presence: true, length: {maximum: 20, minimum: 3}},
+        creationDate: {datetime: true},
+        pictureUrl: {presence: true}
       },
       relationships: {
         location: {

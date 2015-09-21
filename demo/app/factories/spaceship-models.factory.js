@@ -12,11 +12,11 @@
       type: 'spaceshipModels',
       id: 'uuid4',
       attributes: {
-        name: 'string',
-        code: 'string',
-        speed: 'number',
-        cargo: 'number',
-        type: 'string'
+        name: {presence: true, length: {maximum: 20, minimum: 3}},
+        code: {presence: true, length: {maximum: 20, minimum: 3}},
+        speed: {presence: true, numericality: {onlyInteger: true}},
+        cargo: {presence: true, numericality: {onlyInteger: true}},
+        type: {presence: true, length: {maximum: 20, minimum: 3}}
       },
       relationships: {
         spaceships: {

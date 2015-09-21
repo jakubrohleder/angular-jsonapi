@@ -12,8 +12,8 @@
       type: 'robotModels',
       id: 'uuid4',
       attributes: {
-        name: 'string',
-        code: 'string'
+        name: {presence: true, length: {maximum: 20, minimum: 3}},
+        code: {presence: true, length: {maximum: 20, minimum: 3}}
       },
       relationships: {
         robots: {

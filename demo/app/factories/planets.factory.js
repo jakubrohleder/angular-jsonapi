@@ -12,11 +12,11 @@
       type: 'planets',
       id: 'uuid4',
       attributes: {
-        name: 'string',
-        cordsX: 'number',
-        cordsY: 'number',
-        cordsZ: 'number',
-        size: 'number'
+        name: {presence: true, length: {maximum: 20, minimum: 3}},
+        cordsX: {presence: true, numericality: {onlyInteger: true}},
+        cordsY: {presence: true, numericality: {onlyInteger: true}},
+        cordsZ: {presence: true, numericality: {onlyInteger: true}},
+        size: {presence: true, numericality: {onlyInteger: true}}
       },
       relationships: {
         locations: {

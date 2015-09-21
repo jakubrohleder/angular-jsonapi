@@ -111,12 +111,17 @@
         _this.synchronize(config)
           .then(resolve, reject, notify)
           .finally(__decrementSavingCounter.bind(_this)),
-        deferred.reject
+        invalidate
       );
 
       __incrementSavingCounter(_this);
 
       return deferred.promise;
+
+      function invalidate() {
+        __decrementSavingCounter(_this);
+        deferred.reject();
+      }
 
       function resolve(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response, addToIndex);

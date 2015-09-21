@@ -4,106 +4,29 @@
   angular.module('angular-jsonapi', ['uuid4'])
   /* global pluralize: false, validate: false */
   .constant('pluralize', pluralize)
-  .constant('validate', validate);
+  .constant('validateJS', validate);
 })();
 
 (function() {
   'use strict';
 
   angular.module('angular-jsonapi')
-  .service('AngularJsonAPIModelValidatorService', AngularJsonAPIModelValidatorService);
+  .factory('AngularJsonAPIModelValidationErrors', AngularJsonAPIModelValidationErrorsWrapper);
 
-  function AngularJsonAPIModelValidatorService(
-    $q
-  ) {
-    var _this = this;
-    _this.validateForm = validateForm;
-    _this.validateField = validateField;
+  function AngularJsonAPIModelValidationErrorsWrapper() {
+    ValidationErrors.prototype = Object.create(Error.prototype);
+    ValidationErrors.prototype.constructor = ValidationErrors;
 
-    return this;
+    return ValidationErrors;
 
-    /**
-     * Validates form
-     * @param  {object} data Form data
-     * @return {object} Errors object indexed by keys
-     */
-    function validateForm(schema, data) {
-      var _this = this;
-
-      return $q.resolve({});
+    function ValidationErrors(errors, options, attributes, constraints) {
+      Error.captureStackTrace(this, this.constructor);
+      this.errors = errors;
+      this.options = options;
+      this.attributes = attributes;
+      this.constraints = constraints;
     }
-
-    /**
-     * Validates single field
-     * @param  {string} key Field key
-     * @return {array}     Errors array
-     */
-    function validateField(schema, key) {
-      var _this = this;
-
-      return $q.resolve([]);
-    }
-
-    // function __validate(validator, attributeValue, attributeName) {
-    //   var errors = [];
-    //   if (angular.isArray(validator)) {
-    //     angular.forEach(validator, function(element) {
-    //       errors = errors.concat(__validate(element, attributeValue, attributeName));
-    //     });
-    //   } else if (angular.isFunction(validator)) {
-    //     var err = validator(attributeValue, attributeName);
-    //     if (angular.isArray(err)) {
-    //       errors.concat(err);
-    //     } else {
-    //       $log.error(
-    //         'Wrong validator type it should return array of errors instead of: ' +
-    //           err.toString()
-    //       );
-    //     }
-    //   } else if (angular.isString(validator)) {
-    //     if (validator === 'text' || validator === 'string') {
-    //       if (!angular.isString(attributeValue)) {
-    //         errors.push(attributeName + ' is not a string ');
-    //       }
-    //     } else if (validator === 'number' || validator === 'integer') {
-    //       if (parseInt(attributeValue).toString() !== attributeValue.toString()) {
-    //         errors.push(attributeName + ' is not a number');
-    //       }
-    //     } else if (validator === 'uuid4') {
-    //       if (!uuid4.validate(attributeValue)) {
-    //         errors.push(attributeName + ' is not a uuid4');
-    //       }
-    //     } else if (validator === 'required') {
-    //       if (attributeValue.toString().length === 0) {
-    //         errors.push(attributeName + ' is empty');
-    //       }
-    //     } else {
-    //       $log.error('Wrong validator type: ' + validator.toString());
-    //     }
-    //   } else if (angular.isObject(validator)) {
-    //     if (validator.maxlength !== undefined && attributeValue.length > validator.maxlength) {
-    //       errors.push(attributeName + ' is too long max ' + validator.maxlength);
-    //     }
-
-    //     if (validator.minlength !== undefined && attributeValue.length < validator.minlength) {
-    //       errors.push(attributeName + ' is too short min ' + validator.minlength);
-    //     }
-
-    //     if (validator.maxvalue !== undefined && parseInt(attributeValue) > validator.maxvalue) {
-    //       errors.push(attributeName + ' is too big max ' + validator.maxvalue);
-    //     }
-
-    //     if (validator.minvalue !== undefined && parseInt(attributeValue) < validator.minvalue) {
-    //       errors.push(attributeName + ' is too small min ' + validator.minvalue);
-    //     }
-    //   } else {
-    //     $log.error('Wrong validator type: ' + validator.toString());
-    //   }
-
-    //   return errors;
-    // }
   }
-  AngularJsonAPIModelValidatorService.$inject = ["$q"];
 })();
 
 (function() {
@@ -441,15 +364,15 @@
   .factory('AngularJsonAPIModelForm', AngularJsonAPIModelFormWrapper);
 
   function AngularJsonAPIModelFormWrapper(
-    AngularJsonAPIModelValidatorService,
+    AngularJsonAPIModelValidationErrors,
     AngularJsonAPIModelLinkerService,
+    validateJS,
     $q
   ) {
 
     AngularJsonAPIModelForm.prototype.save = save;
     AngularJsonAPIModelForm.prototype.reset = reset;
     AngularJsonAPIModelForm.prototype.validate = validate;
-    AngularJsonAPIModelForm.prototype.validateField = validateField;
 
     AngularJsonAPIModelForm.prototype.link = link;
     AngularJsonAPIModelForm.prototype.unlink = unlink;
@@ -527,7 +450,7 @@
       }
 
       angular.forEach(_this.schema.attributes, function(validator, key) {
-        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]) || '';
+        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]);
       });
 
       _this.errors = {
@@ -537,38 +460,50 @@
 
     /**
      * Validates form
-     * @return {promise} Promise rejected to errors object indexed by keys
+     * @return {promise} Promise rejected to errors object indexed by keys. If the
+     * key param i stated it only validates an attribute, else all attributes.
      */
-    function validate() {
+    function validate(key) {
       var _this = this;
+      var attributesWrapper;
+      var constraintsWrapper;
       var deferred = $q.defer();
 
-      AngularJsonAPIModelValidatorService.validateForm(_this.data).then(deferred.resolve, reject);
+      if (key === undefined) {
+        attributesWrapper = _this.data.attributes;
+        constraintsWrapper = _this.schema.attributes;
+      } else {
+        attributesWrapper = {};
+        constraintsWrapper = {};
 
-      function reject(erorrs) {
-        _this.errors.validation = erorrs;
-
-        deferred.reject(erorrs);
+        attributesWrapper[key] = _this.data.attributes[key];
+        constraintsWrapper[key] = _this.schema.attributes[key];
       }
 
-      return deferred.promise;
-    }
+      validateJS.async(
+        attributesWrapper,
+        constraintsWrapper,
+        {wrapErrors: AngularJsonAPIModelValidationErrors}
+      ).then(resolve, reject);
 
-    /**
-     * Validates single field
-     * @param  {string} key Field key
-     * @return {promise} Promise rejected to errors array
-     */
-    function validateField(key) {
-      var _this = this;
-      var deferred = $q.defer();
+      function resolve() {
+        // TODO make it better
+        if (key === undefined) {
+          _this.parent.errors.validation = {};
+          _this.parent.error = false;
+        } else {
+          _this.parent.errors.validation[key] = [];
+          _this.parent.error = false;
+        }
 
-      AngularJsonAPIModelValidatorService.validateForm(_this.data[key], key).then(deferred.resolve, reject);
+        deferred.resolve();
+      }
 
-      function reject(erorrs) {
-        _this.errors.validation[key] = erorrs;
+      function reject(errorsWrapper) {
+        _this.parent.error = true;
+        angular.extend(_this.parent.errors.validation, errorsWrapper.errors);
 
-        deferred.reject(erorrs);
+        deferred.reject(errorsWrapper);
       }
 
       return deferred.promise;
@@ -598,7 +533,7 @@
       return $q.resolve(AngularJsonAPIModelLinkerService.unlink(_this, key, target, true));
     }
   }
-  AngularJsonAPIModelFormWrapper.$inject = ["AngularJsonAPIModelValidatorService", "AngularJsonAPIModelLinkerService", "$q"];
+  AngularJsonAPIModelFormWrapper.$inject = ["AngularJsonAPIModelValidationErrors", "AngularJsonAPIModelLinkerService", "validateJS", "$q"];
 })();
 
 (function() {
@@ -714,12 +649,17 @@
         _this.synchronize(config)
           .then(resolve, reject, notify)
           .finally(__decrementSavingCounter.bind(_this)),
-        deferred.reject
+        invalidate
       );
 
       __incrementSavingCounter(_this);
 
       return deferred.promise;
+
+      function invalidate() {
+        __decrementSavingCounter(_this);
+        deferred.reject();
+      }
 
       function resolve(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response, addToIndex);
@@ -2777,6 +2717,9 @@
   angular.module('angular-jsonapi')
   .config(["$logProvider", function($logProvider) {
     $logProvider.debugEnabled(false);
+  }])
+  .run(["validateJS", "$q", function(validateJS, $q) {
+    validateJS.Promise = $q;
   }]);
 })();
 

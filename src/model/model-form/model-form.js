@@ -5,15 +5,15 @@
   .factory('AngularJsonAPIModelForm', AngularJsonAPIModelFormWrapper);
 
   function AngularJsonAPIModelFormWrapper(
-    AngularJsonAPIModelValidatorService,
+    AngularJsonAPIModelValidationErrors,
     AngularJsonAPIModelLinkerService,
+    validateJS,
     $q
   ) {
 
     AngularJsonAPIModelForm.prototype.save = save;
     AngularJsonAPIModelForm.prototype.reset = reset;
     AngularJsonAPIModelForm.prototype.validate = validate;
-    AngularJsonAPIModelForm.prototype.validateField = validateField;
 
     AngularJsonAPIModelForm.prototype.link = link;
     AngularJsonAPIModelForm.prototype.unlink = unlink;
@@ -91,7 +91,7 @@
       }
 
       angular.forEach(_this.schema.attributes, function(validator, key) {
-        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]) || '';
+        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]);
       });
 
       _this.errors = {
@@ -101,38 +101,50 @@
 
     /**
      * Validates form
-     * @return {promise} Promise rejected to errors object indexed by keys
+     * @return {promise} Promise rejected to errors object indexed by keys. If the
+     * key param i stated it only validates an attribute, else all attributes.
      */
-    function validate() {
+    function validate(key) {
       var _this = this;
+      var attributesWrapper;
+      var constraintsWrapper;
       var deferred = $q.defer();
 
-      AngularJsonAPIModelValidatorService.validateForm(_this.data).then(deferred.resolve, reject);
+      if (key === undefined) {
+        attributesWrapper = _this.data.attributes;
+        constraintsWrapper = _this.schema.attributes;
+      } else {
+        attributesWrapper = {};
+        constraintsWrapper = {};
 
-      function reject(erorrs) {
-        _this.errors.validation = erorrs;
-
-        deferred.reject(erorrs);
+        attributesWrapper[key] = _this.data.attributes[key];
+        constraintsWrapper[key] = _this.schema.attributes[key];
       }
 
-      return deferred.promise;
-    }
+      validateJS.async(
+        attributesWrapper,
+        constraintsWrapper,
+        {wrapErrors: AngularJsonAPIModelValidationErrors}
+      ).then(resolve, reject);
 
-    /**
-     * Validates single field
-     * @param  {string} key Field key
-     * @return {promise} Promise rejected to errors array
-     */
-    function validateField(key) {
-      var _this = this;
-      var deferred = $q.defer();
+      function resolve() {
+        // TODO make it better
+        if (key === undefined) {
+          _this.parent.errors.validation = {};
+          _this.parent.error = false;
+        } else {
+          _this.parent.errors.validation[key] = [];
+          _this.parent.error = false;
+        }
 
-      AngularJsonAPIModelValidatorService.validateForm(_this.data[key], key).then(deferred.resolve, reject);
+        deferred.resolve();
+      }
 
-      function reject(erorrs) {
-        _this.errors.validation[key] = erorrs;
+      function reject(errorsWrapper) {
+        _this.parent.error = true;
+        angular.extend(_this.parent.errors.validation, errorsWrapper.errors);
 
-        deferred.reject(erorrs);
+        deferred.reject(errorsWrapper);
       }
 
       return deferred.promise;

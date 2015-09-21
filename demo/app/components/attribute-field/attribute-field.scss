@@ -1,0 +1,13 @@
+.ui.form .field.success .input, .ui.form .field.success label,
+.ui.form .fields.success .field .input,
+.ui.form .fields.success .field label {
+ color: #1a531b;
+}
+
+.ui.form .field.success input:not([type]), .ui.form .field.success input[type=text], .ui.form .field.success input[type=email], .ui.form .field.success input[type=search], .ui.form .field.success input[type=password], .ui.form .field.success input[type=date], .ui.form .field.success input[type=datetime-local], .ui.form .field.success input[type=tel], .ui.form .field.success input[type=time], .ui.form .field.success input[type=url], .ui.form .field.success input[type=number], .ui.form .field.success select, .ui.form .field.success textarea, .ui.form .fields.success .field input:not([type]), .ui.form .fields.success .field input[type=text], .ui.form .fields.success .field input[type=email], .ui.form .fields.success .field input[type=search], .ui.form .fields.success .field input[type=password], .ui.form .fields.success .field input[type=date], .ui.form .fields.success .field input[type=datetime-local], .ui.form .fields.success .field input[type=tel], .ui.form .fields.success .field input[type=time], .ui.form .fields.success .field input[type=url], .ui.form .fields.success .field input[type=number], .ui.form .fields.success .field select, .ui.form .fields.success .field textarea {
+    background: #fcfff5;
+    border-color: #a3c293;
+    color: #2c662d;
+    border-radius: '';
+    box-shadow: none;
+}

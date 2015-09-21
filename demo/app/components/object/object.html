@@ -128,11 +128,15 @@
           >
             Show relationships
           </div>
-          <form class="ui small form">
-            <div class="field" ng-repeat="(attributeName, attributeValue) in object.form.data.attributes">
-              <label>{{attributeName | toTitleCase}}</label>
-              <input type="text" name="{{attributeName}}" ng-model="object.form.data.attributes[attributeName]">
-            </div>
+          <form class="ui small form" ng-class="{error: object.error}">
+            <div
+              attribute-field
+              key="attributeKey"
+              object="object"
+              ng-repeat="(attributeKey, attributeValue) in object.form.data.attributes"
+            ></div>
+
+            <div class="ui divider hidden"></div>
 
             <button promise-button
               ng-class="{disabled: object.removed}"

@@ -12,9 +12,9 @@
       type: 'spaceships',
       id: 'uuid4',
       attributes: {
-        name: 'string',
-        durability: 'number',
-        quality: 'number'
+        name: {presence: true, length: {maximum: 20, minimum: 3}},
+        durability: {presence: true, numericality: {onlyInteger: true}},
+        quality: {presence: true, numericality: {onlyInteger: true}}
       },
       relationships: {
         pilot: {
