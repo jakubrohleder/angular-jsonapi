@@ -84,7 +84,10 @@
 
   <div ng-if="showMore">
     <div class="ui divider hidden"></div>
-    <error-message ng-show="object.error" data="object.errors"></error-message>
+    <div ng-show="object.hasErrors()">
+      <error-message data="object.errors"></error-message>
+      <div class="ui divider hidden"></div>
+    </div>
 
     <div class="ui stackable grid">
       <div class="eight wide column">

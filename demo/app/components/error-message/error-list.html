@@ -1,15 +1,21 @@
 <div class="ui list">
-  <div class="item" ng-repeat="errorCategory in errors">
+  <div class="item" ng-repeat="errorManager in errors track by errorManager.name" ng-show="errorManager.hasErrors()">
     <i class="thumbs outline down icon"></i>
     <div class="content">
-      <div class="header">{{errorCategory.name}}</div>
-      <div class="description">{{errorCategory.description}}</div>
+      <div class="header">{{errorManager.name}}</div>
+      <div class="description">{{errorManager.description}}</div>
       <div class="list">
-        <div class="item" ng-repeat="error in errorCategory.errors">
-          <i class="warning icon"></i>
+        <div class="item" ng-repeat="(key, errors) in errorManager.errors" ng-show="errorManager.hasErrors(key)">
           <div class="content">
-            <div class="header">{{error.statusText}}</div>
-            <div class="description">Numeric status: {{error.status}}</div>
+            <div class="header">{{key}}</div>
+            <div class="list">
+              <div class="item" ng-repeat="error in errors">
+                <i class="warning icon"></i>
+                <div class="content">
+                  <div class="description">{{error.message}}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

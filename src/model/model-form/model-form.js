@@ -5,7 +5,7 @@
   .factory('AngularJsonAPIModelForm', AngularJsonAPIModelFormWrapper);
 
   function AngularJsonAPIModelFormWrapper(
-    AngularJsonAPIModelValidationErrors,
+    AngularJsonAPIModelValidationError,
     AngularJsonAPIModelLinkerService,
     validateJS,
     $q
@@ -94,9 +94,7 @@
         _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]);
       });
 
-      _this.errors = {
-        validation: {}
-      };
+      _this.parent.errors.validation.clear();
     }
 
     /**
@@ -123,28 +121,34 @@
 
       validateJS.async(
         attributesWrapper,
-        constraintsWrapper,
-        {wrapErrors: AngularJsonAPIModelValidationErrors}
+        constraintsWrapper
       ).then(resolve, reject);
 
       function resolve() {
-        // TODO make it better
         if (key === undefined) {
-          _this.parent.errors.validation = {};
-          _this.parent.error = false;
+          _this.parent.errors.validation.clear();
         } else {
-          _this.parent.errors.validation[key] = [];
-          _this.parent.error = false;
+          _this.parent.errors.validation.clear(key);
         }
 
         deferred.resolve();
       }
 
-      function reject(errorsWrapper) {
+      function reject(errorsMap) {
         _this.parent.error = true;
-        angular.extend(_this.parent.errors.validation, errorsWrapper.errors);
+        if (key === undefined) {
+          _this.parent.errors.validation.clear();
+        } else {
+          _this.parent.errors.validation.clear(key);
+        }
 
-        deferred.reject(errorsWrapper);
+        angular.forEach(errorsMap, function(errors, attribute) {
+          angular.forEach(errors, function(error) {
+            _this.parent.errors.validation.add(attribute, error, attribute);
+          });
+        });
+
+        deferred.reject(_this.parent.errors.validation);
       }
 
       return deferred.promise;

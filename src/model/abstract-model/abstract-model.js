@@ -5,8 +5,11 @@
   .factory('AngularJsonAPIAbstractModel', AngularJsonAPIAbstractModelWrapper);
 
   function AngularJsonAPIAbstractModelWrapper(
-    AngularJsonAPIModelForm,
+    AngularJsonAPIModelSynchronizationError,
+    AngularJsonAPIModelValidationError,
+    AngularJsonAPIModelErrorsManager,
     AngularJsonAPIModelLinkerService,
+    AngularJsonAPIModelForm,
     uuid4,
     $rootScope,
     $injector,
@@ -25,6 +28,8 @@
     AngularJsonAPIAbstractModel.prototype.unlinkAll = unlinkAll;
 
     AngularJsonAPIAbstractModel.prototype.toJson = toJson;
+
+    AngularJsonAPIAbstractModel.prototype.hasErrors = hasErrors;
 
     return AngularJsonAPIAbstractModel;
 
@@ -63,7 +68,6 @@
       _this.pristine = config.pristine === undefined ? true : config.pristine;
 
       _this.removed = false;
-      _this.error = false;
       _this.loading = false;
       _this.saving = false;
       _this.updatedAt = _this.synchronized === true ? Date.now() : updatedAt;
@@ -82,8 +86,16 @@
       });
 
       _this.errors = {
-        validation: {},
-        synchronization: {}
+        validation: new AngularJsonAPIModelErrorsManager(
+          'Validation',
+          'Errors of attributes validation',
+          AngularJsonAPIModelValidationError
+        ),
+        synchronization: new AngularJsonAPIModelErrorsManager(
+          'Synchronization',
+          'Errors of synchronizations',
+          AngularJsonAPIModelSynchronizationError
+        )
       };
 
       _this.promises = {};
@@ -97,15 +109,13 @@
      * Saves model's form
      * @return {promise} Promise associated with synchronization that resolves to this
      */
-    function save(addToIndex) {
+    function save() {
       var _this = this;
       var deferred = $q.defer();
       var config = {
         action: _this.saved === false ? 'add' : 'update',
         object: _this
       };
-
-      addToIndex = addToIndex === undefined ? true : addToIndex;
 
       _this.form.validate().then(
         _this.synchronize(config)
@@ -124,10 +134,10 @@
       }
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response, addToIndex);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response);
         _this.update(_this.form.data);
 
-        if (_this.saved === false && addToIndex === true) {
+        if (_this.saved === false) {
           _this.factory.cache.indexIds = _this.factory.cache.indexIds || [];
           _this.factory.cache.indexIds.push(_this.data.id);
         }
@@ -362,7 +372,7 @@
 
         target.synchronize(config)
           .then(resolve, reject, notify)
-          .__decrementLoadingCounter.bind(target);
+          .finally(__decrementLoadingCounter.bind(target));
 
         function resolve(response) {
           $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'resolve', _this, response);
@@ -564,6 +574,21 @@
       _this.updatedAt = Date.now();
 
       __decrementLoadingCounter(_this);
+    }
+
+    /**
+     * Check if the object has errors
+     * @return {Boolean}
+     */
+    function hasErrors() {
+      var _this = this;
+      var answer = false;
+
+      angular.forEach(_this.errors, function(error) {
+        answer = error.hasErrors() || answer;
+      });
+
+      return answer;
     }
 
     /////////////

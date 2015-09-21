@@ -5,6 +5,8 @@
   .factory('AngularJsonAPICollection', AngularJsonAPICollectionWrapper);
 
   function AngularJsonAPICollectionWrapper(
+    AngularJsonAPIModelSynchronizationError,
+    AngularJsonAPIModelErrorsManager,
     $rootScope,
     $injector,
     $q
@@ -29,16 +31,15 @@
       _this.params = params;
 
       _this.errors = {
-        synchronization: {
-          name: 'Synchronization',
-          description: 'Errors during synchronization',
-          errors: []
-        }
+        synchronization: new AngularJsonAPIModelErrorsManager(
+          'Synchronization',
+          'Errors of synchronizations',
+          AngularJsonAPIModelSynchronizationError
+        )
       };
 
       _this.data = _this.factory.cache.index(_this.params);
 
-      _this.error = false;
       _this.loading = false;
       _this.loadingCount = 0;
       _this.synchronized = false;
@@ -46,7 +47,7 @@
 
       $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
       $rootScope.$on('angularJsonAPI:' + _this.type + ':factory:clearCache', clear);
-      $rootScope.$on('angularJsonAPI:' + _this.type + ':factory:add', add);
+      $rootScope.$on('angularJsonAPI:' + _this.type + ':object:add', add);
 
       function remove(event, status, object) {
         var index;
@@ -65,8 +66,8 @@
         _this.pristine = true;
       }
 
-      function add(event, status, object, response, addToIndex) {
-        if (addToIndex === true && status === 'resolved') {
+      function add(event, status, object) {
+        if (status === 'resolved') {
           _this.data = _this.data || [];
           _this.data.push(object);
         }
@@ -115,8 +116,6 @@
         angular.forEach(_this.data, __decrementLoadingCounter);
 
         _this.data = results.data;
-        _this.errors.synchronization.errors = [];
-        _this.error = false;
 
         _this.updatedAt = Date.now();
         _this.synchronized = true;
@@ -152,9 +151,6 @@
         $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'rejected', _this, response);
 
         angular.forEach(_this.data, __decrementLoadingCounter);
-        _this.errors.synchronization.errors = response.errors;
-        _this.error = true;
-
         response.finish();
 
         deferred.reject(response);

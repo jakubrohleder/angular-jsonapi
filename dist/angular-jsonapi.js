@@ -11,28 +11,6 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIModelValidationErrors', AngularJsonAPIModelValidationErrorsWrapper);
-
-  function AngularJsonAPIModelValidationErrorsWrapper() {
-    ValidationErrors.prototype = Object.create(Error.prototype);
-    ValidationErrors.prototype.constructor = ValidationErrors;
-
-    return ValidationErrors;
-
-    function ValidationErrors(errors, options, attributes, constraints) {
-      Error.captureStackTrace(this, this.constructor);
-      this.errors = errors;
-      this.options = options;
-      this.attributes = attributes;
-      this.constraints = constraints;
-    }
-  }
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
   .service('AngularJsonAPIModelLinkerService', AngularJsonAPIModelLinkerService);
 
   function AngularJsonAPIModelLinkerService($log) {
@@ -364,7 +342,7 @@
   .factory('AngularJsonAPIModelForm', AngularJsonAPIModelFormWrapper);
 
   function AngularJsonAPIModelFormWrapper(
-    AngularJsonAPIModelValidationErrors,
+    AngularJsonAPIModelValidationError,
     AngularJsonAPIModelLinkerService,
     validateJS,
     $q
@@ -453,9 +431,7 @@
         _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]);
       });
 
-      _this.errors = {
-        validation: {}
-      };
+      _this.parent.errors.validation.clear();
     }
 
     /**
@@ -482,28 +458,34 @@
 
       validateJS.async(
         attributesWrapper,
-        constraintsWrapper,
-        {wrapErrors: AngularJsonAPIModelValidationErrors}
+        constraintsWrapper
       ).then(resolve, reject);
 
       function resolve() {
-        // TODO make it better
         if (key === undefined) {
-          _this.parent.errors.validation = {};
-          _this.parent.error = false;
+          _this.parent.errors.validation.clear();
         } else {
-          _this.parent.errors.validation[key] = [];
-          _this.parent.error = false;
+          _this.parent.errors.validation.clear(key);
         }
 
         deferred.resolve();
       }
 
-      function reject(errorsWrapper) {
+      function reject(errorsMap) {
         _this.parent.error = true;
-        angular.extend(_this.parent.errors.validation, errorsWrapper.errors);
+        if (key === undefined) {
+          _this.parent.errors.validation.clear();
+        } else {
+          _this.parent.errors.validation.clear(key);
+        }
 
-        deferred.reject(errorsWrapper);
+        angular.forEach(errorsMap, function(errors, attribute) {
+          angular.forEach(errors, function(error) {
+            _this.parent.errors.validation.add(attribute, error, attribute);
+          });
+        });
+
+        deferred.reject(_this.parent.errors.validation);
       }
 
       return deferred.promise;
@@ -533,7 +515,7 @@
       return $q.resolve(AngularJsonAPIModelLinkerService.unlink(_this, key, target, true));
     }
   }
-  AngularJsonAPIModelFormWrapper.$inject = ["AngularJsonAPIModelValidationErrors", "AngularJsonAPIModelLinkerService", "validateJS", "$q"];
+  AngularJsonAPIModelFormWrapper.$inject = ["AngularJsonAPIModelValidationError", "AngularJsonAPIModelLinkerService", "validateJS", "$q"];
 })();
 
 (function() {
@@ -543,8 +525,11 @@
   .factory('AngularJsonAPIAbstractModel', AngularJsonAPIAbstractModelWrapper);
 
   function AngularJsonAPIAbstractModelWrapper(
-    AngularJsonAPIModelForm,
+    AngularJsonAPIModelSynchronizationError,
+    AngularJsonAPIModelValidationError,
+    AngularJsonAPIModelErrorsManager,
     AngularJsonAPIModelLinkerService,
+    AngularJsonAPIModelForm,
     uuid4,
     $rootScope,
     $injector,
@@ -563,6 +548,8 @@
     AngularJsonAPIAbstractModel.prototype.unlinkAll = unlinkAll;
 
     AngularJsonAPIAbstractModel.prototype.toJson = toJson;
+
+    AngularJsonAPIAbstractModel.prototype.hasErrors = hasErrors;
 
     return AngularJsonAPIAbstractModel;
 
@@ -601,7 +588,6 @@
       _this.pristine = config.pristine === undefined ? true : config.pristine;
 
       _this.removed = false;
-      _this.error = false;
       _this.loading = false;
       _this.saving = false;
       _this.updatedAt = _this.synchronized === true ? Date.now() : updatedAt;
@@ -620,8 +606,16 @@
       });
 
       _this.errors = {
-        validation: {},
-        synchronization: {}
+        validation: new AngularJsonAPIModelErrorsManager(
+          'Validation',
+          'Errors of attributes validation',
+          AngularJsonAPIModelValidationError
+        ),
+        synchronization: new AngularJsonAPIModelErrorsManager(
+          'Synchronization',
+          'Errors of synchronizations',
+          AngularJsonAPIModelSynchronizationError
+        )
       };
 
       _this.promises = {};
@@ -635,15 +629,13 @@
      * Saves model's form
      * @return {promise} Promise associated with synchronization that resolves to this
      */
-    function save(addToIndex) {
+    function save() {
       var _this = this;
       var deferred = $q.defer();
       var config = {
         action: _this.saved === false ? 'add' : 'update',
         object: _this
       };
-
-      addToIndex = addToIndex === undefined ? true : addToIndex;
 
       _this.form.validate().then(
         _this.synchronize(config)
@@ -662,10 +654,10 @@
       }
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response, addToIndex);
+        $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response);
         _this.update(_this.form.data);
 
-        if (_this.saved === false && addToIndex === true) {
+        if (_this.saved === false) {
           _this.factory.cache.indexIds = _this.factory.cache.indexIds || [];
           _this.factory.cache.indexIds.push(_this.data.id);
         }
@@ -900,7 +892,7 @@
 
         target.synchronize(config)
           .then(resolve, reject, notify)
-          .__decrementLoadingCounter.bind(target);
+          .finally(__decrementLoadingCounter.bind(target));
 
         function resolve(response) {
           $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'resolve', _this, response);
@@ -1104,6 +1096,21 @@
       __decrementLoadingCounter(_this);
     }
 
+    /**
+     * Check if the object has errors
+     * @return {Boolean}
+     */
+    function hasErrors() {
+      var _this = this;
+      var answer = false;
+
+      angular.forEach(_this.errors, function(error) {
+        answer = error.hasErrors() || answer;
+      });
+
+      return answer;
+    }
+
     /////////////
     // PRIVATE //
     /////////////
@@ -1209,7 +1216,7 @@
       }
     }
   }
-  AngularJsonAPIAbstractModelWrapper.$inject = ["AngularJsonAPIModelForm", "AngularJsonAPIModelLinkerService", "uuid4", "$rootScope", "$injector", "$log", "$q"];
+  AngularJsonAPIAbstractModelWrapper.$inject = ["AngularJsonAPIModelSynchronizationError", "AngularJsonAPIModelValidationError", "AngularJsonAPIModelErrorsManager", "AngularJsonAPIModelLinkerService", "AngularJsonAPIModelForm", "uuid4", "$rootScope", "$injector", "$log", "$q"];
 
   /////////////
   // Private //
@@ -1476,6 +1483,118 @@
     }
   }
   AngularJsonAPICacheWrapper.$inject = ["uuid4", "$log"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+  .factory('AngularJsonAPIModelValidationError', AngularJsonAPIModelValidationErrorWrapper);
+
+  function AngularJsonAPIModelValidationErrorWrapper() {
+    ValidationError.prototype = Object.create(Error.prototype);
+    ValidationError.prototype.constructor = ValidationError;
+    ValidationError.prototype.name = 'ValidationError';
+
+    return ValidationError;
+
+    function ValidationError(message, attribute) {
+      var _this = this;
+      Error.captureStackTrace(_this, _this.constructor);
+
+      _this.message = message;
+      _this.context = {
+        attribute: attribute
+      };
+    }
+  }
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+  .factory('AngularJsonAPIModelSynchronizationError', AngularJsonAPIModelSynchronizationErrorWrapper);
+
+  function AngularJsonAPIModelSynchronizationErrorWrapper() {
+    SynchronizationError.prototype = Object.create(Error.prototype);
+    SynchronizationError.prototype.constructor = SynchronizationError;
+    SynchronizationError.prototype.name = 'SynchronizationError';
+
+    return SynchronizationError;
+
+    function SynchronizationError(message, synchronization, action) {
+      var _this = this;
+      Error.captureStackTrace(_this, _this.constructor);
+
+      _this.message = message;
+      _this.context = {
+        synchronization: synchronization,
+        action: action
+      };
+    }
+  }
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+  .factory('AngularJsonAPIModelErrorsManager', AngularJsonAPIModelErrorsManagerWrapper);
+
+  function AngularJsonAPIModelErrorsManagerWrapper() {
+    ErrorsManager.prototype.constructor = ErrorsManager;
+    ErrorsManager.prototype.clear = clear;
+    ErrorsManager.prototype.add = add;
+    ErrorsManager.prototype.hasErrors = hasErrors;
+
+    return ErrorsManager;
+
+    function ErrorsManager(name, description, ErrorConstructor, defaultFilter) {
+      var _this = this;
+      _this.name = name;
+      _this.description = description;
+
+      _this.ErrorConstructor = ErrorConstructor;
+      _this.errors = {};
+      _this.defaultFilter = defaultFilter || function() { return true; };
+    }
+
+    function clear(key) {
+      var _this = this;
+
+      if (key === undefined) {
+        angular.forEach(_this.errors, function(obj, key) {
+          _this.errors[key] = [];
+        });
+      } else {
+        _this.errors[key] = [];
+      }
+    }
+
+    function add(key) {
+      var _this = this;
+
+      _this.errors[key] = _this.errors[key] || [];
+      _this.errors[key].push(new (_this.ErrorConstructor.bind.apply(_this.ErrorConstructor, arguments))());
+    }
+
+    function hasErrors(key) {
+      var _this = this;
+
+      if (key === undefined) {
+        var answer = false;
+
+        angular.forEach(_this.errors, function(error) {
+          answer = answer || error.length > 0;
+        });
+
+        return answer;
+      } else {
+        return _this.errors[key] !== undefined && _this.errors[key].length > 0;
+      }
+    }
+  }
 })();
 
 // from https://www.sitepen.com/blog/2012/10/19/lazy-property-access/
@@ -2412,6 +2531,8 @@
   .factory('AngularJsonAPICollection', AngularJsonAPICollectionWrapper);
 
   function AngularJsonAPICollectionWrapper(
+    AngularJsonAPIModelSynchronizationError,
+    AngularJsonAPIModelErrorsManager,
     $rootScope,
     $injector,
     $q
@@ -2436,16 +2557,15 @@
       _this.params = params;
 
       _this.errors = {
-        synchronization: {
-          name: 'Synchronization',
-          description: 'Errors during synchronization',
-          errors: []
-        }
+        synchronization: new AngularJsonAPIModelErrorsManager(
+          'Synchronization',
+          'Errors of synchronizations',
+          AngularJsonAPIModelSynchronizationError
+        )
       };
 
       _this.data = _this.factory.cache.index(_this.params);
 
-      _this.error = false;
       _this.loading = false;
       _this.loadingCount = 0;
       _this.synchronized = false;
@@ -2453,7 +2573,7 @@
 
       $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
       $rootScope.$on('angularJsonAPI:' + _this.type + ':factory:clearCache', clear);
-      $rootScope.$on('angularJsonAPI:' + _this.type + ':factory:add', add);
+      $rootScope.$on('angularJsonAPI:' + _this.type + ':object:add', add);
 
       function remove(event, status, object) {
         var index;
@@ -2472,8 +2592,8 @@
         _this.pristine = true;
       }
 
-      function add(event, status, object, response, addToIndex) {
-        if (addToIndex === true && status === 'resolved') {
+      function add(event, status, object) {
+        if (status === 'resolved') {
           _this.data = _this.data || [];
           _this.data.push(object);
         }
@@ -2522,8 +2642,6 @@
         angular.forEach(_this.data, __decrementLoadingCounter);
 
         _this.data = results.data;
-        _this.errors.synchronization.errors = [];
-        _this.error = false;
 
         _this.updatedAt = Date.now();
         _this.synchronized = true;
@@ -2559,9 +2677,6 @@
         $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'rejected', _this, response);
 
         angular.forEach(_this.data, __decrementLoadingCounter);
-        _this.errors.synchronization.errors = response.errors;
-        _this.error = true;
-
         response.finish();
 
         deferred.reject(response);
@@ -2574,7 +2689,7 @@
       }
     }
   }
-  AngularJsonAPICollectionWrapper.$inject = ["$rootScope", "$injector", "$q"];
+  AngularJsonAPICollectionWrapper.$inject = ["AngularJsonAPIModelSynchronizationError", "AngularJsonAPIModelErrorsManager", "$rootScope", "$injector", "$q"];
 
   function __incrementLoadingCounter(object) {
     object = object === undefined ? this : object;
