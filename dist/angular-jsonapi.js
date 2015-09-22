@@ -640,7 +640,7 @@
       _this.form.validate().then(
         synchronize,
         deferred.reject
-      ).finally(__decrementSavingCounter.bind(_this));
+      ).finally(__decrementSavingCounter.bind(_this, undefined));
 
       __incrementSavingCounter(_this);
 
@@ -718,7 +718,7 @@
 
         _this.synchronize(config)
           .then(resolve, reject, notify)
-          .finally(__decrementLoadingCounter.bind(_this));
+          .finally(__decrementLoadingCounter.bind(_this, undefined));
       }
 
       return deferred.promise;
@@ -735,11 +735,12 @@
         _this.errors.synchronization.concat(response.errors);
 
         function synchronizeIncluded(object) {
-          __incrementLoadingCounter.bind(object);
+          __incrementLoadingCounter(object);
+
           return object.synchronize({
             action: 'include',
             object: object
-          }).finally(__decrementLoadingCounter.bind(object));
+          }).finally(__decrementLoadingCounter.bind(object, undefined));
         }
 
         function resolveIncluded(includedResponse) {
@@ -810,11 +811,11 @@
       if (_this.saved === false) {
         deferred.resolve();
       } else {
-        __incrementSavingCounter.bind(_this);
+        __incrementSavingCounter(_this);
 
         _this.synchronize(config)
           .then(resolve, reject, notify)
-          .finally(__decrementSavingCounter.bind(_this));
+          .finally(__decrementSavingCounter.bind(_this, undefined));
       }
 
       return deferred.promise;
@@ -897,7 +898,7 @@
 
         target.synchronize(config)
           .then(resolve, reject, notify)
-          .finally(__decrementLoadingCounter.bind(target));
+          .finally(__decrementLoadingCounter.bind(target, undefined));
 
         function resolve(response) {
           $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'resolve', _this, response);
@@ -954,7 +955,7 @@
 
         _this.synchronize(config)
           .then(resolve, reject, notify)
-          .finally(__decrementSavingCounter.bind(_this));
+          .finally(__decrementSavingCounter.bind(_this, undefined));
       }
 
       return deferred.promise;
@@ -979,7 +980,7 @@
             object: result.object,
             target: result.target,
             key: result.key
-          }).finally(__decrementLoadingCounter.bind(target));
+          }).finally(__decrementLoadingCounter.bind(target, undefined));
         }
 
         function resolveReflection(response) {
@@ -1040,7 +1041,7 @@
 
         _this.synchronize(config)
           .then(resolve, reject, notify)
-          .finally(__decrementSavingCounter.bind(_this));
+          .finally(__decrementSavingCounter.bind(_this, undefined));
       }
 
       return deferred.promise;
@@ -1065,7 +1066,7 @@
             object: result.object,
             target: result.target,
             key: result.key
-          }).finally(__decrementLoadingCounter.bind(target));
+          }).finally(__decrementLoadingCounter.bind(target, undefined));
         }
 
         function resolveReflection(response) {
@@ -1263,6 +1264,33 @@
     object = object === undefined ? this : object;
     object.savingCount -= 1;
     object.saving = object.savingCount > 0;
+  }
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+  .factory('AngularJsonAPIModelSynchronizationError', AngularJsonAPIModelSynchronizationErrorWrapper);
+
+  function AngularJsonAPIModelSynchronizationErrorWrapper() {
+    SynchronizationError.prototype = Object.create(Error.prototype);
+    SynchronizationError.prototype.constructor = SynchronizationError;
+    SynchronizationError.prototype.name = 'SynchronizationError';
+
+    return SynchronizationError;
+
+    function SynchronizationError(message, synchronization, code, action) {
+      var _this = this;
+      Error.captureStackTrace(_this, _this.constructor);
+
+      _this.message = message;
+      _this.context = {
+        synchronization: synchronization,
+        code: code,
+        action: action
+      };
+    }
   }
 })();
 
@@ -1524,33 +1552,6 @@
       _this.message = message;
       _this.context = {
         attribute: attribute
-      };
-    }
-  }
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIModelSynchronizationError', AngularJsonAPIModelSynchronizationErrorWrapper);
-
-  function AngularJsonAPIModelSynchronizationErrorWrapper() {
-    SynchronizationError.prototype = Object.create(Error.prototype);
-    SynchronizationError.prototype.constructor = SynchronizationError;
-    SynchronizationError.prototype.name = 'SynchronizationError';
-
-    return SynchronizationError;
-
-    function SynchronizationError(message, synchronization, code, action) {
-      var _this = this;
-      Error.captureStackTrace(_this, _this.constructor);
-
-      _this.message = message;
-      _this.context = {
-        synchronization: synchronization,
-        code: code,
-        action: action
       };
     }
   }
@@ -2682,13 +2683,13 @@
         params: _this.params
       };
 
-      __incrementLoadingCounter(this);
+      __incrementLoadingCounter(_this);
 
       angular.forEach(_this.data, __incrementLoadingCounter);
 
       _this.factory.synchronizer.synchronize(config)
         .then(resolve, reject, notify)
-        .finally(__decrementLoadingCounter.bind(_this));
+        .finally(__decrementLoadingCounter.bind(_this, undefined));
 
       return deferred.promise;
 
@@ -2709,12 +2710,12 @@
         _this.errors.synchronization.concat(response.errors);
 
         function synchronizeIncluded(object) {
-          __incrementLoadingCounter.bind(object);
+          __incrementLoadingCounter(object);
 
           return object.synchronize({
             action: 'include',
             object: object
-          }).finally(__decrementLoadingCounter.bind(object));
+          }).finally(__decrementLoadingCounter.bind(object, undefined));
         }
 
         function resolveIncluded(includedResponse) {

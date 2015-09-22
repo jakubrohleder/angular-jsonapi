@@ -114,13 +114,13 @@
         params: _this.params
       };
 
-      __incrementLoadingCounter(this);
+      __incrementLoadingCounter(_this);
 
       angular.forEach(_this.data, __incrementLoadingCounter);
 
       _this.factory.synchronizer.synchronize(config)
         .then(resolve, reject, notify)
-        .finally(__decrementLoadingCounter.bind(_this));
+        .finally(__decrementLoadingCounter.bind(_this, undefined));
 
       return deferred.promise;
 
@@ -141,12 +141,12 @@
         _this.errors.synchronization.concat(response.errors);
 
         function synchronizeIncluded(object) {
-          __incrementLoadingCounter.bind(object);
+          __incrementLoadingCounter(object);
 
           return object.synchronize({
             action: 'include',
             object: object
-          }).finally(__decrementLoadingCounter.bind(object));
+          }).finally(__decrementLoadingCounter.bind(object, undefined));
         }
 
         function resolveIncluded(includedResponse) {
