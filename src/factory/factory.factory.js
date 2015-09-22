@@ -21,7 +21,13 @@
 
     AngularJsonAPIFactory.prototype.clearCache = clearCache;
 
-    return AngularJsonAPIFactory;
+    return {
+      create: AngularJsonAPIFactoryFactory
+    };
+
+    function AngularJsonAPIFactoryFactory(schema, synchronizer) {
+      return new AngularJsonAPIFactory(schema, synchronizer);
+    }
 
     /**
      * AngularJsonAPIFactory constructor
@@ -34,13 +40,13 @@
         action: 'init'
       };
 
-      _this.schema = new AngularJsonAPISchema(schema);
-      _this.cache = new AngularJsonAPICache(_this);
+      _this.schema = AngularJsonAPISchema.create(schema);
+      _this.cache = AngularJsonAPICache.create(_this);
 
       _this.synchronizer = synchronizer;
       _this.synchronizer.factory = _this;
 
-      _this.Model = AngularJsonAPIModel.model(
+      _this.modelFactory = AngularJsonAPIModel.modelFactory(
         _this.schema,
         _this
       );
@@ -99,7 +105,7 @@
       var _this = this;
       params = params || {};
 
-      var collection = new AngularJsonAPICollection(
+      var collection = AngularJsonAPICollection.create(
         _this,
         angular.extend(params, _this.schema.params.all)
       );
@@ -126,7 +132,7 @@
      * Initialize new AngularJsonAPIModel
      * @return {AngularJsonAPIModel} New model
      */
-    function initialize(key, target) {
+    function initialize() {
       var _this = this;
       var relationships = {};
 
@@ -141,18 +147,6 @@
           };
         }
       });
-
-      if (key !== undefined && target !== undefined) {
-        var schema = _this.schema[key];
-
-        if (schema.type === 'hasOne') {
-          relationships[key] = {
-            data: target.data.id
-          };
-        } else if (schema.type === 'hasMany') {
-          $log.warn('Initialize with relationship disallowed for hasMany relationships');
-        }
-      }
 
       var data = {
         type: _this.type,

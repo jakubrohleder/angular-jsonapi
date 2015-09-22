@@ -17,7 +17,13 @@
     AngularJsonAPICollection.prototype.get = get;
     AngularJsonAPICollection.prototype.hasErrors = hasErrors;
 
-    return AngularJsonAPICollection;
+    return {
+      create: AngularJsonAPICollectionFactory
+    };
+
+    function AngularJsonAPICollectionFactory(factory, params) {
+      return new AngularJsonAPICollection(factory, params);
+    }
 
     /**
      * Constructor
@@ -32,7 +38,7 @@
       _this.params = params;
 
       _this.errors = {
-        synchronization: new AngularJsonAPIModelErrorsManager(
+        synchronization: AngularJsonAPIModelErrorsManager.create(
           'Synchronization',
           'Errors of synchronizations',
           AngularJsonAPIModelSynchronizationError

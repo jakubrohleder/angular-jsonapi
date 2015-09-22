@@ -9,7 +9,13 @@
     SynchronizationError.prototype.constructor = SynchronizationError;
     SynchronizationError.prototype.name = 'SynchronizationError';
 
-    return SynchronizationError;
+    return {
+      create: SynchronizationErrorFactory
+    };
+
+    function SynchronizationErrorFactory(message, synchronization, code, action) {
+      return new SynchronizationError(message, synchronization, code, action);
+    }
 
     function SynchronizationError(message, synchronization, code, action) {
       var _this = this;

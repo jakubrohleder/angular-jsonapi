@@ -5,6 +5,14 @@
       <small ng-show="object.schema.relationships[relationshipName].polymorphic">polymorphic</small>
     </div>
     <div class="twelve wide column">
+      <button
+        class="ui mini green left floated button"
+        ng-hide="object.schema.relationships[relationshipName].polymorphic"
+        ng-click="expression"
+      >
+        Create new {{object.schema.relationships[relationshipName].model}}
+      </button>
+
       <angular-jsonapi-search
         object="object"
         key="relationshipName"
@@ -13,6 +21,7 @@
 
       <button
         class="ui mini primary right floated button"
+        ng-hide="object.schema.relationships[relationshipName].polymorphic"
         ui-sref="frame.request.all({type: object.schema.relationships[relationshipName].model})"
       >
         Go to {{object.schema.relationships[relationshipName].model}}

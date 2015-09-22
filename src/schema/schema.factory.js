@@ -6,7 +6,13 @@
 
   function AngularJsonAPISchemaWrapper($log, pluralize, AngularJsonAPISchemaLink) {
 
-    return AngularJsonAPISchema;
+    return {
+      create: AngularJsonAPISchemaFactory
+    };
+
+    function AngularJsonAPISchemaFactory(schema) {
+      return new AngularJsonAPISchema(schema);
+    }
 
     function AngularJsonAPISchema(schema) {
       var _this = this;
@@ -21,7 +27,7 @@
       };
 
       angular.forEach(schema.relationships, function(linkSchema, linkName) {
-        var linkSchemaObj = new AngularJsonAPISchemaLink(linkSchema, linkName, schema.type);
+        var linkSchemaObj = AngularJsonAPISchemaLink.create(linkSchema, linkName, schema.type);
         schema.relationships[linkName] = linkSchemaObj;
         if (linkSchemaObj.included === true) {
           include.get.push(linkName);

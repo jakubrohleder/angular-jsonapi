@@ -11,7 +11,13 @@
     ErrorsManager.prototype.add = add;
     ErrorsManager.prototype.hasErrors = hasErrors;
 
-    return ErrorsManager;
+    return {
+      create: ErrorsManagerFactory
+    };
+
+    function ErrorsManagerFactory(name, description, ErrorConstructor, defaultFilter) {
+      return new ErrorsManager(name, description, ErrorConstructor, defaultFilter);
+    }
 
     function ErrorsManager(name, description, ErrorConstructor, defaultFilter) {
       var _this = this;

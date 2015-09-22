@@ -13,7 +13,13 @@
     AngularJsonAPISynchronizationLocal.prototype = Object.create(AngularJsonAPISynchronizationPrototype.prototype);
     AngularJsonAPISynchronizationLocal.prototype.constructor = AngularJsonAPISynchronizationLocal;
 
-    return AngularJsonAPISynchronizationLocal;
+    return {
+      create: AngularJsonAPISynchronizationLocalFactory
+    };
+
+    function AngularJsonAPISynchronizationLocalFactory(name, prefix) {
+      return new AngularJsonAPISynchronizationLocal(name, prefix);
+    }
 
     function AngularJsonAPISynchronizationLocal(name, prefix) {
       var _this = this;

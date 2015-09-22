@@ -33,7 +33,7 @@
       }
 
       function addFactory(schema, synchronization) {
-        var factory = new AngularJsonAPIFactory(schema, synchronization);
+        var factory = AngularJsonAPIFactory.create(schema, synchronization);
 
         memory[schema.type] = factory;
         names.push(schema.type);
@@ -45,7 +45,7 @@
 
       function form(type) {
         if (memory[type] === undefined) {
-          $log.error('Can\t add not existing object type: ' + type + '. Use initialize(Model, datas).');
+          $log.error('Can\t add not existing object type: ' + type + '. Use initialize.');
         }
 
         return memory[type].saved.form;
@@ -53,7 +53,7 @@
 
       function get(type, id) {
         if (memory[type] === undefined) {
-          $log.error('Can\t get not existing object type: ' + type + '. Use initialize(Model, datas).');
+          $log.error('Can\t get not existing object type: ' + type + '. Use initialize.');
         }
 
         return memory[type].get(id);
@@ -61,7 +61,7 @@
 
       function remove(type, id) {
         if (memory[type] === undefined) {
-          $log.error('Can\t remove not existing object type: ' + type + '. Use initialize(Model, datas).');
+          $log.error('Can\t remove not existing object type: ' + type + '. Use initialize.');
         }
 
         return memory[type].remove(id);
@@ -69,7 +69,7 @@
 
       function all(type) {
         if (memory[type] === undefined) {
-          $log.error('Can\t get all of not existing object type: ' + type + '. Use initialize(Model, datas).');
+          $log.error('Can\t get all of not existing object type: ' + type + '. Use initialize.');
         }
 
         return memory[type].all();

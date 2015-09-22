@@ -1,7 +1,7 @@
 <div class="ui category search focus">
   <div class="ui mini left icon input" ng-class="{loading: loading, error: error, 'right action': show}">
 
-    <input ng-focus="showResults()" ng-model="input" placeholder="Add model" autocomplete="off" ng-disabled="loading || object.relationships[key] === undefined || object.saved === false">
+    <input ng-focus="showResults()" ng-model="input" placeholder="Add {{object.schema.relationships[key].model}}" autocomplete="off" ng-disabled="loading || object.relationships[key] === undefined || object.saved === false">
     <i class="plus icon"></i>
     <button class="ui red mini icon button" ng-show="show" ng-focus="hideResults()">
       <i class="remove icon"></i>

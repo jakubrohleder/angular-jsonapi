@@ -20,7 +20,13 @@
 
     AngularJsonAPIModelForm.prototype.toJson = toJson;
 
-    return AngularJsonAPIModelForm;
+    return {
+      create: AngularJsonAPIModelFormFactory
+    };
+
+    function AngularJsonAPIModelFormFactory(parent) {
+      return new AngularJsonAPIModelForm(parent);
+    }
 
     function AngularJsonAPIModelForm(parent) {
       var _this = this;
@@ -144,7 +150,7 @@
 
         angular.forEach(errorsMap, function(errors, attribute) {
           angular.forEach(errors, function(error) {
-            _this.parent.errors.validation.add(attribute, new AngularJsonAPIModelValidationError(error, attribute));
+            _this.parent.errors.validation.add(attribute, AngularJsonAPIModelValidationError.create(error, attribute));
           });
         });
 

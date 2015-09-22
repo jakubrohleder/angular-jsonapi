@@ -11,7 +11,13 @@
 
     AngularJsonAPISynchronizerSimple.prototype.synchronize = synchronize;
 
-    return AngularJsonAPISynchronizerSimple;
+    return {
+      create: AngularJsonAPISynchronizerSimpleFactory
+    };
+
+    function AngularJsonAPISynchronizerSimpleFactory(synchronizations) {
+      return new AngularJsonAPISynchronizerSimple(synchronizations);
+    }
 
     function AngularJsonAPISynchronizerSimple(synchronizations) {
       var _this = this;

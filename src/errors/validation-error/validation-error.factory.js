@@ -9,7 +9,13 @@
     ValidationError.prototype.constructor = ValidationError;
     ValidationError.prototype.name = 'ValidationError';
 
-    return ValidationError;
+    return {
+      create: ValidationErrorFactory
+    };
+
+    function ValidationErrorFactory(message, attribute) {
+      return new ValidationError(message, attribute);
+    }
 
     function ValidationError(message, attribute) {
       var _this = this;

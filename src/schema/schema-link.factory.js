@@ -6,7 +6,13 @@
 
   function AngularJsonAPILinkSchrapperLink($log, pluralize) {
 
-    return AngularJsonAPISchemaLink;
+    return {
+      create: AngularJsonAPISchemaLinkFactory
+    };
+
+    function AngularJsonAPISchemaLinkFactory(linkSchema, linkName, type) {
+      return new AngularJsonAPISchemaLink(linkSchema, linkName, type);
+    }
 
     function AngularJsonAPISchemaLink(linkSchema, linkName, type) {
       var _this = this;

@@ -16,7 +16,13 @@
     AngularJsonAPISynchronizationRest.prototype = Object.create(AngularJsonAPISynchronizationPrototype.prototype);
     AngularJsonAPISynchronizationRest.prototype.constructor = AngularJsonAPISynchronizationRest;
 
-    return AngularJsonAPISynchronizationRest;
+    return {
+      create: AngularJsonAPISynchronizationRestFactory
+    };
+
+    function AngularJsonAPISynchronizationRestFactory(name, url) {
+      return new AngularJsonAPISynchronizationRest(name, url);
+    }
 
     function AngularJsonAPISynchronizationRest(name, url) {
       var _this = this;
@@ -67,9 +73,9 @@
         var schema = config.object.schema.relationships[config.key];
 
         if (config.object.removed === true) {
-          deferred.reject(new AngularJsonAPIModelSynchronizationError('Object has been removed', _this, 0, 'unlink'));
+          deferred.reject(AngularJsonAPIModelSynchronizationError.create('Object has been removed', _this, 0, 'unlink'));
         } else if (config.target !== undefined && config.target.data.id === undefined) {
-          deferred.reject(new AngularJsonAPIModelSynchronizationError('Can\'t unlink object without id through rest call', _this, 0, 'unlink'));
+          deferred.reject(AngularJsonAPIModelSynchronizationError.create('Can\'t unlink object without id through rest call', _this, 0, 'unlink'));
         } else if (schema.type === 'hasOne') {
           $http({
             method: 'DELETE',
@@ -154,7 +160,7 @@
             url: 'https://status.cloud.google.com/incidents.schema.json'
           }).then(rejectServerOffline, rejectNoConnection);
         } else {
-          deferred.reject(new AngularJsonAPIModelSynchronizationError(response.statusText, _this, response.status, action));
+          deferred.reject(AngularJsonAPIModelSynchronizationError.create(response.statusText, _this, response.status, action));
         }
 
         return deferred.promise;
@@ -162,12 +168,12 @@
         function rejectServerOffline(response) {
           console.log('offline');
           console.log(response);
-          deferred.reject(new AngularJsonAPIModelSynchronizationError('Server is offline', _this, response.status, action));
+          deferred.reject(AngularJsonAPIModelSynchronizationError.create('Server is offline', _this, response.status, action));
         }
 
         function rejectNoConnection() {
           console.log('no internet');
-          deferred.reject(new AngularJsonAPIModelSynchronizationError('No internet connection', _this, response.status, action));
+          deferred.reject(AngularJsonAPIModelSynchronizationError.create('No internet connection', _this, response.status, action));
         }
       }
     }

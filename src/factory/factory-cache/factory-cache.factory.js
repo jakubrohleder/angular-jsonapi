@@ -22,7 +22,13 @@
     AngularJsonAPICache.prototype.revertRemove = revertRemove;
     AngularJsonAPICache.prototype.clearRemoved = clearRemoved;
 
-    return AngularJsonAPICache;
+    return {
+      create: AngularJsonAPICacheFactory
+    };
+
+    function AngularJsonAPICacheFactory(factory) {
+      return new AngularJsonAPICache(factory);
+    }
 
     /**
      * Constructor
@@ -53,7 +59,7 @@
       }
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.factory.Model(validatedData, config);
+        _this.data[id] = _this.factory.modelFactory(validatedData, config);
         _this.size += 1;
       } else {
         _this.data[id].update(validatedData, config.saved, config.initialization);
@@ -134,7 +140,7 @@
 
       var data = {
         id: id,
-        type: _this.factory.Model.prototype.schema.type
+        type: _this.factory.schema.type
       };
 
       var config = {
@@ -145,7 +151,7 @@
       };
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = new _this.factory.Model(data, config);
+        _this.data[id] = _this.factory.modelFactory(data, config);
       }
 
       return _this.data[id];

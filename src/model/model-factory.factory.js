@@ -7,10 +7,10 @@
   function AngularJsonAPIModel(AngularJsonAPIAbstractModel, AngularJsonAPISchema, $log) {
 
     return {
-      model: modelFactory
+      modelFactory: createModelFactory
     };
 
-    function modelFactory(schemaObj, factory) {
+    function createModelFactory(schemaObj, factory) {
       var Model = function(data, updatedAt, saved) {
         var _this = this;
 
@@ -36,7 +36,11 @@
         };
       });
 
-      return Model;
+      return modelFactory;
+
+      function modelFactory(data, updatedAt, saved) {
+        return new Model(data, updatedAt, saved);
+      }
     }
 
   }

@@ -81,17 +81,17 @@
       };
       _this.relationships = {};
 
-      angular.forEach(_this.schema.relationships, function(schema, name) {
-        _this.relationships[name] = undefined;
+      angular.forEach(_this.schema.relationships, function(schema, key) {
+        _this.relationships[key] = undefined;
       });
 
       _this.errors = {
-        validation: new AngularJsonAPIModelErrorsManager(
+        validation: AngularJsonAPIModelErrorsManager.create(
           'Validation',
           'Errors of attributes validation',
           AngularJsonAPIModelValidationError
         ),
-        synchronization: new AngularJsonAPIModelErrorsManager(
+        synchronization: AngularJsonAPIModelErrorsManager.create(
           'Synchronization',
           'Errors of synchronizations',
           AngularJsonAPIModelSynchronizationError
@@ -102,7 +102,7 @@
 
       __setData(_this, data);
 
-      _this.form = new AngularJsonAPIModelForm(_this);
+      _this.form = AngularJsonAPIModelForm.create(_this);
     }
 
     /**
@@ -190,7 +190,7 @@
       };
 
       if (_this.saved === false) {
-        var error = new AngularJsonAPIModelSynchronizationError('Can\'t refresh new object', null, 0, 'refresh');
+        var error = AngularJsonAPIModelSynchronizationError.create('Can\'t refresh new object', null, 0, 'refresh');
         _this.errors.synchronization.add('refresh', error);
         deferred.reject(error);
       } else {
@@ -423,11 +423,11 @@
       };
 
       if (target === undefined) {
-        error = new AngularJsonAPIModelSynchronizationError('Can\'t link undefined', null, 0, 'link');
+        error = AngularJsonAPIModelSynchronizationError.create('Can\'t link undefined', null, 0, 'link');
         _this.errors.synchronization.add('link', error);
         deferred.reject(error);
       } else if (_this.saved === false) {
-        error = new AngularJsonAPIModelSynchronizationError('Can\'t link new object', null, 0, 'link');
+        error = AngularJsonAPIModelSynchronizationError.create('Can\'t link new object', null, 0, 'link');
         _this.errors.synchronization.add('link', error);
         deferred.reject(error);
       } else {
@@ -509,11 +509,11 @@
       };
 
       if (target === undefined) {
-        error = new AngularJsonAPIModelSynchronizationError('Can\'t unlink undefined', null, 0, 'link');
+        error = AngularJsonAPIModelSynchronizationError.create('Can\'t unlink undefined', null, 0, 'link');
         _this.errors.synchronization.add('link', error);
         deferred.reject(error);
       } else if (_this.saved === false) {
-        error = new AngularJsonAPIModelSynchronizationError('Can\'t unlink new object', null, 0, 'link');
+        error = AngularJsonAPIModelSynchronizationError.create('Can\'t unlink new object', null, 0, 'link');
         _this.errors.synchronization.add('link', error);
         deferred.reject(error);
       } else {
