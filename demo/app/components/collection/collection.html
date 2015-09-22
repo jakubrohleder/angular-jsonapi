@@ -37,7 +37,7 @@
 
 <div class="ui divider"></div>
 
-<error-message ng-show="collection.error" data="collection.errors"></error-message>
+<error-message ng-show="collection.hasErrors()" data="collection.errors"></error-message>
 
 <div ng-show="collection.error" class="ui divider hidden"></div>
 

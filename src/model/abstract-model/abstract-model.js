@@ -190,7 +190,9 @@
       };
 
       if (_this.saved === false) {
-        deferred.reject({errors: [{status: 0, statusText: 'Can\'t refresh new object'}]});
+        var error = new AngularJsonAPIModelSynchronizationError('Can\'t refresh new object', null, 0, 'refresh');
+        _this.errors.synchronization.add('refresh', error);
+        deferred.reject(error);
       } else {
         __incrementLoadingCounter(_this);
 
@@ -411,6 +413,7 @@
     function link(key, target) {
       var deferred = $q.defer();
       var _this = this;
+      var error;
       var config = {
         action: 'link',
         object: _this,
@@ -419,11 +422,13 @@
       };
 
       if (target === undefined) {
-        $log.error('Can\'t link undefined');
-        deferred.reject({errors: [{status: 0, statusText: 'Can\'t link undefined'}]});
+        error = new AngularJsonAPIModelSynchronizationError('Can\'t link undefined', null, 0, 'link');
+        _this.errors.synchronization.add('link', error);
+        deferred.reject(error);
       } else if (_this.saved === false) {
-        $log.error('Can\'t link new object');
-        deferred.reject({errors: [{status: 0, statusText: 'Can\'t link new object'}]});
+        error = new AngularJsonAPIModelSynchronizationError('Can\'t link new object', null, 0, 'link');
+        _this.errors.synchronization.add('link', error);
+        deferred.reject(error);
       } else {
         __incrementSavingCounter(_this);
 
@@ -494,6 +499,7 @@
     function unlink(key, target) {
       var deferred = $q.defer();
       var _this = this;
+      var error;
       var config = {
         action: 'unlink',
         object: _this,
@@ -502,9 +508,13 @@
       };
 
       if (target === undefined) {
-        deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink undefined'}]});
+        error = new AngularJsonAPIModelSynchronizationError('Can\'t unlink undefined', null, 0, 'link');
+        _this.errors.synchronization.add('link', error);
+        deferred.reject(error);
       } else if (_this.saved === false) {
-        deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink new object'}]});
+        error = new AngularJsonAPIModelSynchronizationError('Can\'t unlink new object', null, 0, 'link');
+        _this.errors.synchronization.add('link', error);
+        deferred.reject(error);
       } else {
         __incrementSavingCounter(_this);
 

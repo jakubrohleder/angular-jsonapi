@@ -15,6 +15,7 @@
     AngularJsonAPICollection.prototype.fetch = fetch;
     AngularJsonAPICollection.prototype.refresh = fetch;
     AngularJsonAPICollection.prototype.get = get;
+    AngularJsonAPICollection.prototype.hasErrors = hasErrors;
 
     return AngularJsonAPICollection;
 
@@ -72,6 +73,21 @@
           _this.data.push(object);
         }
       }
+    }
+
+    /**
+     * Check if the object has errors
+     * @return {Boolean}
+     */
+    function hasErrors() {
+      var _this = this;
+      var answer = false;
+
+      angular.forEach(_this.errors, function(error) {
+        answer = error.hasErrors() || answer;
+      });
+
+      return answer;
     }
 
     /**
