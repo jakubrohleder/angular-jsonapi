@@ -6,6 +6,7 @@
 
   function AngularJsonAPIModelErrorsManagerWrapper() {
     ErrorsManager.prototype.constructor = ErrorsManager;
+    ErrorsManager.prototype.concat = concat;
     ErrorsManager.prototype.clear = clear;
     ErrorsManager.prototype.add = add;
     ErrorsManager.prototype.hasErrors = hasErrors;
@@ -34,11 +35,24 @@
       }
     }
 
-    function add(key) {
+    function add(key, error) {
       var _this = this;
 
       _this.errors[key] = _this.errors[key] || [];
-      _this.errors[key].push(new (_this.ErrorConstructor.bind.apply(_this.ErrorConstructor, arguments))());
+      _this.errors[key].push(error);
+    }
+
+    function concat(errors) {
+      var _this = this;
+
+      angular.forEach(errors, function(error) {
+        _this.errors[error.key] = [];
+      });
+
+      angular.forEach(errors, function(error) {
+        _this.errors[error.key].push(error.object);
+      });
+
     }
 
     function hasErrors(key) {

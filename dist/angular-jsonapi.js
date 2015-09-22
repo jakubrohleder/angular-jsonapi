@@ -481,7 +481,7 @@
 
         angular.forEach(errorsMap, function(errors, attribute) {
           angular.forEach(errors, function(error) {
-            _this.parent.errors.validation.add(attribute, error, attribute);
+            _this.parent.errors.validation.add(attribute, new AngularJsonAPIModelValidationError(error, attribute));
           });
         });
 
@@ -638,19 +638,16 @@
       };
 
       _this.form.validate().then(
-        _this.synchronize(config)
-          .then(resolve, reject, notify)
-          .finally(__decrementSavingCounter.bind(_this)),
-        invalidate
-      );
+        synchronize,
+        deferred.reject
+      ).finally(__decrementSavingCounter.bind(_this));
 
       __incrementSavingCounter(_this);
 
       return deferred.promise;
 
-      function invalidate() {
-        __decrementSavingCounter(_this);
-        deferred.reject();
+      function synchronize() {
+        _this.synchronize(config).then(resolve, reject, notify);
       }
 
       function resolve(response) {
@@ -667,14 +664,15 @@
         _this.stable = true;
 
         response.finish();
-
+        _this.errors.synchronization.concat(response.errors);
         deferred.resolve(_this);
       }
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:save', 'rejected', _this, response);
-        response.finish();
 
+        response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 
@@ -728,9 +726,11 @@
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:refresh', 'resolved', _this, response);
         $q.allSettled(results.included.map(synchronizeIncluded)).then(resolveIncluded, deferred.reject);
 
-        response.finish();
         _this.synchronized = true;
         _this.stable = true;
+
+        response.finish();
+        _this.errors.synchronization.concat(response.errors);
 
         function synchronizeIncluded(object) {
           __incrementLoadingCounter.bind(object);
@@ -754,8 +754,9 @@
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:refresh', 'rejected', _this, response);
-        response.finish();
 
+        response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 
@@ -821,16 +822,18 @@
         _this.removed = true;
         _this.unlinkAll();
         _this.factory.cache.clearRemoved(_this.data.id);
-        response.finish();
 
+        response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.resolve(response);
       }
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:remove', 'rejected', _this, response);
         _this.factory.cache.revertRemove(_this.data.id);
-        response.finish();
 
+        response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 
@@ -898,6 +901,7 @@
           $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'resolve', _this, response);
 
           response.finish();
+          _this.errors.synchronization.concat(response.errors);
           deferred.resolve(_this);
         }
 
@@ -905,6 +909,7 @@
           $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'rejected', _this, response);
 
           response.finish();
+          _this.errors.synchronization.concat(response.errors);
           deferred.reject(response);
         }
 
@@ -956,6 +961,7 @@
 
         _this.stable = true;
         response.finish();
+        _this.errors.synchronization.concat(response.errors);
 
         $q.allSettled(targets.map(synchronize))
           .then(resolveReflection, deferred.reject);
@@ -988,6 +994,7 @@
 
         deferred.reject(response.errors);
         response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 
@@ -1035,6 +1042,7 @@
 
         _this.stable = true;
         response.finish();
+        _this.errors.synchronization.concat(response.errors);
 
         $q.allSettled(targets.map(synchronize))
           .then(resolveReflection, deferred.reject);
@@ -1067,6 +1075,7 @@
 
         deferred.reject(response.errors);
         response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 
@@ -1523,13 +1532,14 @@
 
     return SynchronizationError;
 
-    function SynchronizationError(message, synchronization, action) {
+    function SynchronizationError(message, synchronization, code, action) {
       var _this = this;
       Error.captureStackTrace(_this, _this.constructor);
 
       _this.message = message;
       _this.context = {
         synchronization: synchronization,
+        code: code,
         action: action
       };
     }
@@ -1544,6 +1554,7 @@
 
   function AngularJsonAPIModelErrorsManagerWrapper() {
     ErrorsManager.prototype.constructor = ErrorsManager;
+    ErrorsManager.prototype.concat = concat;
     ErrorsManager.prototype.clear = clear;
     ErrorsManager.prototype.add = add;
     ErrorsManager.prototype.hasErrors = hasErrors;
@@ -1572,11 +1583,24 @@
       }
     }
 
-    function add(key) {
+    function add(key, error) {
       var _this = this;
 
       _this.errors[key] = _this.errors[key] || [];
-      _this.errors[key].push(new (_this.ErrorConstructor.bind.apply(_this.ErrorConstructor, arguments))());
+      _this.errors[key].push(error);
+    }
+
+    function concat(errors) {
+      var _this = this;
+
+      angular.forEach(errors, function(error) {
+        _this.errors[error.key] = [];
+      });
+
+      angular.forEach(errors, function(error) {
+        _this.errors[error.key].push(error.object);
+      });
+
     }
 
     function hasErrors(key) {
@@ -1768,7 +1792,10 @@
           if (result.success === true) {
             data = result.value;
           } else {
-            errors.push(result.reason);
+            errors.push({
+              key: action,
+              object: result.reason
+            });
           }
         });
 
@@ -1837,6 +1864,7 @@
   .factory('AngularJsonAPISynchronizationRest', AngularJsonAPISynchronizationRestWrapper);
 
   function AngularJsonAPISynchronizationRestWrapper(
+    AngularJsonAPIModelSynchronizationError,
     AngularJsonAPISynchronizationPrototype,
     AngularJsonAPIModelLinkerService,
     toKebabCase,
@@ -1849,14 +1877,14 @@
 
     return AngularJsonAPISynchronizationRest;
 
-    function AngularJsonAPISynchronizationRest(url) {
+    function AngularJsonAPISynchronizationRest(name, url) {
       var _this = this;
       var headers = { // jscs:disable disallowQuotedKeysInObjects
         'Accept': 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json'
       }; // jscs:enable disallowQuotedKeysInObjects
 
-      AngularJsonAPISynchronizationPrototype.call(_this);
+      AngularJsonAPISynchronizationPrototype.apply(_this, arguments);
 
       _this.synchronization('remove', remove);
       _this.synchronization('unlink', unlink);
@@ -1873,7 +1901,7 @@
           headers: headers,
           url: url,
           params: config.params || {}
-        }).then(resolveHttp, rejectHttp);
+        }).then(resolveHttp, rejectHttp.bind(null, 'all'));
       }
 
       function get(config) {
@@ -1882,7 +1910,7 @@
           headers: headers,
           url: url + '/' + config.object.data.id,
           params: config.params || {}
-        }).then(resolveHttp, rejectHttp);
+        }).then(resolveHttp, rejectHttp.bind(null, 'get'));
       }
 
       function remove(config) {
@@ -1890,7 +1918,7 @@
           method: 'DELETE',
           headers: headers,
           url: url + '/' + config.object.data.id
-        }).then(resolveHttp, rejectHttp);
+        }).then(resolveHttp, rejectHttp.bind(null, 'remove'));
       }
 
       function unlink(config) {
@@ -1898,15 +1926,15 @@
         var schema = config.object.schema.relationships[config.key];
 
         if (config.object.removed === true) {
-          deferred.reject({errors: [{status: 0, statusText: 'Object has been removed'}]});
+          deferred.reject(new AngularJsonAPIModelSynchronizationError('Object has been removed', _this, 0, 'unlink'));
         } else if (config.target !== undefined && config.target.data.id === undefined) {
-          deferred.reject({errors: [{status: 0, statusText: 'Can\'t unlink object without id through rest call'}]});
+          deferred.reject(new AngularJsonAPIModelSynchronizationError('Can\'t unlink object without id through rest call', _this, 0, 'unlink'));
         } else if (schema.type === 'hasOne') {
           $http({
             method: 'DELETE',
             headers: headers,
             url: url + '/' + config.object.data.id + '/relationships/' + config.key
-          }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
+          }).then(resolveHttp, rejectHttp.bind(null, 'get')).then(deferred.resolve, deferred.reject);
         } else if (schema.type === 'hasMany') {
           if (config.target === undefined) {
             $http({
@@ -1914,13 +1942,13 @@
               headers: headers,
               data: {data: []},
               url: url + '/' + config.object.data.id + '/relationships/' + config.key
-            }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
+            }).then(resolveHttp, rejectHttp.bind(null, 'unlink')).then(deferred.resolve, deferred.reject);
           } else {
             $http({
               method: 'DELETE',
               headers: headers,
               url: url + '/' + config.object.data.id + '/relationships/' + config.key + '/' + config.target.data.id
-            }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
+            }).then(resolveHttp, rejectHttp.bind(null, 'unlink')).then(deferred.resolve, deferred.reject);
           }
         }
 
@@ -1941,14 +1969,14 @@
             headers: headers,
             data: {data: AngularJsonAPIModelLinkerService.toLinkData(config.target)},
             url: url + '/' + config.object.data.id + '/relationships/' + config.key
-          }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
+          }).then(resolveHttp, rejectHttp.bind(null, 'link')).then(deferred.resolve, deferred.reject);
         } else if (schema.type === 'hasMany') {
           $http({
             method: 'POST',
             headers: headers,
             data: {data: [AngularJsonAPIModelLinkerService.toLinkData(config.target)]},
             url: url + '/' + config.object.data.id + '/relationships/' + config.key
-          }).then(resolveHttp, rejectHttp).then(deferred.resolve, deferred.reject);
+          }).then(resolveHttp, rejectHttp.bind(null, 'link')).then(deferred.resolve, deferred.reject);
         }
 
         return deferred.promise;
@@ -1960,7 +1988,7 @@
           headers: headers,
           url: url + '/' + config.object.data.id,
           data: config.object.form.toJson()
-        }).then(resolveHttp, rejectHttp);
+        }).then(resolveHttp, rejectHttp.bind(null, 'update'));
       }
 
       function add(config) {
@@ -1969,14 +1997,14 @@
           headers: headers,
           url: url + '/',
           data: config.object.form.toJson()
-        }).then(resolveHttp, rejectHttp);
+        }).then(resolveHttp, rejectHttp.bind(null, 'add'));
       }
 
       function resolveHttp(response) {
         return $q.resolve(response.data);
       }
 
-      function rejectHttp(response) {
+      function rejectHttp(action, response) {
         var deferred = $q.defer();
 
         if (response.status === 0) {
@@ -1985,22 +2013,25 @@
             url: 'https://status.cloud.google.com/incidents.schema.json'
           }).then(rejectServerOffline, rejectNoConnection);
         } else {
-          deferred.reject({status: response.status, statusText: response.statusText});
+          deferred.reject(new AngularJsonAPIModelSynchronizationError(response.statusText, _this, response.status, action));
         }
 
         return deferred.promise;
 
-        function rejectServerOffline() {
-          deferred.reject({status: response.status, statusText: 'Server is offline'});
+        function rejectServerOffline(response) {
+          console.log('offline');
+          console.log(response);
+          deferred.reject(new AngularJsonAPIModelSynchronizationError('Server is offline', _this, response.status, action));
         }
 
         function rejectNoConnection() {
-          deferred.reject({status: response.status, statusText: 'No internet connection'});
+          console.log('no internet');
+          deferred.reject(new AngularJsonAPIModelSynchronizationError('No internet connection', _this, response.status, action));
         }
       }
     }
   }
-  AngularJsonAPISynchronizationRestWrapper.$inject = ["AngularJsonAPISynchronizationPrototype", "AngularJsonAPIModelLinkerService", "toKebabCase", "$q", "$http"];
+  AngularJsonAPISynchronizationRestWrapper.$inject = ["AngularJsonAPIModelSynchronizationError", "AngularJsonAPISynchronizationPrototype", "AngularJsonAPIModelLinkerService", "toKebabCase", "$q", "$http"];
 })();
 
 (function() {
@@ -2018,7 +2049,7 @@
 
     return AngularJsonAPISynchronizationPrototype;
 
-    function AngularJsonAPISynchronizationPrototype() {
+    function AngularJsonAPISynchronizationPrototype(name) {
       var _this = this;
       var allHooks = [
         'add',
@@ -2036,6 +2067,7 @@
         'include'
       ];
 
+      _this.name = name;
       _this.state = {};
 
       _this.beginHooks = {};
@@ -2109,14 +2141,14 @@
 
     return AngularJsonAPISynchronizationLocal;
 
-    function AngularJsonAPISynchronizationLocal(prefix) {
+    function AngularJsonAPISynchronizationLocal(name, prefix) {
       var _this = this;
 
       prefix = prefix || 'AngularJsonAPI';
 
       _this.__updateStorage = updateStorage;
 
-      AngularJsonAPISynchronizationPrototype.call(_this);
+      AngularJsonAPISynchronizationPrototype.apply(_this, arguments);
 
       _this.synchronization('init', init);
 
@@ -2648,6 +2680,7 @@
 
         _this.factory.cache.setIndexIds(_this.data);
         response.finish();
+        _this.errors.synchronization.concat(response.errors);
 
         function synchronizeIncluded(object) {
           __incrementLoadingCounter.bind(object);
@@ -2675,10 +2708,11 @@
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'rejected', _this, response);
+        console.log(response);
 
         angular.forEach(_this.data, __decrementLoadingCounter);
         response.finish();
-
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 

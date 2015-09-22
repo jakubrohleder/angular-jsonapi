@@ -118,19 +118,16 @@
       };
 
       _this.form.validate().then(
-        _this.synchronize(config)
-          .then(resolve, reject, notify)
-          .finally(__decrementSavingCounter.bind(_this)),
-        invalidate
-      );
+        synchronize,
+        deferred.reject
+      ).finally(__decrementSavingCounter.bind(_this));
 
       __incrementSavingCounter(_this);
 
       return deferred.promise;
 
-      function invalidate() {
-        __decrementSavingCounter(_this);
-        deferred.reject();
+      function synchronize() {
+        _this.synchronize(config).then(resolve, reject, notify);
       }
 
       function resolve(response) {
@@ -147,14 +144,15 @@
         _this.stable = true;
 
         response.finish();
-
+        _this.errors.synchronization.concat(response.errors);
         deferred.resolve(_this);
       }
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:save', 'rejected', _this, response);
-        response.finish();
 
+        response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 
@@ -208,9 +206,11 @@
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:refresh', 'resolved', _this, response);
         $q.allSettled(results.included.map(synchronizeIncluded)).then(resolveIncluded, deferred.reject);
 
-        response.finish();
         _this.synchronized = true;
         _this.stable = true;
+
+        response.finish();
+        _this.errors.synchronization.concat(response.errors);
 
         function synchronizeIncluded(object) {
           __incrementLoadingCounter.bind(object);
@@ -234,8 +234,9 @@
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:refresh', 'rejected', _this, response);
-        response.finish();
 
+        response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 
@@ -301,16 +302,18 @@
         _this.removed = true;
         _this.unlinkAll();
         _this.factory.cache.clearRemoved(_this.data.id);
-        response.finish();
 
+        response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.resolve(response);
       }
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:remove', 'rejected', _this, response);
         _this.factory.cache.revertRemove(_this.data.id);
-        response.finish();
 
+        response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 
@@ -378,6 +381,7 @@
           $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'resolve', _this, response);
 
           response.finish();
+          _this.errors.synchronization.concat(response.errors);
           deferred.resolve(_this);
         }
 
@@ -385,6 +389,7 @@
           $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:unlinkReflection', 'rejected', _this, response);
 
           response.finish();
+          _this.errors.synchronization.concat(response.errors);
           deferred.reject(response);
         }
 
@@ -436,6 +441,7 @@
 
         _this.stable = true;
         response.finish();
+        _this.errors.synchronization.concat(response.errors);
 
         $q.allSettled(targets.map(synchronize))
           .then(resolveReflection, deferred.reject);
@@ -468,6 +474,7 @@
 
         deferred.reject(response.errors);
         response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 
@@ -515,6 +522,7 @@
 
         _this.stable = true;
         response.finish();
+        _this.errors.synchronization.concat(response.errors);
 
         $q.allSettled(targets.map(synchronize))
           .then(resolveReflection, deferred.reject);
@@ -547,6 +555,7 @@
 
         deferred.reject(response.errors);
         response.finish();
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 

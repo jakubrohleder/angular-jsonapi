@@ -144,7 +144,7 @@
 
         angular.forEach(errorsMap, function(errors, attribute) {
           angular.forEach(errors, function(error) {
-            _this.parent.errors.validation.add(attribute, error, attribute);
+            _this.parent.errors.validation.add(attribute, new AngularJsonAPIModelValidationError(error, attribute));
           });
         });
 

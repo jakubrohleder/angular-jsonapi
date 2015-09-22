@@ -122,6 +122,7 @@
 
         _this.factory.cache.setIndexIds(_this.data);
         response.finish();
+        _this.errors.synchronization.concat(response.errors);
 
         function synchronizeIncluded(object) {
           __incrementLoadingCounter.bind(object);
@@ -149,10 +150,11 @@
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'rejected', _this, response);
+        console.log(response);
 
         angular.forEach(_this.data, __decrementLoadingCounter);
         response.finish();
-
+        _this.errors.synchronization.concat(response.errors);
         deferred.reject(response);
       }
 

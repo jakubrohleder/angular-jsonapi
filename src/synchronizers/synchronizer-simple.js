@@ -84,7 +84,10 @@
           if (result.success === true) {
             data = result.value;
           } else {
-            errors.push(result.reason);
+            errors.push({
+              key: action,
+              object: result.reason
+            });
           }
         });
 

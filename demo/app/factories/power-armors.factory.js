@@ -37,8 +37,8 @@
       }
     };
 
-    var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
-    var restSynchro = new AngularJsonAPISynchronizationRest('http://localhost:3000/powerArmors');
+    var localeSynchro = new AngularJsonAPISynchronizationLocal('LocalStore synchronization', 'AngularJsonAPI');
+    var restSynchro = new AngularJsonAPISynchronizationRest('Rest synchronization', 'http://localhost:3000/powerArmors');
     var synchronizer = new AngularJsonAPISynchronizerSimple([localeSynchro, restSynchro]);
 
     $jsonapi.addFactory(schema, synchronizer);

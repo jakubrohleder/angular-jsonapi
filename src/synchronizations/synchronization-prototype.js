@@ -13,7 +13,7 @@
 
     return AngularJsonAPISynchronizationPrototype;
 
-    function AngularJsonAPISynchronizationPrototype() {
+    function AngularJsonAPISynchronizationPrototype(name) {
       var _this = this;
       var allHooks = [
         'add',
@@ -31,6 +31,7 @@
         'include'
       ];
 
+      _this.name = name;
       _this.state = {};
 
       _this.beginHooks = {};

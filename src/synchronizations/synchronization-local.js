@@ -15,14 +15,14 @@
 
     return AngularJsonAPISynchronizationLocal;
 
-    function AngularJsonAPISynchronizationLocal(prefix) {
+    function AngularJsonAPISynchronizationLocal(name, prefix) {
       var _this = this;
 
       prefix = prefix || 'AngularJsonAPI';
 
       _this.__updateStorage = updateStorage;
 
-      AngularJsonAPISynchronizationPrototype.call(_this);
+      AngularJsonAPISynchronizationPrototype.apply(_this, arguments);
 
       _this.synchronization('init', init);
 
