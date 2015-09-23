@@ -255,243 +255,6 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIModelRelationshipHasOne', AngularJsonAPIModelRelationshipHasOne);
-
-  function AngularJsonAPIModelRelationshipHasOne(
-    $jsonapi,
-    $log
-  ) {
-
-    return {
-      create: ModelRelationshipHasOneFactory
-    };
-
-    function ModelRelationshipHasOneFactory(parent, key, object) {
-      ModelRelationshipHasOne.prototype = object;
-      ModelRelationshipHasOne.prototype.constructor = ModelRelationshipHasOne;
-
-      ModelRelationshipHasOne.prototype.add = set;
-      ModelRelationshipHasOne.prototype.set = set;
-      ModelRelationshipHasOne.prototype.remove = remove;
-      ModelRelationshipHasOne.prototype.initialize = initialize;
-
-      return new ModelRelationshipHasOne(parent, key);
-
-      function ModelRelationshipHasOne(parent, key) {
-        var _this = this;
-
-        _this.parent = parent;
-        _this.key = key;
-        _this.schema = parent.schema.relationships[key];
-        _this.undefined = true;
-        _this.null = false;
-      }
-
-      /**
-       * Removes target to relationship
-       * @param {AngularJsonAPIModel} target model to be removed from relationship
-       */
-      function remove(target) {
-        var _this = this;
-        return _this.parent.unlink(_this.key, target);
-      }
-
-      /**
-       * Initialize new model linked to the object by form, you can edit and save it later
-       * @param  {String} type type neme for polymorphic associations
-       * @return {AngularJsonAPIModel}      Newly initialized object
-       */
-      function initialize(type) {
-        var _this = this;
-
-        if (_this.schema.polymorphic === true) {
-          if (type === undefined) {
-            $log.error('Run initialize with type for polymorphic asscoiation');
-
-            return;
-          }
-        } else {
-          type = _this.schema.model;
-        }
-
-        var object = $jsonapi.getResource(type).initialize();
-
-        object.form.link(_this.schema.reflection, _this);
-
-        return object;
-      }
-
-      /**
-       * Clears and sets relationship data according to the argument
-       * @param  {[AngularJsonAPIModel]} targets Array of models to replace
-       * current relationship
-       * @return {ModelRelationshipHasMany}     this
-       */
-      function set(targets) {
-        var _this = this;
-
-        _this.length = 0;
-        _this.undefined = false;
-        _this.push.apply(_this, targets);
-
-        _this.null = _this.length === 0;
-
-        return _this;
-      }
-    }
-  }
-  AngularJsonAPIModelRelationshipHasOne.$inject = ["$jsonapi", "$log"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIModelRelationshipHasMany', AngularJsonAPIModelRelationshipHasMany);
-
-  function AngularJsonAPIModelRelationshipHasMany(
-    $jsonapi,
-    $log
-  ) {
-    ModelRelationshipHasMany.prototype = Object.create(Array.prototype);
-    ModelRelationshipHasMany.prototype.constructor = ModelRelationshipHasMany;
-
-    ModelRelationshipHasMany.prototype.add = add;
-    ModelRelationshipHasMany.prototype.remove = remove;
-    ModelRelationshipHasMany.prototype.set = set;
-    ModelRelationshipHasMany.prototype.initialize = initialize;
-
-    ModelRelationshipHasMany.prototype.push = push;
-    ModelRelationshipHasMany.prototype.splice = splice;
-
-    ModelRelationshipHasMany.prototype.__push = __push;
-    ModelRelationshipHasMany.prototype.__pop = __pop;
-
-    return {
-      create: ModelRelationshipHasManyFactory
-    };
-
-    function ModelRelationshipHasManyFactory(parent, key) {
-      return new ModelRelationshipHasMany(parent, key);
-    }
-
-    function ModelRelationshipHasMany(parent, key) {
-      var _this = this;
-
-      _this.parent = parent;
-      _this.key = key;
-      _this.schema = parent.schema.relationships[key];
-      _this.undefined = true;
-      _this.null = false;
-    }
-
-    /**
-     * Adds target to relationship
-     * @param {AngularJsonAPIModel} target model to be added to relationship
-     */
-    function add(target) {
-      var _this = this;
-      return _this.parent.link(_this.key, target);
-    }
-
-    /**
-     * Removes target to relationship
-     * @param {AngularJsonAPIModel} target model to be removed from relationship
-     */
-    function remove(target) {
-      var _this = this;
-      return _this.parent.unlink(_this.key, target);
-    }
-
-    /**
-     * Initialize new model linked to the object by form, you can edit and save it later
-     * @param  {String} type type neme for polymorphic associations
-     * @return {AngularJsonAPIModel}      Newly initialized object
-     */
-    function initialize(type) {
-      var _this = this;
-
-      if (_this.schema.polymorphic === true) {
-        if (type === undefined) {
-          $log.error('Run initialize with type for polymorphic asscoiation');
-
-          return;
-        }
-      } else {
-        type = _this.schema.model;
-      }
-
-      var object = $jsonapi.getResource(type).initialize();
-
-      object.form.link(_this.schema.reflection, _this);
-
-      return object;
-    }
-
-    /**
-     * Clears and sets relationship data according to the argument
-     * @param  {[AngularJsonAPIModel]} targets Array of models to replace
-     * current relationship
-     * @return {ModelRelationshipHasMany}     this
-     */
-    function set(targets) {
-      var _this = this;
-
-      _this.length = 0;
-      _this.undefined = false;
-      _this.push.apply(_this, targets);
-
-      _this.null = _this.length === 0;
-
-      return _this;
-    }
-
-    /**
-     * Internal method used to add object to relationship
-     * @param  {AngularJsonAPIModel} target Object to be added
-     * @return {AngularJsonAPIModel}        Added object
-     */
-    function __push(target) {
-      var _this = this;
-      _this.undefined = false;
-      _this.undefined = null;
-
-      return _this.push(target);
-    }
-
-    /**
-     * Internal method used to remove object from relationship
-     * @param  {AngularJsonAPIModel} target Object to be removed
-     * @return {AngularJsonAPIModel or null}        Removed object
-     */
-    function __pop(target) {
-      var _this = this;
-
-      var index = _this.indexOf(target);
-      if (index > -1) {
-        return null;
-      } else {
-        _this.splice(index, 1);
-        _this.null = _this.length === 0;
-        return target;
-      }
-    }
-
-    function push() {
-      $log.error('User add or __push instead');
-    }
-
-    function splice() {
-      $log.error('User remove or __pop instead');
-    }
-  }
-  AngularJsonAPIModelRelationshipHasMany.$inject = ["$jsonapi", "$log"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
   .service('AngularJsonAPIModelLinkerService', AngularJsonAPIModelLinkerService);
 
   function AngularJsonAPIModelLinkerService($log) {
@@ -664,7 +427,7 @@
           __removeHasMany(oldReflection, reflectionKey, object);
         }
 
-        result.push(oldReflection, reflectionKey, object);
+        result.push(__wrapResults(oldReflection, reflectionKey, object));
       }
 
       if (target !== undefined && target !== null && reflectionKey !== false) {
@@ -676,7 +439,7 @@
           __addHasMany(target, reflectionKey, object);
         }
 
-        result.push(target, reflectionKey, object);
+        result.push(__wrapResults(target, reflectionKey, object));
       }
 
       return result;
@@ -1471,10 +1234,10 @@
         }
 
         function resolveReflection(response) {
-          angular.forEach(response, function(operation) {
+          angular.forEach(response, function(operation, key) {
             if (operation.success === true) {
-              $rootScope.$emit('angularJsonAPI:' + targets[key].data.type + ':object:linkReflection', 'resolved', targets[key], operation);
-              response.value.finish();
+              $rootScope.$emit('angularJsonAPI:' + targets[key].object.data.type + ':object:linkReflection', 'resolved', targets[key], operation);
+              operation.value.finish();
             }
           });
 

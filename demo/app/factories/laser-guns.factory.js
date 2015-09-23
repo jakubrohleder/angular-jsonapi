@@ -15,6 +15,9 @@
         name: {presence: true, length: {maximum: 20, minimum: 3}},
         durability: {presence: true, numericality: {onlyInteger: true}},
         quality: {presence: true, numericality: {onlyInteger: true}},
+        power: {presence: true, numericality: {onlyInteger: true}},
+        type: {presence: true, length: {maximum: 20, minimum: 3}},
+        rarity: {presence: true, length: {maximum: 20, minimum: 3}}
       },
       relationships: {
         owner: {

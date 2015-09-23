@@ -464,10 +464,10 @@
         }
 
         function resolveReflection(response) {
-          angular.forEach(response, function(operation) {
+          angular.forEach(response, function(operation, key) {
             if (operation.success === true) {
-              $rootScope.$emit('angularJsonAPI:' + targets[key].data.type + ':object:linkReflection', 'resolved', targets[key], operation);
-              response.value.finish();
+              $rootScope.$emit('angularJsonAPI:' + targets[key].object.data.type + ':object:linkReflection', 'resolved', targets[key], operation);
+              operation.value.finish();
             }
           });
 

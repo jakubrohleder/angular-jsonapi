@@ -174,7 +174,7 @@
           __removeHasMany(oldReflection, reflectionKey, object);
         }
 
-        result.push(oldReflection, reflectionKey, object);
+        result.push(__wrapResults(oldReflection, reflectionKey, object));
       }
 
       if (target !== undefined && target !== null && reflectionKey !== false) {
@@ -186,7 +186,7 @@
           __addHasMany(target, reflectionKey, object);
         }
 
-        result.push(target, reflectionKey, object);
+        result.push(__wrapResults(target, reflectionKey, object));
       }
 
       return result;
