@@ -695,7 +695,7 @@
           return;
         }
 
-        factory = $jsonapi.getFactory(data.type);
+        factory = $jsonapi.getResource(data.type);
 
         if (factory === undefined) {
           $log.error('Factory not found', data.type, data);

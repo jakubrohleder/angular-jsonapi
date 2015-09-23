@@ -2,12 +2,12 @@
 (function() {
   'use strict';
 
-  describe('AngularJsonAPICache', function() {
+  describe('AngularJsonAPIResourceCache', function() {
 
     beforeEach(module('angular-jsonapi'));
 
-    it('returns valid model', inject(function(AngularJsonAPICache) {
-      expect(AngularJsonAPICache).toBeDefined();
+    it('returns valid model', inject(function(AngularJsonAPIResourceCache) {
+      expect(AngularJsonAPIResourceCache).toBeDefined();
     }));
 
     describe('#addOrUpdate', function() {

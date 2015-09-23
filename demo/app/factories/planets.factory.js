@@ -39,13 +39,13 @@
     var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/planets');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
-    $jsonapi.addFactory(schema, synchronizer);
+    $jsonapi.addResource(schema, synchronizer);
   })
   .factory('Planets', Planets);
 
   function Planets(
     $jsonapi
   ) {
-    return $jsonapi.getFactory('planets');
+    return $jsonapi.getResource('planets');
   }
 })();

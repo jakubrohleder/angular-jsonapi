@@ -39,13 +39,13 @@
     var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/spaceshipModels');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
-    $jsonapi.addFactory(schema, synchronizer);
+    $jsonapi.addResource(schema, synchronizer);
   })
   .factory('SpaceshipModels', SpaceshipModels);
 
   function SpaceshipModels(
     $jsonapi
   ) {
-    return $jsonapi.getFactory('spaceshipModels');
+    return $jsonapi.getResource('spaceshipModels');
   }
 })();

@@ -65,13 +65,13 @@
     var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/robots');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
-    $jsonapi.addFactory(schema, synchronizer);
+    $jsonapi.addResource(schema, synchronizer);
   })
   .factory('Robots', Robots);
 
   function Robots(
     $jsonapi
   ) {
-    return $jsonapi.getFactory('robots');
+    return $jsonapi.getResource('robots');
   }
 })();

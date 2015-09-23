@@ -9,37 +9,37 @@
     var names = [];
     this.$get = jsonapiFactory;
 
-    function jsonapiFactory($log, AngularJsonAPIFactory) {
+    function jsonapiFactory($log, AngularJsonAPIResource) {
       return {
         form: form,
         get: get,
         remove: remove,
         all: all,
-        addFactory: addFactory,
-        getFactory: getFactory,
+        addResource: addResource,
+        getResource: getResource,
         clearCache: clearCache,
         proccesResults: proccesResults,
 
-        allFactories: allFactories,
-        factoriesNames: factoriesNames
+        allResources: allResources,
+        listResources: listResources
       };
 
-      function allFactories() {
+      function allResources() {
         return memory;
       }
 
-      function factoriesNames() {
+      function listResources() {
         return names;
       }
 
-      function addFactory(schema, synchronization) {
-        var factory = AngularJsonAPIFactory.create(schema, synchronization);
+      function addResource(schema, synchronization) {
+        var factory = AngularJsonAPIResource.create(schema, synchronization);
 
         memory[schema.type] = factory;
         names.push(schema.type);
       }
 
-      function getFactory(type) {
+      function getResource(type) {
         return memory[type];
       }
 
@@ -100,15 +100,15 @@
         };
 
         angular.forEach(results.included, function(data) {
-          objects.included.push(getFactory(data.type).cache.addOrUpdate(data, config));
+          objects.included.push(getResource(data.type).cache.addOrUpdate(data, config));
         });
 
         if (angular.isArray(results.data)) {
           angular.forEach(results.data, function(data) {
-            objects.data.push(getFactory(data.type).cache.addOrUpdate(data, config));
+            objects.data.push(getResource(data.type).cache.addOrUpdate(data, config));
           });
         } else {
-          objects.data.push(getFactory(results.data.type).cache.addOrUpdate(results.data, config));
+          objects.data.push(getResource(results.data.type).cache.addOrUpdate(results.data, config));
         }
 
         return objects;

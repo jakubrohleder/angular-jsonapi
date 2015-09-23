@@ -2,38 +2,38 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPICache', AngularJsonAPICacheWrapper);
+  .factory('AngularJsonAPIResourceCache', AngularJsonAPIResourceCacheWrapper);
 
-  function AngularJsonAPICacheWrapper(
+  function AngularJsonAPIResourceCacheWrapper(
     uuid4,
     $log
   ) {
 
-    AngularJsonAPICache.prototype.get = get;
-    AngularJsonAPICache.prototype.index = index;
-    AngularJsonAPICache.prototype.setIndexIds = setIndexIds;
-    AngularJsonAPICache.prototype.addOrUpdate = addOrUpdate;
+    AngularJsonAPIResourceCache.prototype.get = get;
+    AngularJsonAPIResourceCache.prototype.index = index;
+    AngularJsonAPIResourceCache.prototype.setIndexIds = setIndexIds;
+    AngularJsonAPIResourceCache.prototype.addOrUpdate = addOrUpdate;
 
-    AngularJsonAPICache.prototype.fromJson = fromJson;
-    AngularJsonAPICache.prototype.toJson = toJson;
-    AngularJsonAPICache.prototype.clear = clear;
+    AngularJsonAPIResourceCache.prototype.fromJson = fromJson;
+    AngularJsonAPIResourceCache.prototype.toJson = toJson;
+    AngularJsonAPIResourceCache.prototype.clear = clear;
 
-    AngularJsonAPICache.prototype.remove = remove;
-    AngularJsonAPICache.prototype.revertRemove = revertRemove;
-    AngularJsonAPICache.prototype.clearRemoved = clearRemoved;
+    AngularJsonAPIResourceCache.prototype.remove = remove;
+    AngularJsonAPIResourceCache.prototype.revertRemove = revertRemove;
+    AngularJsonAPIResourceCache.prototype.clearRemoved = clearRemoved;
 
     return {
-      create: AngularJsonAPICacheFactory
+      create: AngularJsonAPIResourceCacheFactory
     };
 
-    function AngularJsonAPICacheFactory(factory) {
-      return new AngularJsonAPICache(factory);
+    function AngularJsonAPIResourceCacheFactory(factory) {
+      return new AngularJsonAPIResourceCache(factory);
     }
 
     /**
      * Constructor
      */
-    function AngularJsonAPICache(factory) {
+    function AngularJsonAPIResourceCache(factory) {
       var _this = this;
 
       _this.factory = factory;

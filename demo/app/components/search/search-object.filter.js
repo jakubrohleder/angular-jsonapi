@@ -5,7 +5,7 @@
     .filter('angularJsonapiSearchObject', searchFilter);
 
   function searchFilter($jsonapi) {
-    var names = $jsonapi.factoriesNames();
+    var names = $jsonapi.listResources();
 
     return function(items, search, relationship, polymorphic) {
       if(items === undefined) {

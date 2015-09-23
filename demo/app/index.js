@@ -35,7 +35,7 @@
         abstract: true,
         resolve: {
           factory: function($jsonapi, $stateParams) {
-            return $jsonapi.getFactory($stateParams.type);
+            return $jsonapi.getResource($stateParams.type);
           }
         }
       })

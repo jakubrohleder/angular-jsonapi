@@ -21,7 +21,7 @@
       'collection:fetch'
     ];
 
-    var factories = $jsonapi.factoriesNames();
+    var factories = $jsonapi.listResources();
     angular.forEach(events, function(eventName) {
       angular.forEach(factories, function(factoryName) {
         logOnEvent(eventName, factoryName);

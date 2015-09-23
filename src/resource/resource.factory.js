@@ -2,46 +2,46 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIFactory', AngularJsonAPIFactoryWrapper);
+  .factory('AngularJsonAPIResource', AngularJsonAPIResourceWrapper);
 
-  function AngularJsonAPIFactoryWrapper(
+  function AngularJsonAPIResourceWrapper(
     AngularJsonAPIModel,
     AngularJsonAPISchema,
-    AngularJsonAPICache,
+    AngularJsonAPIResourceCache,
     AngularJsonAPICollection,
     uuid4,
     $rootScope,
     $log,
     $q
   ) {
-    AngularJsonAPIFactory.prototype.get = get;
-    AngularJsonAPIFactory.prototype.all = all;
-    AngularJsonAPIFactory.prototype.remove = remove;
-    AngularJsonAPIFactory.prototype.initialize = initialize;
+    AngularJsonAPIResource.prototype.get = get;
+    AngularJsonAPIResource.prototype.all = all;
+    AngularJsonAPIResource.prototype.remove = remove;
+    AngularJsonAPIResource.prototype.initialize = initialize;
 
-    AngularJsonAPIFactory.prototype.clearCache = clearCache;
+    AngularJsonAPIResource.prototype.clearCache = clearCache;
 
     return {
-      create: AngularJsonAPIFactoryFactory
+      create: AngularJsonAPIResourceFactory
     };
 
-    function AngularJsonAPIFactoryFactory(schema, synchronizer) {
-      return new AngularJsonAPIFactory(schema, synchronizer);
+    function AngularJsonAPIResourceFactory(schema, synchronizer) {
+      return new AngularJsonAPIResource(schema, synchronizer);
     }
 
     /**
-     * AngularJsonAPIFactory constructor
+     * AngularJsonAPIResource constructor
      * @param {json} schema       Schema object
      * @param {AngularJsonAPISynchronizer} synchronizer Synchronizer for the factory
      */
-    function AngularJsonAPIFactory(schema, synchronizer) {
+    function AngularJsonAPIResource(schema, synchronizer) {
       var _this = this;
       var config = {
         action: 'init'
       };
 
       _this.schema = AngularJsonAPISchema.create(schema);
-      _this.cache = AngularJsonAPICache.create(_this);
+      _this.cache = AngularJsonAPIResourceCache.create(_this);
 
       _this.synchronizer = synchronizer;
       _this.synchronizer.factory = _this;

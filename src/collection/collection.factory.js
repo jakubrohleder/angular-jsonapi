@@ -27,7 +27,7 @@
 
     /**
      * Constructor
-     * @param {AngularJsonAPIFactory} factory Factory associated with the collection
+     * @param {AngularJsonAPIResource} factory Factory associated with the collection
      * @param {object} params  Params associated with this factory (such as filters)
      */
     function AngularJsonAPICollection(factory, params) {

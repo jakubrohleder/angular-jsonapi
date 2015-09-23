@@ -41,13 +41,13 @@
     var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/powerArmors');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
-    $jsonapi.addFactory(schema, synchronizer);
+    $jsonapi.addResource(schema, synchronizer);
   })
   .factory('PowerArmors', PowerArmors);
 
   function PowerArmors(
     $jsonapi
   ) {
-    return $jsonapi.getFactory('powerArmors');
+    return $jsonapi.getResource('powerArmors');
   }
 })();

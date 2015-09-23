@@ -36,13 +36,13 @@
     var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/jobs');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
-    $jsonapi.addFactory(schema, synchronizer);
+    $jsonapi.addResource(schema, synchronizer);
   })
   .factory('Jobs', Jobs);
 
   function Jobs(
     $jsonapi
   ) {
-    return $jsonapi.getFactory('jobs');
+    return $jsonapi.getResource('jobs');
   }
 })();
