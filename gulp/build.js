@@ -64,6 +64,7 @@ gulp.task('html', ['inject', 'partials'], function() {
     .pipe(assets = $.useref.assets())
     .pipe($.rev())
     .pipe(jsFilter)
+    .pipe($.replace('localhost:3000', 'jsonapi-robot-wars.herokuapp.com'))
     .pipe($.sourcemaps.init())
     .pipe($.ngAnnotate())
     .pipe($.uglify({ preserveComments: $.uglifySaveLicense })).on('error', conf.errorHandler('Uglify'))
@@ -92,7 +93,6 @@ gulp.task('html', ['inject', 'partials'], function() {
 
 gulp.task('fonts', function() {
   return gulp.src($.mainBowerFiles({includeDev: 'inclusive', overrides: conf.overrides}))
-    .pipe($.debug())
     .pipe($.filter('**/*.{eot,svg,ttf,woff,woff2}'))
 
     .pipe($.flatten())
