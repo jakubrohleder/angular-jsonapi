@@ -8,10 +8,13 @@ var browserSync = require('browser-sync');
 
 var $ = require('gulp-load-plugins')();
 
-gulp.task('scripts', function () {
-  return gulp.src(path.join(conf.paths.src, '/app/**/*.js'))
-    .pipe($.jshint())
-    .pipe($.jshint.reporter('jshint-stylish'))
+gulp.task('scripts', function() {
+  return gulp.src([
+      path.join(conf.paths.src, '/app/**/*.js'),
+      path.join(conf.paths.lib, '/**/*.js')
+    ])
+    .pipe($.eslint())
+    .pipe($.eslint.format())
     .pipe(browserSync.reload({ stream: true }))
-    .pipe($.size())
+    .pipe($.size());
 });
