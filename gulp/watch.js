@@ -37,7 +37,7 @@ gulp.task('watch', ['inject'], function() {
   });
 
   gulp.watch(path.join(conf.paths.lib, '/**/*.js'), function() {
-    gulp.start('build');
+    gulp.start('build:lib');
   });
 
   gulp.watch(path.join(conf.paths.src, '/app/**/*.html'), function(event) {

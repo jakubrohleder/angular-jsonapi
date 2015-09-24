@@ -18,11 +18,16 @@ gulp.task('inject', ['scripts', 'styles'], function() {
   var injectScripts = gulp.src([
     path.join(conf.paths.src, '/app/**/*.module.js'),
     path.join(conf.paths.src, '/app/**/*.js'),
-    path.join(conf.paths.lib, '/**/*.js'),
-    path.join('!' + conf.paths.lib, '/**/*.spec.js'),
-    path.join('!' + conf.paths.lib, '/**/*.mock.js'),
     path.join('!' + conf.paths.src, '/app/**/*.spec.js'),
     path.join('!' + conf.paths.src, '/app/**/*.mock.js')
+  ])
+  .pipe($.angularFilesort()).on('error', conf.errorHandler('AngularFilesort'));
+
+  var injectLib = gulp.src([
+    path.join(conf.paths.lib, '/app/**/*.module.js'),
+    path.join(conf.paths.lib, '/**/*.js'),
+    path.join('!' + conf.paths.lib, '/**/*.spec.js'),
+    path.join('!' + conf.paths.lib, '/**/*.mock.js')
   ])
   .pipe($.angularFilesort()).on('error', conf.errorHandler('AngularFilesort'));
 
@@ -31,9 +36,16 @@ gulp.task('inject', ['scripts', 'styles'], function() {
     addRootSlash: false
   };
 
+  var injectLibOptions = {
+    ignorePath: [conf.paths.src, path.join(conf.paths.tmp, '/serve')],
+    addRootSlash: false,
+    name: 'lib'
+  };
+
   return gulp.src(path.join(conf.paths.src, '/*.html'))
     .pipe($.inject(injectStyles, injectOptions))
     .pipe($.inject(injectScripts, injectOptions))
+    .pipe($.inject(injectLib, injectLibOptions))
     .pipe(wiredep(_.extend({}, conf.wiredep)))
     .pipe(gulp.dest(path.join(conf.paths.tmp, '/serve')));
 });

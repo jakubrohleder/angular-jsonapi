@@ -14,9 +14,27 @@ var gutil = require('gulp-util');
 exports.paths = {
   src: 'demo',
   lib: 'src',
-  dist: 'dist',
+  dist: {
+    lib: 'dist',
+    demo: 'dist-demo'
+  },
   tmp: '.tmp',
   e2e: 'e2e'
+};
+
+exports.overrides = {
+  semantic: {
+    main: [
+      'dist/semantic.css',
+      'dist/semantic.js',
+      'dist/themes/default/assets/fonts/icons.eot',
+      'dist/themes/default/assets/fonts/icons.otf',
+      'dist/themes/default/assets/fonts/icons.svg',
+      'dist/themes/default/assets/fonts/icons.ttf',
+      'dist/themes/default/assets/fonts/icons.woff',
+      'dist/themes/default/assets/fonts/icons.woff2'
+    ]
+  }
 };
 
 /**
@@ -28,14 +46,7 @@ exports.wiredep = {
   exclude: [/bootstrap.js$/, /bootstrap-sass-official\/.*\.js/, /bootstrap\.css/, /semantic\.less/],
   devDependencies: true,
   directory: 'bower_components',
-  overrides: {
-    semantic: {
-      main: [
-        'dist/semantic.css',
-        'dist/semantic.js'
-      ]
-    }
-  }
+  overrides: exports.overrides
 };
 
 /**

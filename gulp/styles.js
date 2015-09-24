@@ -11,7 +11,7 @@ var $ = require('gulp-load-plugins')();
 var wiredep = require('wiredep').stream;
 var _ = require('lodash');
 
-gulp.task('styles', function () {
+gulp.task('styles', function() {
   var sassOptions = {
     style: 'expanded'
   };
@@ -26,11 +26,11 @@ gulp.task('styles', function () {
       filePath = filePath.replace(conf.paths.src + '/app/', '');
       return '@import "' + filePath + '";';
     },
+
     starttag: '// injector',
     endtag: '// endinjector',
     addRootSlash: false
   };
-
 
   return gulp.src([
     path.join(conf.paths.src, '/app/index.scss')
