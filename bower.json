@@ -10,7 +10,8 @@
     "validate": "~0.8.0"
   },
   "ignore": [
-    "demo/"
+    "demo/",
+    "demo-dist/"
   ],
   "devDependencies": {
     "angular-recursion": "~1.0.5",
