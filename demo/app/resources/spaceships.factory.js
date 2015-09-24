@@ -6,24 +6,32 @@
     $jsonapi,
     AngularJsonAPISynchronizationLocal,
     AngularJsonAPISynchronizationRest,
-    AngularJsonAPISynchronizerSimple
+    AngularJsonAPISynchronizerSimple,
+    apiURL
   ) {
     var schema = {
-      type: 'powerArmors',
+      type: 'spaceships',
       id: 'uuid4',
       attributes: {
         name: {presence: true, length: {maximum: 20, minimum: 3}},
         durability: {presence: true, numericality: {onlyInteger: true}},
-        quality: {presence: true, numericality: {onlyInteger: true}},
-        armor: {presence: true, numericality: {onlyInteger: true}},
-        type: {presence: true, length: {maximum: 20, minimum: 3}},
-        rarity: {presence: true, length: {maximum: 20, minimum: 3}}
+        quality: {presence: true, numericality: {onlyInteger: true}}
       },
       relationships: {
-        owner: {
+        pilot: {
           included: true,
           type: 'hasOne',
+          reflection: 'spaceships',
           polymorphic: true
+        },
+        spaceshipModel: {
+          included: true,
+          type: 'hasOne'
+        },
+        location: {
+          included: true,
+          type: 'hasOne',
+          reflection: 'entity'
         }
       },
       functions: {
@@ -38,16 +46,16 @@
     };
 
     var localeSynchro = AngularJsonAPISynchronizationLocal.create('LocalStore synchronization', 'AngularJsonAPI');
-    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/powerArmors');
+    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', apiURL + '/spaceships');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
     $jsonapi.addResource(schema, synchronizer);
   })
-  .factory('PowerArmors', PowerArmors);
+  .factory('Spaceships', Spaceships);
 
-  function PowerArmors(
+  function Spaceships(
     $jsonapi
   ) {
-    return $jsonapi.getResource('powerArmors');
+    return $jsonapi.getResource('spaceships');
   }
 })();

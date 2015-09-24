@@ -6,20 +6,18 @@
     $jsonapi,
     AngularJsonAPISynchronizationLocal,
     AngularJsonAPISynchronizationRest,
-    AngularJsonAPISynchronizerSimple
+    AngularJsonAPISynchronizerSimple,
+    apiURL
   ) {
     var schema = {
-      type: 'planets',
+      type: 'jobs',
       id: 'uuid4',
       attributes: {
         name: {presence: true, length: {maximum: 20, minimum: 3}},
-        cordsX: {presence: true, numericality: {onlyInteger: true}},
-        cordsY: {presence: true, numericality: {onlyInteger: true}},
-        cordsZ: {presence: true, numericality: {onlyInteger: true}},
-        size: {presence: true, numericality: {onlyInteger: true}}
+        salary: {presence: true, numericality: {onlyInteger: true}}
       },
       relationships: {
-        locations: {
+        robots: {
           included: true,
           type: 'hasMany'
         }
@@ -36,16 +34,16 @@
     };
 
     var localeSynchro = AngularJsonAPISynchronizationLocal.create('LocalStore synchronization', 'AngularJsonAPI');
-    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/planets');
+    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', apiURL + '/jobs');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
     $jsonapi.addResource(schema, synchronizer);
   })
-  .factory('Planets', Planets);
+  .factory('Jobs', Jobs);
 
-  function Planets(
+  function Jobs(
     $jsonapi
   ) {
-    return $jsonapi.getResource('planets');
+    return $jsonapi.getResource('jobs');
   }
 })();

@@ -6,31 +6,20 @@
     $jsonapi,
     AngularJsonAPISynchronizationLocal,
     AngularJsonAPISynchronizationRest,
-    AngularJsonAPISynchronizerSimple
+    AngularJsonAPISynchronizerSimple,
+    apiURL
   ) {
     var schema = {
-      type: 'spaceships',
+      type: 'robotModels',
       id: 'uuid4',
       attributes: {
         name: {presence: true, length: {maximum: 20, minimum: 3}},
-        durability: {presence: true, numericality: {onlyInteger: true}},
-        quality: {presence: true, numericality: {onlyInteger: true}}
+        code: {presence: true, length: {maximum: 20, minimum: 3}}
       },
       relationships: {
-        pilot: {
+        robots: {
           included: true,
-          type: 'hasOne',
-          reflection: 'spaceships',
-          polymorphic: true
-        },
-        spaceshipModel: {
-          included: true,
-          type: 'hasOne'
-        },
-        location: {
-          included: true,
-          type: 'hasOne',
-          reflection: 'entity'
+          type: 'hasMany'
         }
       },
       functions: {
@@ -45,16 +34,16 @@
     };
 
     var localeSynchro = AngularJsonAPISynchronizationLocal.create('LocalStore synchronization', 'AngularJsonAPI');
-    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/spaceships');
+    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', apiURL + '/robotModels');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
     $jsonapi.addResource(schema, synchronizer);
   })
-  .factory('Spaceships', Spaceships);
+  .factory('RobotModels', RobotModels);
 
-  function Spaceships(
+  function RobotModels(
     $jsonapi
   ) {
-    return $jsonapi.getResource('spaceships');
+    return $jsonapi.getResource('robotModels');
   }
 })();

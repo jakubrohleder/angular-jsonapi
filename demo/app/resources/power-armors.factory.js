@@ -6,19 +6,25 @@
     $jsonapi,
     AngularJsonAPISynchronizationLocal,
     AngularJsonAPISynchronizationRest,
-    AngularJsonAPISynchronizerSimple
+    AngularJsonAPISynchronizerSimple,
+    apiURL
   ) {
     var schema = {
-      type: 'jobs',
+      type: 'powerArmors',
       id: 'uuid4',
       attributes: {
         name: {presence: true, length: {maximum: 20, minimum: 3}},
-        salary: {presence: true, numericality: {onlyInteger: true}}
+        durability: {presence: true, numericality: {onlyInteger: true}},
+        quality: {presence: true, numericality: {onlyInteger: true}},
+        armor: {presence: true, numericality: {onlyInteger: true}},
+        type: {presence: true, length: {maximum: 20, minimum: 3}},
+        rarity: {presence: true, length: {maximum: 20, minimum: 3}}
       },
       relationships: {
-        robots: {
+        owner: {
           included: true,
-          type: 'hasMany'
+          type: 'hasOne',
+          polymorphic: true
         }
       },
       functions: {
@@ -33,16 +39,16 @@
     };
 
     var localeSynchro = AngularJsonAPISynchronizationLocal.create('LocalStore synchronization', 'AngularJsonAPI');
-    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/jobs');
+    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', apiURL + '/powerArmors');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
     $jsonapi.addResource(schema, synchronizer);
   })
-  .factory('Jobs', Jobs);
+  .factory('PowerArmors', PowerArmors);
 
-  function Jobs(
+  function PowerArmors(
     $jsonapi
   ) {
-    return $jsonapi.getResource('jobs');
+    return $jsonapi.getResource('powerArmors');
   }
 })();

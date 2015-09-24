@@ -166,13 +166,10 @@
         return deferred.promise;
 
         function rejectServerOffline(response) {
-          console.log('offline');
-          console.log(response);
           deferred.reject(AngularJsonAPIModelSynchronizationError.create('Server is offline', _this, response.status, action));
         }
 
         function rejectNoConnection() {
-          console.log('no internet');
           deferred.reject(AngularJsonAPIModelSynchronizationError.create('No internet connection', _this, response.status, action));
         }
       }

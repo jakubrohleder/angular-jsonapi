@@ -6,7 +6,8 @@
     $jsonapi,
     AngularJsonAPISynchronizationLocal,
     AngularJsonAPISynchronizationRest,
-    AngularJsonAPISynchronizerSimple
+    AngularJsonAPISynchronizerSimple,
+    apiURL
   ) {
     var schema = {
       type: 'spaceshipModels',
@@ -36,7 +37,7 @@
     };
 
     var localeSynchro = AngularJsonAPISynchronizationLocal.create('LocalStore synchronization', 'AngularJsonAPI');
-    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/spaceshipModels');
+    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', apiURL + '/spaceshipModels');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
     $jsonapi.addResource(schema, synchronizer);

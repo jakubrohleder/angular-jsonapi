@@ -6,24 +6,23 @@
     $jsonapi,
     AngularJsonAPISynchronizationLocal,
     AngularJsonAPISynchronizationRest,
-    AngularJsonAPISynchronizerSimple
+    AngularJsonAPISynchronizerSimple,
+    apiURL
   ) {
     var schema = {
-      type: 'laserGuns',
+      type: 'planets',
       id: 'uuid4',
       attributes: {
         name: {presence: true, length: {maximum: 20, minimum: 3}},
-        durability: {presence: true, numericality: {onlyInteger: true}},
-        quality: {presence: true, numericality: {onlyInteger: true}},
-        power: {presence: true, numericality: {onlyInteger: true}},
-        type: {presence: true, length: {maximum: 20, minimum: 3}},
-        rarity: {presence: true, length: {maximum: 20, minimum: 3}}
+        cordsX: {presence: true, numericality: {onlyInteger: true}},
+        cordsY: {presence: true, numericality: {onlyInteger: true}},
+        cordsZ: {presence: true, numericality: {onlyInteger: true}},
+        size: {presence: true, numericality: {onlyInteger: true}}
       },
       relationships: {
-        owner: {
+        locations: {
           included: true,
-          type: 'hasOne',
-          polymorphic: true
+          type: 'hasMany'
         }
       },
       functions: {
@@ -38,16 +37,16 @@
     };
 
     var localeSynchro = AngularJsonAPISynchronizationLocal.create('LocalStore synchronization', 'AngularJsonAPI');
-    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', 'http://localhost:3000/laserGuns');
+    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', apiURL + '/planets');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
     $jsonapi.addResource(schema, synchronizer);
   })
-  .factory('Jobs', Jobs);
+  .factory('Planets', Planets);
 
-  function Jobs(
+  function Planets(
     $jsonapi
   ) {
-    return $jsonapi.getResource('laserGuns');
+    return $jsonapi.getResource('planets');
   }
 })();
