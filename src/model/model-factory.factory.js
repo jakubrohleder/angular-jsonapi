@@ -4,14 +4,22 @@
   angular.module('angular-jsonapi')
   .factory('AngularJsonAPIModel', AngularJsonAPIModel);
 
-  function AngularJsonAPIModel(AngularJsonAPIAbstractModel, AngularJsonAPISchema, $log) {
+  function AngularJsonAPIModel(
+    AngularJsonAPIAbstractModel,
+    AngularJsonAPISchema,
+    namedFunction,
+    pluralize,
+    $log
+  ) {
 
     return {
       modelFactory: createModelFactory
     };
 
     function createModelFactory(schemaObj, resource) {
-      var Model = function(data, config, updatedAt) {
+      var constructorName = pluralize.plural(schemaObj.type, 1);
+
+      var Model = namedFunction(constructorName, function(data, config, updatedAt) {
         var _this = this;
 
         if (data.type !== _this.schema.type) {
@@ -21,7 +29,7 @@
         AngularJsonAPIAbstractModel.call(_this, data, config, updatedAt);
 
         _this.form.parent = _this;
-      };
+      });
 
       Model.prototype = Object.create(AngularJsonAPIAbstractModel.prototype);
       Model.prototype.constructor = Model;
@@ -42,6 +50,5 @@
         return new Model(data, updatedAt, isNew);
       }
     }
-
   }
 })();
