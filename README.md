@@ -695,32 +695,32 @@ Adds each error to `errorsObject.errors[key]`.
 # Roadmap
 
 ## 1.0.0-alpha.3
-* Two-way object.form linking (easy)
-* Updating object with values returned by update/add (easy)
-* Add method to track get synchronization promise (easy-medium)
-* Add objects for hasMany/hasOne relationship (medium)
-* Protect object attributes from being edited explicitly (without form -> save) (medium)
-* amplify.js for localstorage (easy)
-* I18n support (easy-medium)
-* Rename Synchronization to Source (easy)
+* [ ] Two-way object.form linking (easy)
+* [ ] Updating object with values returned by update/add (easy)
+* [ ] Add method to track get synchronization promise (easy-medium)
+* [ ] Add objects for hasMany/hasOne relationship (medium)
+* [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
+* [ ] amplify.js for localstorage (easy)
+* [ ] I18n support (easy-medium)
+* [ ] Rename Synchronization to Source (easy)
 
 ## 1.0.0-beta.1
-* unit tests (at least 50% coverage)
-* `sexy` demo
-* readonly attributes
-* survey for missing features and/or usability improvements
+* [ ] unit tests (at least 50% coverage)
+* [ ] `sexy` demo
+* [ ] readonly attributes
+* [ ] survey for missing features and/or usability improvements
 
 ## 1.0.0-beta.2
-* unit tests (at least 70% coverage)
-* features/improvements from the survey
+* [ ] unit tests (at least 70% coverage)
+* [ ] features/improvements from the survey
 
 ## 1.0.0
-* finall bug fixes and improvements
-* even more unit tests
-* performance / memory leaks tests
+* [ ] finall bug fixes and improvements
+* [ ] even more unit tests
+* [ ] performance / memory leaks tests
 
 ## > 1.0.0 (ideas)
-* Better cache management
-* PouchDB/LevelUp support
-* Socket synchronization
-* Offline synchronization support, revisions, conflicts management
+* [ ] Better cache management
+* [ ] PouchDB/LevelUp support
+* [ ] Socket synchronization
+* [ ] Offline synchronization support, revisions, conflicts management
