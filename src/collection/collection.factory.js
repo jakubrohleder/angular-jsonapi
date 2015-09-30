@@ -21,20 +21,20 @@
       create: AngularJsonAPICollectionFactory
     };
 
-    function AngularJsonAPICollectionFactory(factory, params) {
-      return new AngularJsonAPICollection(factory, params);
+    function AngularJsonAPICollectionFactory(resource, params) {
+      return new AngularJsonAPICollection(resource, params);
     }
 
     /**
      * Constructor
-     * @param {AngularJsonAPIResource} factory Factory associated with the collection
-     * @param {object} params  Params associated with this factory (such as filters)
+     * @param {AngularJsonAPIResource} resource Factory associated with the collection
+     * @param {object} params  Params associated with this resource (such as filters)
      */
-    function AngularJsonAPICollection(factory, params) {
+    function AngularJsonAPICollection(resource, params) {
       var _this = this;
 
-      _this.factory = factory;
-      _this.type = factory.schema.type;
+      _this.resource = resource;
+      _this.type = resource.schema.type;
       _this.params = params;
 
       _this.errors = {
@@ -45,16 +45,18 @@
         )
       };
 
-      _this.data = _this.factory.cache.index(_this.params);
+      _this.data = _this.resource.cache.index(_this.params);
 
       _this.loading = false;
       _this.loadingCount = 0;
       _this.synchronized = false;
       _this.pristine = _this.data === undefined;
 
-      $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
-      $rootScope.$on('angularJsonAPI:' + _this.type + ':factory:clearCache', clear);
-      $rootScope.$on('angularJsonAPI:' + _this.type + ':object:add', add);
+      var onObjectRemove = $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
+      var onFactoryClear = $rootScope.$on('angularJsonAPI:' + _this.type + ':resource:clearCache', clear);
+      var onObjectAdd = $rootScope.$on('angularJsonAPI:' + _this.type + ':object:add', add);
+
+      $rootScope.$on('$destroy', clearWatchers);
 
       function remove(event, status, object) {
         var index;
@@ -63,7 +65,7 @@
           index = _this.data.indexOf(object);
           if (index > -1) {
             _this.data.splice(index, 1);
-            _this.factory.cache.setIndexIds(_this.data);
+            _this.resource.cache.setIndexIds(_this.data);
           }
         }
       }
@@ -78,6 +80,12 @@
           _this.data = _this.data || [];
           _this.data.push(object);
         }
+      }
+
+      function clearWatchers() {
+        onObjectRemove();
+        onFactoryClear();
+        onObjectAdd();
       }
     }
 
@@ -97,14 +105,14 @@
     }
 
     /**
-     * Shortcut to this.factory.get
+     * Shortcut to this.resource.get
      * @param  {uuid4} id Id of object]
      * @return {AngularJsonAPIModel}          Model with id
      */
-    function get(id) {
+    function get(id, params) {
       var _this = this;
 
-      return _this.factory.get(id);
+      return _this.resource.get(id, params);
     }
 
     /**
@@ -124,14 +132,14 @@
 
       angular.forEach(_this.data, __incrementLoadingCounter);
 
-      _this.factory.synchronizer.synchronize(config)
+      _this.resource.synchronizer.synchronize(config)
         .then(resolve, reject, notify)
         .finally(__decrementLoadingCounter.bind(_this, undefined));
 
       return deferred.promise;
 
       function resolve(response) {
-        var results = $jsonapi.proccesResults(response.data);
+        var results = $jsonapi.__proccesResults(response.data);
         $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'resolved', _this, response);
         $q.allSettled(results.included.map(synchronizeIncluded)).then(resolveIncluded, deferred.reject);
 
@@ -142,7 +150,7 @@
         _this.updatedAt = Date.now();
         _this.synchronized = true;
 
-        _this.factory.cache.setIndexIds(_this.data);
+        _this.resource.cache.setIndexIds(_this.data);
         response.finish();
         _this.errors.synchronization.concat(response.errors);
 
@@ -164,7 +172,7 @@
             }
           });
 
-          deferred.resolve(response);
+          deferred.resolve(_this);
         }
 
         deferred.resolve(_this);
@@ -172,12 +180,11 @@
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.type + ':collection:fetch', 'rejected', _this, response);
-        console.log(response);
 
         angular.forEach(_this.data, __decrementLoadingCounter);
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.reject(response);
+        deferred.reject(_this);
       }
 
       function notify(response) {

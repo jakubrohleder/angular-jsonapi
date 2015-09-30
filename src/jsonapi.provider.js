@@ -4,25 +4,33 @@
   angular.module('angular-jsonapi')
   .provider('$jsonapi', jsonapiProvider);
 
-  function jsonapiProvider() {
+  function jsonapiProvider(validateJS) {
     var memory = {};
     var names = [];
     this.$get = jsonapiFactory;
 
     function jsonapiFactory($log, AngularJsonAPIResource) {
       return {
-        form: form,
-        get: get,
-        remove: remove,
-        all: all,
         addResource: addResource,
         getResource: getResource,
         clearCache: clearCache,
-        proccesResults: proccesResults,
-
         allResources: allResources,
-        listResources: listResources
+        listResources: listResources,
+        addValidator: addValidator,
+
+        __proccesResults: __proccesResults
       };
+
+      function addResource(schema, synchronization) {
+        var resource = AngularJsonAPIResource.create(schema, synchronization);
+
+        memory[schema.type] = resource;
+        names.push(schema.type);
+      }
+
+      function getResource(type) {
+        return memory[type];
+      }
 
       function allResources() {
         return memory;
@@ -32,56 +40,24 @@
         return names;
       }
 
-      function addResource(schema, synchronization) {
-        var factory = AngularJsonAPIResource.create(schema, synchronization);
-
-        memory[schema.type] = factory;
-        names.push(schema.type);
-      }
-
-      function getResource(type) {
-        return memory[type];
-      }
-
-      function form(type) {
-        if (memory[type] === undefined) {
-          $log.error('Can\t add not existing object type: ' + type + '. Use initialize.');
-        }
-
-        return memory[type].saved.form;
-      }
-
-      function get(type, id) {
-        if (memory[type] === undefined) {
-          $log.error('Can\t get not existing object type: ' + type + '. Use initialize.');
-        }
-
-        return memory[type].get(id);
-      }
-
-      function remove(type, id) {
-        if (memory[type] === undefined) {
-          $log.error('Can\t remove not existing object type: ' + type + '. Use initialize.');
-        }
-
-        return memory[type].remove(id);
-      }
-
-      function all(type) {
-        if (memory[type] === undefined) {
-          $log.error('Can\t get all of not existing object type: ' + type + '. Use initialize.');
-        }
-
-        return memory[type].all();
-      }
-
       function clearCache() {
-        angular.forEach(memory, function(factory) {
-          factory.clearCache();
+        angular.forEach(memory, function(resource) {
+          resource.clearCache();
         });
       }
 
-      function proccesResults(results) {
+      function addValidator(name, validator) {
+        if (!angular.isString(name)) {
+          $log.error('Validator name is not a string', name);
+          return;
+        } else if (validateJS.validators[name] === undefined) {
+          $log.warn('Redeclaring validator', name);
+        }
+
+        validateJS.validators[name] = validator;
+      }
+
+      function __proccesResults(results) {
         var objects = {
           data: [],
           included: []
@@ -92,7 +68,7 @@
         }
 
         var config = {
-          saved: true,
+          new: false,
           synchronized: true,
           stable: true,
           pristine: false,

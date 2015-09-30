@@ -32,7 +32,7 @@
     /**
      * AngularJsonAPIResource constructor
      * @param {json} schema       Schema object
-     * @param {AngularJsonAPISynchronizer} synchronizer Synchronizer for the factory
+     * @param {AngularJsonAPISynchronizer} synchronizer Synchronizer for the resource
      */
     function AngularJsonAPIResource(schema, synchronizer) {
       var _this = this;
@@ -44,7 +44,7 @@
       _this.cache = AngularJsonAPIResourceCache.create(_this);
 
       _this.synchronizer = synchronizer;
-      _this.synchronizer.factory = _this;
+      _this.synchronizer.resource = _this;
 
       _this.modelFactory = AngularJsonAPIModel.modelFactory(
         _this.schema,
@@ -54,12 +54,12 @@
       _this.initialized = false;
       _this.type = _this.schema.type;
 
-      synchronizer.factory = _this;
+      synchronizer.resource = _this;
 
       _this.synchronizer.synchronize(config).then(resolve, reject, notify);
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:init', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':resource:init', 'resolved', response);
         _this.cache.fromJson(response.data);
         _this.initialized = true;
 
@@ -67,13 +67,13 @@
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:init', 'rejected', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':resource:init', 'rejected', response);
         response.finish();
         _this.initialized = true;
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:init', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':resource:init', 'notify', response);
       }
     }
 
@@ -82,7 +82,7 @@
      * @param  {uuid} id
      * @return {AngularJsonAPIModel} Model associated with id, synchronized
      */
-    function get(id) {
+    function get(id, params) {
       var _this = this;
 
       if (!uuid4.validate(id)) {
@@ -91,7 +91,7 @@
 
       var object = _this.cache.get(id);
 
-      object.refresh();
+      object.refresh(params);
 
       return object;
     }
@@ -103,11 +103,11 @@
      */
     function all(params) {
       var _this = this;
-      params = params || {};
+      params = params === undefined ? _this.schema.params.all : params;
 
       var collection = AngularJsonAPICollection.create(
         _this,
-        angular.extend(params, _this.schema.params.all)
+        params
       );
 
       collection.fetch();
@@ -156,7 +156,7 @@
       };
 
       var config = {
-        saved: false,
+        new: true,
         synchronized: false,
         stable: false,
         pristine: false,
@@ -165,7 +165,7 @@
 
       var object = _this.cache.addOrUpdate(data, config);
 
-      $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:initialize', 'resolved', object);
+      $rootScope.$emit('angularJsonAPI:' + _this.type + ':resource:initialize', 'resolved', object);
 
       return object;
     }
@@ -188,21 +188,21 @@
       return deferred;
 
       function resolve(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clearCache', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':resource:clearCache', 'resolved', response);
         response.finish();
 
         deferred.resolve(response);
       }
 
       function reject(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clearCache', 'resolved', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':resource:clearCache', 'resolved', response);
         response.finish();
 
         deferred.reject(response);
       }
 
       function notify(response) {
-        $rootScope.$emit('angularJsonAPI:' + _this.type + ':factory:clearCache', 'notify', response);
+        $rootScope.$emit('angularJsonAPI:' + _this.type + ':resource:clearCache', 'notify', response);
 
         deferred.notify(response);
       }
