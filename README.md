@@ -2,7 +2,7 @@
 
 [![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)
 
-## Use with caution it's only 1.0.0-alpha.1
+## Use with caution it's only 1.0.0-alpha.2
 
 *This module is still in a WIP state, many things work fine but it lacks tests and API may change, also documentation can not reflect the real state*
 
@@ -50,6 +50,11 @@ The future development plan involves:
 - [Directives](#directives)
   - [Promise-button](#promise-button)
 - [Roadmap](#roadmap)
+  - [1.0.0-alpha.3](#100-alpha3)
+  - [1.0.0-beta.1](#100-beta1)
+  - [1.0.0-beta.2](#100-beta2)
+  - [1.0.0](#100)
+  - [> 1.0.0 (ideas)](#-100-ideas)
 
 <!-- /MarkdownTOC -->
 
@@ -525,7 +530,7 @@ Returns true or false wether collection has errors or not, they can be handled a
 
 ## Object
 
-Object is a final wrapper for data returned by your API. 
+Object is a final wrapper for data returned by your API.
 
 ### Properties
 
@@ -534,7 +539,7 @@ Object is a final wrapper for data returned by your API.
 * **synchronized** - marks if the object is synchrinized with server (at least one `get`, `add` or `update` synchronization has been succesfuly resolved during this session)
 * **pristine** - marks if the resource has just been requested and is not present in the memory, nor localstore
 * **removed** - marks if the object has been removed. Removed object are also (after succesful synchronization) cleared from collections, but you can use this just in case.
-* **loading** - marks if the object has some loading synchronizations ongoing 
+* **loading** - marks if the object has some loading synchronizations ongoing
 * **saving** - marks if the object has some saving synchronizations ongoing
 * **updatedAt** -timestamp of last synchronization that updated the object
 * **loadingCount** - number of different synchronizations that are loading the object
@@ -553,7 +558,7 @@ You can access data associated with the object with `object.data`.
 
 #### Object form
 
-Object form is similar to the object itself and it should be used to update its parent attributes and relationships. 
+Object form is similar to the object itself and it should be used to update its parent attributes and relationships.
 
 #### Validating form
 
@@ -582,12 +587,12 @@ Getting an managing object relationships with ease was the primary motivation to
 * `hasOne`
     * `undefined` - if object relationships hasn't been fetched from the server yet
     * `null` - if relationship has no related object
-    * `object` - if relationship is present 
+    * `object` - if relationship is present
 * `hasMany`
     * `undefined` - if object relationships hasn't been fetched from the server yet
-    * `[object]` - if relationship is present 
+    * `[object]` - if relationship is present
 
-Any of the operations does not run `get` synchronization 
+Any of the operations does not run `get` synchronization
 
 #### Linking object relationship
 
@@ -597,9 +602,9 @@ There are two ways of linking object to other object: through form or directly.
 
 `object.form.link(key, target)`
 
-Object form relationship with `key` gets linked to the target. New relationship state is synchronized when you [`save` the object](#saving-object). 
+Object form relationship with `key` gets linked to the target. New relationship state is synchronized when you [`save` the object](#saving-object).
 
-*Currenty this operation does not link the target form back, but it's on the [roadmap](#roadmap)* 
+*Currenty this operation does not link the target form back, but it's on the [roadmap](#roadmap)*
 
 ##### Linking object relationship without a form
 
@@ -611,9 +616,9 @@ Object relationship with `key` gets linked to the target. New relationship state
 
 `object.form.unlink(key, target)`
 
-Object form relationship with `key` gets unlinked from the target. New relationship state is synchronized when you [`save` the object](#saving-object). 
+Object form relationship with `key` gets unlinked from the target. New relationship state is synchronized when you [`save` the object](#saving-object).
 
-*Currenty this operation does not unlink the target form back, but it's on the [roadmap](#roadmap)* 
+*Currenty this operation does not unlink the target form back, but it's on the [roadmap](#roadmap)*
 
 #### Unlinking object relationship without a form
 
@@ -621,7 +626,7 @@ Object form relationship with `key` gets unlinked from the target. New relations
 
 Object relationship with `key` gets unlinked from the target. New relationship state is synchronized immidiately with `unlink` synchronization.
 
-### Refreshing object   
+### Refreshing object
 
 `object.refresh(params)`
 
