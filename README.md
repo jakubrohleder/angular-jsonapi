@@ -696,7 +696,7 @@ Adds each error to `errorsObject.errors[key]`.
 
 ## 1.0.0-alpha.3
 * [x] Two-way object.form linking (easy)
-* [ ] Updating object with values returned by update/add (easy)
+* [x] Updating object with values returned by update/add (easy)
 * [ ] Add method to track get synchronization promise (easy-medium)
 * [-] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
