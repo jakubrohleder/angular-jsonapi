@@ -60,18 +60,18 @@
       _this.finish('include', updateStorage);
 
       function init() {
-        var type = _this.synchronizer.factory.schema.type;
+        var type = _this.synchronizer.resource.schema.type;
         return $q.resolve($window.localStorage.getItem(prefix + '.' + type));
       }
 
       function clear() {
-        var type = _this.synchronizer.factory.schema.type;
+        var type = _this.synchronizer.resource.schema.type;
         $window.localStorage.removeItem(prefix + '.' + type);
       }
 
       function updateStorage() {
-        var type = _this.synchronizer.factory.schema.type;
-        var cache = _this.synchronizer.factory.cache;
+        var type = _this.synchronizer.resource.schema.type;
+        var cache = _this.synchronizer.resource.cache;
         $window.localStorage.setItem(prefix + '.' + type, cache.toJson());
       }
     }

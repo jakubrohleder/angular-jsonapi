@@ -26,17 +26,17 @@
       create: AngularJsonAPIResourceCacheFactory
     };
 
-    function AngularJsonAPIResourceCacheFactory(factory) {
-      return new AngularJsonAPIResourceCache(factory);
+    function AngularJsonAPIResourceCacheFactory(resource) {
+      return new AngularJsonAPIResourceCache(resource);
     }
 
     /**
      * Constructor
      */
-    function AngularJsonAPIResourceCache(factory) {
+    function AngularJsonAPIResourceCache(resource) {
       var _this = this;
 
-      _this.factory = factory;
+      _this.resource = resource;
       _this.data = {};
       _this.removed = {};
       _this.size = 0;
@@ -49,7 +49,7 @@
      * @param {object} validatedData Data that are used to update or create an object, has to be valid
      * @return {AngularJsonAPIModel} Created model
      */
-    function addOrUpdate(validatedData, config) {
+    function addOrUpdate(validatedData, config, updatedAt) {
       var _this = this;
       var id = validatedData.id;
 
@@ -59,10 +59,10 @@
       }
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = _this.factory.modelFactory(validatedData, config);
+        _this.data[id] = _this.resource.modelFactory(validatedData, config, updatedAt);
         _this.size += 1;
       } else {
-        _this.data[id].update(validatedData, config.new, config.initialization);
+        _this.data[id].update(validatedData, !config.new, config.initialization);
       }
 
       return _this.data[id];
@@ -79,7 +79,7 @@
       var collection = angular.fromJson(json);
 
       var config = {
-        new: true,
+        new: false,
         synchronized: false,
         stable: false,
         pristine: false,
@@ -110,7 +110,7 @@
       };
 
       angular.forEach(_this.data, function(object) {
-        if (object.error === false) {
+        if (object.hasErrors() === false) {
           json.data.push(object.toJson());
         }
       });
@@ -140,18 +140,18 @@
 
       var data = {
         id: id,
-        type: _this.factory.schema.type
+        type: _this.resource.schema.type
       };
 
       var config = {
-        new: true,
+        new: false,
         synchronized: false,
         stable: false,
         pristine: true
       };
 
       if (_this.data[id] === undefined) {
-        _this.data[id] = _this.factory.modelFactory(data, config);
+        _this.data[id] = _this.resource.modelFactory(data, config);
       }
 
       return _this.data[id];

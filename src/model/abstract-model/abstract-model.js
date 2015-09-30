@@ -135,8 +135,8 @@
         _this.update(_this.form.data);
 
         if (_this.new === true) {
-          _this.factory.cache.indexIds = _this.factory.cache.indexIds || [];
-          _this.factory.cache.indexIds.push(_this.data.id);
+          _this.resource.cache.indexIds = _this.resource.cache.indexIds || [];
+          _this.resource.cache.indexIds.push(_this.data.id);
         }
 
         _this.synchronized = true;
@@ -290,7 +290,7 @@
         object: _this
       };
 
-      _this.factory.cache.remove(_this.data.id);
+      _this.resource.cache.remove(_this.data.id);
 
       if (_this.new === true) {
         deferred.resolve();
@@ -308,7 +308,7 @@
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:remove', 'resolved', _this, response);
         _this.removed = true;
         _this.unlinkAll();
-        _this.factory.cache.clearRemoved(_this.data.id);
+        _this.resource.cache.clearRemoved(_this.data.id);
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
@@ -317,7 +317,7 @@
 
       function reject(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:remove', 'rejected', _this, response);
-        _this.factory.cache.revertRemove(_this.data.id);
+        _this.resource.cache.revertRemove(_this.data.id);
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
@@ -635,8 +635,8 @@
       object.data.id = validatedData.id;
       object.data.type = validatedData.type;
 
-      if (object.factory.schema.type !== validatedData.type) {
-        $log.error('Different type then factory', object.factory.schema.type, validatedData);
+      if (object.resource.schema.type !== validatedData.type) {
+        $log.error('Different type then resource', object.resource.schema.type, validatedData);
         return false;
       }
 
@@ -690,7 +690,7 @@
       }
 
       function linkOne(object, key, data) {
-        var factory;
+        var resource;
 
         if (data === null) {
           AngularJsonAPIModelLinkerService.link(object, key, null);
@@ -701,14 +701,14 @@
           return;
         }
 
-        factory = $jsonapi.getResource(data.type);
+        resource = $jsonapi.getResource(data.type);
 
-        if (factory === undefined) {
+        if (resource === undefined) {
           $log.error('Factory not found', data.type, data);
           return;
         }
 
-        var target = factory.cache.get(data.id);
+        var target = resource.cache.get(data.id);
 
         AngularJsonAPIModelLinkerService.link(object, key, target);
       }

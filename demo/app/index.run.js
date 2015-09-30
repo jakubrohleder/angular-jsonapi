@@ -22,13 +22,14 @@
     ];
 
     var resources = $jsonapi.listResources();
+    var watchers = [];
+
     angular.forEach(events, function(eventName) {
       angular.forEach(resources, function(resourceName) {
         logOnEvent(eventName, resourceName);
       });
     });
 
-    var watchers = [];
     function logOnEvent(eventName, resource) {
       var watcher = $rootScope.$on('angularJsonAPI:' + resource + ':' + eventName, function(event, status, object, response) {
         // console.info(resource, eventName, status, object, response);

@@ -53,10 +53,10 @@
         Stable
       </button>
       <button promise-button
-        ng-class="{red: !object.saved, green: object.saved}"
+        ng-class="{red: !object.new, green: object.new}"
         class="ui mini basic button"
       >
-        Saved
+        New
       </button>
 
       <div class="ui red basic mini right floated button" ng-hide="object.synchronized">Not synchronized</div>
@@ -121,7 +121,7 @@
         </div>
       </div>
       <div class="eight wide column">
-        <div class="ui segment" ng-class="{loading: !object.synchronized && object.saved}">
+        <div class="ui segment" ng-class="{loading: !object.synchronized && !object.new}">
           <h4>Form</h4>
           <div
             class="ui basic mini button"

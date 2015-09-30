@@ -4,6 +4,6 @@
   angular.module('angularJsonapiExample')
   /* global _: false */
     .constant('_', _)
-    .constant('apiURL', 'https://localhost:3000')
+    .constant('apiURL', 'http://localhost:3000')
     ;
 })();
