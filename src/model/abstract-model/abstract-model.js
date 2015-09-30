@@ -47,7 +47,7 @@
        * Is not a new record
        * @type {Boolean}
        */
-      _this.saved = config.saved === undefined ? true : config.saved;
+      _this.new = config.new === undefined ? false : config.new;
 
       /**
        * Is present on the server
@@ -113,7 +113,7 @@
       var _this = this;
       var deferred = $q.defer();
       var config = {
-        action: _this.saved === false ? 'add' : 'update',
+        action: _this.new === true ? 'add' : 'update',
         object: _this
       };
 
@@ -134,13 +134,14 @@
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response);
         _this.update(_this.form.data);
 
-        if (_this.saved === false) {
+        if (_this.new === true) {
           _this.factory.cache.indexIds = _this.factory.cache.indexIds || [];
           _this.factory.cache.indexIds.push(_this.data.id);
         }
 
         _this.synchronized = true;
-        _this.saved = true;
+        _this.new = false;
+        _this.pristine = false;
         _this.stable = true;
 
         response.finish();
@@ -153,7 +154,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.reject(response);
+        deferred.reject(_this);
       }
 
       function notify(response) {
@@ -179,17 +180,19 @@
      * Synchronize object with remote
      * @return {promise} Promise associated with synchronization that resolves to this
      */
-    function refresh() {
+    function refresh(params) {
       var $jsonapi = $injector.get('$jsonapi');
       var deferred = $q.defer();
       var _this = this;
+      params = params === undefined ? _this.schema.params.get : params;
+
       var config = {
         action: 'refresh',
         object: _this,
-        params: _this.schema.params.get
+        params: params
       };
 
-      if (_this.saved === false) {
+      if (_this.new === true) {
         var error = AngularJsonAPIModelSynchronizationError.create('Can\'t refresh new object', null, 0, 'refresh');
         _this.errors.synchronization.add('refresh', error);
         deferred.reject(error);
@@ -204,12 +207,13 @@
       return deferred.promise;
 
       function resolve(response) {
-        var results = $jsonapi.proccesResults(response.data);
+        var results = $jsonapi.__proccesResults(response.data);
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:refresh', 'resolved', _this, response);
         $q.allSettled(results.included.map(synchronizeIncluded)).then(resolveIncluded, deferred.reject);
 
         _this.synchronized = true;
         _this.stable = true;
+        _this.pristine = false;
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
@@ -231,7 +235,7 @@
             }
           });
 
-          deferred.resolve(response);
+          deferred.resolve(_this);
         }
       }
 
@@ -240,7 +244,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.reject(response);
+        deferred.reject(_this);
       }
 
       function notify(response) {
@@ -288,7 +292,7 @@
 
       _this.factory.cache.remove(_this.data.id);
 
-      if (_this.saved === false) {
+      if (_this.new === true) {
         deferred.resolve();
       } else {
         __incrementSavingCounter(_this);
@@ -308,7 +312,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(response);
+        deferred.resolve(_this);
       }
 
       function reject(response) {
@@ -317,7 +321,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.reject(response);
+        deferred.reject(_this);
       }
 
       function notify(response) {
@@ -393,7 +397,7 @@
 
           response.finish();
           _this.errors.synchronization.concat(response.errors);
-          deferred.reject(response);
+          deferred.reject(_this);
         }
 
         function notify(response) {
@@ -426,7 +430,7 @@
         error = AngularJsonAPIModelSynchronizationError.create('Can\'t link undefined', null, 0, 'link');
         _this.errors.synchronization.add('link', error);
         deferred.reject(error);
-      } else if (_this.saved === false) {
+      } else if (_this.new === true) {
         error = AngularJsonAPIModelSynchronizationError.create('Can\'t link new object', null, 0, 'link');
         _this.errors.synchronization.add('link', error);
         deferred.reject(error);
@@ -446,6 +450,7 @@
         var targets = AngularJsonAPIModelLinkerService.link(_this, key, target);
 
         _this.stable = true;
+        _this.pristine = false;
         response.finish();
         _this.errors.synchronization.concat(response.errors);
 
@@ -481,7 +486,7 @@
         deferred.reject(response.errors);
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.reject(response);
+        deferred.reject(_this);
       }
 
       function notify(response) {
@@ -509,13 +514,13 @@
       };
 
       if (target === undefined) {
-        error = AngularJsonAPIModelSynchronizationError.create('Can\'t unlink undefined', null, 0, 'link');
-        _this.errors.synchronization.add('link', error);
-        deferred.reject(error);
-      } else if (_this.saved === false) {
-        error = AngularJsonAPIModelSynchronizationError.create('Can\'t unlink new object', null, 0, 'link');
-        _this.errors.synchronization.add('link', error);
-        deferred.reject(error);
+        error = AngularJsonAPIModelSynchronizationError.create('Can\'t unlink undefined', null, 0, 'unlink');
+        _this.errors.synchronization.add('unlink', error);
+        deferred.reject(_this);
+      } else if (_this.new === true) {
+        error = AngularJsonAPIModelSynchronizationError.create('Can\'t unlink new object', null, 0, 'unlink');
+        _this.errors.synchronization.add('unlink', error);
+        deferred.reject(_this);
       } else {
         __incrementSavingCounter(_this);
 
@@ -532,6 +537,7 @@
         var targets = AngularJsonAPIModelLinkerService.link(_this, key, target);
 
         _this.stable = true;
+        _this.pristine = false;
         response.finish();
         _this.errors.synchronization.concat(response.errors);
 
@@ -567,7 +573,7 @@
         deferred.reject(response.errors);
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.reject(response);
+        deferred.reject(_this);
       }
 
       function notify(response) {

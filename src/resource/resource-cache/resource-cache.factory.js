@@ -62,7 +62,7 @@
         _this.data[id] = _this.factory.modelFactory(validatedData, config);
         _this.size += 1;
       } else {
-        _this.data[id].update(validatedData, config.saved, config.initialization);
+        _this.data[id].update(validatedData, config.new, config.initialization);
       }
 
       return _this.data[id];
@@ -79,7 +79,7 @@
       var collection = angular.fromJson(json);
 
       var config = {
-        saved: true,
+        new: true,
         synchronized: false,
         stable: false,
         pristine: false,
@@ -144,7 +144,7 @@
       };
 
       var config = {
-        saved: true,
+        new: true,
         synchronized: false,
         stable: false,
         pristine: true
