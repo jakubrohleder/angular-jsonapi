@@ -13,7 +13,7 @@
     };
 
     function sidebarController($scope, $jsonapi) {
-      $scope.names = $jsonapi.factoriesNames();
+      $scope.names = $jsonapi.listResources();
     }
   }
 

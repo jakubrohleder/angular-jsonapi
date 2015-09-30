@@ -5,6 +5,14 @@
       <small ng-show="object.schema.relationships[relationshipName].polymorphic">polymorphic</small>
     </div>
     <div class="twelve wide column">
+      <button
+        class="ui mini green left floated button"
+        ng-hide="object.schema.relationships[relationshipName].polymorphic"
+        ng-click="expression"
+      >
+        Create new {{object.schema.relationships[relationshipName].model}}
+      </button>
+
       <angular-jsonapi-search
         object="object"
         key="relationshipName"
@@ -13,6 +21,7 @@
 
       <button
         class="ui mini primary right floated button"
+        ng-hide="object.schema.relationships[relationshipName].polymorphic"
         ui-sref="frame.request.all({type: object.schema.relationships[relationshipName].model})"
       >
         Go to {{object.schema.relationships[relationshipName].model}}
@@ -22,22 +31,22 @@
 
   <div class="ui divider hidden"></div>
 
-  <div ng-show="object.saved === false && form === false">
+  <div ng-show="object.new === true && form === false">
     <strong>Relationship data locked for new object</strong>
     <div>This object is new, you can only add relationships to its form.</div>
   </div>
 
-  <div ng-show="object.saved === true && relationshipCollection === undefined">
+  <div ng-show="object.new === false && relationshipCollection === undefined">
     <strong>Relationship data undefined</strong>
     <div>The relationship data hasn't been fetched yet, refresh the model to fetch it.</div>
   </div>
 
-  <div ng-show="object.saved === true &&relationshipCollection === null">
+  <div ng-show="object.new === false &&relationshipCollection === null">
     <strong>Has one relationship null</strong>
     <div>Set something as relationship object.</div>
   </div>
 
-  <div ng-show="(object.saved === true || (object.parent.saved === false && form === true)) && isArray(relationshipCollection) && relationshipCollection.length === 0">
+  <div ng-show="(object.new === false || (object.parent.new === true && form === true)) && isArray(relationshipCollection) && relationshipCollection.length === 0">
     <strong>Has many relationship empty</strong>
     <div>Add something to the relationship array.</div>
   </div>

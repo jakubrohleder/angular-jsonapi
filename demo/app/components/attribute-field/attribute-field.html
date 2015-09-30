@@ -1,0 +1,18 @@
+<div class="field" ng-class="{
+  error: object.errors.validation.hasErrors(key),
+  success: !object.errors.validation.hasErrors(key) && object.form.data.attributes[key] !== object.data.attributes[key]
+}">
+  <label>{{key | toTitleCase}}</label>
+  <input type="text"
+    name="{{key}}"
+    ng-model="object.form.data.attributes[key]"
+    ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 500, 'blur': 0 } }"
+    ng-change="object.form.validate(key)"
+  >
+
+  <div class="ui error message" ng-show="object.errors.validation.hasErrors(key)">
+    <ul class="list">
+      <li ng-repeat="error in object.errors.validation.errors[key]">{{error.message}}</li>
+    </ul>
+  </div>
+</div>

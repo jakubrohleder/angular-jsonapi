@@ -8,6 +8,6 @@
     $jsonapi,
     $scope
   ) {
-    $scope.names = $jsonapi.factoriesNames();
+    $scope.names = $jsonapi.listResources();
   }
 })();

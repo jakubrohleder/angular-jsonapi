@@ -4,11 +4,11 @@
   angular.module('angularJsonapiExample')
     .run(logEvents);
 
-  function logEvents($rootScope) {
+  function logEvents($rootScope, $jsonapi) {
     var events = [
-      'factory:init',
-      'factory:clearCache',
-      'factory:initialize',
+      'resource:init',
+      'resource:clearCache',
+      'resource:initialize',
       'object:add',
       'object:update',
       'object:refresh',
@@ -21,26 +21,28 @@
       'collection:fetch'
     ];
 
-    var factories = [
-      'jobs',
-      'laserGuns',
-      'locations',
-      'planets',
-      'powerArmors',
-      'robotModels',
-      'robots',
-      'spaceshipModels',
-      'spaceships'
-    ];
+    var resources = $jsonapi.listResources();
+    var watchers = [];
+
     angular.forEach(events, function(eventName) {
-      angular.forEach(factories, function(factoryName) {
-        logOnEvent(eventName, factoryName);
+      angular.forEach(resources, function(resourceName) {
+        logOnEvent(eventName, resourceName);
       });
     });
 
-    function logOnEvent(eventName, factory) {
-      $rootScope.$on('angularJsonAPI:' + factory + ':' + eventName, function(event, status, object, response) {
-        // console.info(factory, eventName, status, object, response);
+    function logOnEvent(eventName, resource) {
+      var watcher = $rootScope.$on('angularJsonAPI:' + resource + ':' + eventName, function(event, status, object, response) {
+        // console.info(resource, eventName, status, object, response);
+      });
+
+      watchers.push(watcher);
+    }
+
+    $rootScope.$on('$destroy', clearWatchers);
+
+    function clearWatchers() {
+      angular.forEach(watchers, function(watcher) {
+        watcher();
       });
     }
   }

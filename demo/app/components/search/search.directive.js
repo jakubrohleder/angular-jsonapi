@@ -28,12 +28,12 @@
       $scope.schema = $scope.object.schema.relationships[$scope.key];
       if ($scope.schema.polymorphic) {
         $scope.collections = {};
-        angular.forEach($jsonapi.allFactories(), function(factory, factoryName) {
-          $scope.collections[factoryName] = factory.cache.index();
+        angular.forEach($jsonapi.allResources(), function(resource, resourceName) {
+          $scope.collections[resourceName] = resource.cache.index();
         });
       } else {
         $scope.model = $scope.schema.model;
-        $scope.collection = $jsonapi.getFactory($scope.model).cache.index();
+        $scope.collection = $jsonapi.getResource($scope.model).cache.index();
       }
 
       $scope.show = false;
@@ -80,7 +80,7 @@
 
       function getIndex(modelName) {
         $timeout(function() {
-          $scope.collection = $jsonapi.getFactory(modelName).all().data;
+          $scope.collection = $jsonapi.getResource(modelName).all().data;
         });
       }
     }

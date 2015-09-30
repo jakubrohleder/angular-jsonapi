@@ -22,7 +22,6 @@
         $scope.close = close;
         $scope.clear = clear;
         $scope.add = add;
-        add();
 
         function close() {
           $scope.$broadcast('close');

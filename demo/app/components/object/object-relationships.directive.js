@@ -18,7 +18,7 @@
     function controller($scope) {
       $scope.isArray = angular.isArray;
       $scope.emptyRelationship = emptyRelationship;
-      $scope.form = $scope.object instanceof AngularJsonAPIModelForm;
+      $scope.form = $scope.object.parent !== undefined;
 
       function emptyRelationship(relationship) {
         return relationship === undefined ||

@@ -2,5 +2,8 @@
   'use strict';
 
   angular.module('angularJsonapiExample')
-    .constant('_', _);
+  /* global _: false */
+    .constant('_', _)
+    .constant('apiURL', 'http://localhost:3000')
+    ;
 })();

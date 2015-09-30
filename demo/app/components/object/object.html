@@ -53,10 +53,10 @@
         Stable
       </button>
       <button promise-button
-        ng-class="{red: !object.saved, green: object.saved}"
+        ng-class="{red: !object.new, green: object.new}"
         class="ui mini basic button"
       >
-        Saved
+        New
       </button>
 
       <div class="ui red basic mini right floated button" ng-hide="object.synchronized">Not synchronized</div>
@@ -84,7 +84,10 @@
 
   <div ng-if="showMore">
     <div class="ui divider hidden"></div>
-    <error-message ng-show="object.error" data="object.errors"></error-message>
+    <div ng-show="object.hasErrors()">
+      <error-message data="object.errors"></error-message>
+      <div class="ui divider hidden"></div>
+    </div>
 
     <div class="ui stackable grid">
       <div class="eight wide column">
@@ -118,7 +121,7 @@
         </div>
       </div>
       <div class="eight wide column">
-        <div class="ui segment" ng-class="{loading: !object.synchronized && object.saved}">
+        <div class="ui segment" ng-class="{loading: !object.synchronized && !object.new}">
           <h4>Form</h4>
           <div
             class="ui basic mini button"
@@ -128,11 +131,15 @@
           >
             Show relationships
           </div>
-          <form class="ui small form">
-            <div class="field" ng-repeat="(attributeName, attributeValue) in object.form.data.attributes">
-              <label>{{attributeName | toTitleCase}}</label>
-              <input type="text" name="{{attributeName}}" ng-model="object.form.data.attributes[attributeName]">
-            </div>
+          <form class="ui small form" ng-class="{error: object.error}">
+            <div
+              attribute-field
+              key="attributeKey"
+              object="object"
+              ng-repeat="(attributeKey, attributeValue) in object.form.data.attributes"
+            ></div>
+
+            <div class="ui divider hidden"></div>
 
             <button promise-button
               ng-class="{disabled: object.removed}"

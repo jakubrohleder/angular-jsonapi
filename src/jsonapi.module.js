@@ -2,6 +2,7 @@
   'use strict';
 
   angular.module('angular-jsonapi', ['uuid4'])
-  /* global pluralize: false */
-  .constant('pluralize', pluralize);
+  /* global pluralize: false, validate: false */
+  .constant('pluralize', pluralize)
+  .constant('validateJS', validate);
 })();
