@@ -600,11 +600,11 @@ There are two ways of linking object to other object: through form or directly.
 
 ##### Linking object relationship through form
 
-`object.form.link(key, target)`
+`object.form.link(key, target, oneWay = false)`
 
-Object form relationship with `key` gets linked to the target. New relationship state is synchronized when you [`save` the object](#saving-object).
+Object form relationship with `key` gets linked to the `target.form`. New relationship state is synchronized when you [`save` the object](#saving-object).
 
-*Currenty this operation does not link the target form back, but it's on the [roadmap](#roadmap)*
+If you do not want to make relationship affect the target form you can set oneWay to `true`.
 
 ##### Linking object relationship without a form
 
@@ -614,11 +614,11 @@ Object relationship with `key` gets linked to the target. New relationship state
 
 #### Unlinking object relationship through form
 
-`object.form.unlink(key, target)`
+`object.form.unlink(key, target, oneWay = false)`
 
 Object form relationship with `key` gets unlinked from the target. New relationship state is synchronized when you [`save` the object](#saving-object).
 
-*Currenty this operation does not unlink the target form back, but it's on the [roadmap](#roadmap)*
+If you do not want to make unlinked relationship affect the target form you can set oneWay to `true`.
 
 #### Unlinking object relationship without a form
 
@@ -695,10 +695,10 @@ Adds each error to `errorsObject.errors[key]`.
 # Roadmap
 
 ## 1.0.0-alpha.3
-* [ ] Two-way object.form linking (easy)
+* [x] Two-way object.form linking (easy)
 * [ ] Updating object with values returned by update/add (easy)
 * [ ] Add method to track get synchronization promise (easy-medium)
-* [ ] Add objects for hasMany/hasOne relationship (medium)
+* [-] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
 * [ ] amplify.js for localstorage (easy)
 * [ ] I18n support (easy-medium)

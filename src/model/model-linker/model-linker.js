@@ -34,8 +34,9 @@
      * @param {AngularJsonAPIModel} target     Object to be linked
      * @param {AngularJsonAPISchema} schema     Relationship schema
      */
-    function link(object, key, target, oneWay) {
+    function link(object, key, target, oneWay, form) {
       var schema;
+      form = form === undefined ? false : form;
 
       if (object === undefined) {
         $log.error('Can\'t add link to non existing object', object, key, target);
@@ -76,17 +77,17 @@
 
       if (schema.type === 'hasMany') {
         if (oneWay === true) {
-          __addHasMany(object, key, target, false);
+          __addHasMany(object, key, target, form);
           return [];
         } else {
-          return __processAddHasMany(object, key, target);
+          return __processAddHasMany(object, key, target, form);
         }
       } else if (schema.type === 'hasOne') {
         if (oneWay === true) {
-          __addHasOne(object, key, target, false);
+          __addHasOne(object, key, target, form);
           return [];
         } else {
-          return __processAddHasOne(object, key, target);
+          return __processAddHasOne(object, key, target, form);
         }
       }
     }
@@ -98,8 +99,9 @@
      * @param {AngularJsonAPIModel} target     Object to be unlinked
      * @param {AngularJsonAPISchema} schema     Relationship schema
      */
-    function unlink(object, key, target, oneWay) {
+    function unlink(object, key, target, oneWay, form) {
       var schema;
+      form = form === undefined ? false : form;
 
       if (object === undefined) {
         $log.error('Can\'t remove link from non existing object', object, key, target);
@@ -121,10 +123,10 @@
       }
 
       if (oneWay === true) {
-        __removeHasMany(object, key, target, false);
+        __removeHasMany(object, key, target, form);
         return [];
       } else {
-        return __processRemove(object, key, target);
+        return __processRemove(object, key, target, form);
       }
     }
 
@@ -132,12 +134,12 @@
     // Private //
     /////////////
 
-    function __processAddHasMany(object, key, target) {
+    function __processAddHasMany(object, key, target, form) {
       var reflectionKey = object.schema.relationships[key].reflection;
       var reflectionSchema;
 
       if (reflectionKey === false) {
-        __addHasMany(object, key, target);
+        __addHasMany(object, key, target, form);
         return [];
       }
 
@@ -147,31 +149,31 @@
         return __swapResults(
           __wrapResults(object, key, target),
           __wrapResults(target, reflectionKey, object),
-          __processAddHasOne(target, reflectionKey, object)
+          __processAddHasOne(target, reflectionKey, object, form)
         );
       } else if (reflectionSchema.type === 'hasMany') {
-        __addHasMany(object, key, target);
-        __addHasMany(target, reflectionKey, object);
+        __addHasMany(object, key, target, form);
+        __addHasMany(target, reflectionKey, object, form);
         return [__wrapResults(target, reflectionKey, object)];
       }
     }
 
-    function __processAddHasOne(object, key, target) {
+    function __processAddHasOne(object, key, target, form) {
       var reflectionKey = object.schema.relationships[key].reflection;
       var oldReflection = object.relationships[key];
       var reflectionSchema;
       var oldReflectionSchema;
       var result = [];
 
-      __addHasOne(object, key, target);
+      __addHasOne(object, key, target, form);
 
       if (oldReflection !== undefined && oldReflection !== null) {
         oldReflectionSchema = oldReflection.schema.relationships[reflectionKey];
 
         if (oldReflectionSchema.type === 'hasOne') {
-          __removeHasOne(oldReflection, reflectionKey, object);
+          __removeHasOne(oldReflection, reflectionKey, object, form);
         } else if (oldReflectionSchema.type === 'hasMany') {
-          __removeHasMany(oldReflection, reflectionKey, object);
+          __removeHasMany(oldReflection, reflectionKey, object, form);
         }
 
         result.push(__wrapResults(oldReflection, reflectionKey, object));
@@ -181,9 +183,9 @@
         reflectionSchema = target.schema.relationships[reflectionKey];
 
         if (reflectionSchema.type === 'hasOne') {
-          __addHasOne(target, reflectionKey, object);
+          __addHasOne(target, reflectionKey, object, form);
         } else if (reflectionSchema.type === 'hasMany') {
-          __addHasMany(target, reflectionKey, object);
+          __addHasMany(target, reflectionKey, object, form);
         }
 
         result.push(__wrapResults(target, reflectionKey, object));
@@ -192,15 +194,15 @@
       return result;
     }
 
-    function __processRemove(object, key, target) {
+    function __processRemove(object, key, target, form) {
       var schema = object.schema.relationships[key];
       var reflectionKey = schema.reflection;
       var reflectionSchema;
 
       if (schema.type === 'hasMany') {
-        __removeHasMany(object, key, target);
+        __removeHasMany(object, key, target, form);
       } else if (schema.type === 'hasOne') {
-        __removeHasOne(object, key, target);
+        __removeHasOne(object, key, target, form);
       }
 
       if (reflectionKey === false) {
@@ -210,29 +212,38 @@
       reflectionSchema = target.schema.relationships[reflectionKey];
 
       if (reflectionSchema.type === 'hasOne') {
-        __removeHasOne(target, reflectionKey, object);
+        __removeHasOne(target, reflectionKey, object, form);
       } else if (reflectionSchema.type === 'hasMany') {
-        __removeHasMany(target, reflectionKey, object);
+        __removeHasMany(target, reflectionKey, object, form);
       }
 
       return [__wrapResults(target, reflectionKey, object)];
     }
 
-    function __addHasOne(object, key, target, reset) {
+    function __addHasOne(object, key, target, form) {
       $log.debug('addHasOne', object, key, target);
+
+      if (form === true) {
+        object = object.form;
+      }
 
       object.relationships[key] = target;
       object.data.relationships[key].data = toLinkData(target);
-      if (reset !== false) {
+
+      if (form === false) {
         object.reset(true);
       }
 
       return true;
     }
 
-    function __addHasMany(object, key, target, reset) {
-      var linkData = toLinkData(target);
+    function __addHasMany(object, key, target, form) {
       $log.debug('addHasMany', object, key, target);
+
+      var linkData = toLinkData(target);
+      if (form === true) {
+        object = object.form;
+      }
 
       if (angular.isArray(object.relationships[key]) && object.relationships[key].indexOf(target) > -1) {
         return false;
@@ -243,15 +254,20 @@
 
       object.relationships[key].push(target);
       object.data.relationships[key].data.push(linkData);
-      if (reset !== false) {
+
+      if (form === false) {
         object.reset(true);
       }
 
       return true;
     }
 
-    function __removeHasOne(object, key, target, reset) {
+    function __removeHasOne(object, key, target, form) {
       $log.debug('removeHasOne', object, key, target);
+
+      if (form === true) {
+        object = object.form;
+      }
 
       if (target !== undefined && object.relationships[key] !== target) {
         return false;
@@ -259,15 +275,20 @@
 
       object.relationships[key] = null;
       object.data.relationships[key].data = undefined;
-      if (reset !== false) {
+
+      if (form === false) {
         object.reset(true);
       }
 
       return true;
     }
 
-    function __removeHasMany(object, key, target, reset) {
+    function __removeHasMany(object, key, target, form) {
       $log.debug('removeHasMany', object, key, target);
+
+      if (form === true) {
+        object = object.form;
+      }
 
       if (object.relationships[key] === undefined) {
         return;
@@ -276,7 +297,7 @@
       if (target === undefined) {
         object.relationships[key] = [];
         object.data.relationships[key].data = [];
-        if (reset !== false) {
+        if (form === false) {
           object.reset(true);
         }
 
@@ -291,7 +312,8 @@
 
       object.relationships[key].splice(index, 1);
       object.data.relationships[key].data.splice(index, 1);
-      if (reset !== false) {
+
+      if (form === false) {
         object.reset(true);
       }
 
