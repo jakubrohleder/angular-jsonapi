@@ -285,7 +285,7 @@ In most cases `AngularJsonAPISynchronizerSimple` is enought. But if for example,
 `AngularJsonAPISynchronizerSimple` constructor takes one argument - array of [synchronizations] (#synchronizations).
 
 ~~~javascript
-    var novelsSynchronizer = new AngularJsonAPISynchronizerSimple([
+    var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([
       localeSynchronization, restSynchronization
     ]);
 ~~~
@@ -309,7 +309,7 @@ To use this synchronization you must include `angular-jsonapi-local` in your mod
 Synchronization constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
 
 ~~~javascript
-var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
+var localeSynchro = AngularJsonAPISynchronizationLocal.create('AngularJsonAPI');
 
 ~~~
 
@@ -320,10 +320,10 @@ Is a simple synchronizator with the RESTAPI supporting JSON API format. It perfo
 
 To use this synchronization you must include `angular-jsonapi-rest` in your module dependencies.
 
-Synchronization constructor takes one argument - `url` of the resource, there is no default value.
+Synchronization constructor takes 2 arguments: `name` and `url` of the resource, there is no default value.
 
 ~~~javascript
-var novelsSynchro = new AngularJsonAPISynchronizationRest('localhost:3000/novels');
+var novelsSynchro = AngularJsonAPISynchronizationRest.create('localhost:3000/novels');
 
 ~~~
 
@@ -365,11 +365,9 @@ All in all configuration of the factory for novels can look like this:
       }
     };
 
-    var localeSynchronization = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
-    var restSynchronization = new AngularJsonAPISynchronizationRest('/novels');
-    var novelsSynchronizer = new AngularJsonAPISynchronizerSimple([
-      localeSynchronization, restSynchronization
-    ]);
+    var localeSynchronization = AngularJsonAPISynchronizationLocal.create('LocalStore synchronization', 'AngularJsonAPI');
+    var restSynchronization = AngularJsonAPISynchronizationRest.create('Rest synchronization', '/novels');
+    var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
     $jsonapi.addResource(novelsSchema, novelsSynchronizer);
   })
@@ -417,13 +415,13 @@ Returns array with all resources `types`.
 
 `$jsonapi.listResources()`
 
-Runs `clearCache` for each resource. [Read more] (#resource-clear-cache)
+Runs `clearCache` for each resource. [Read more](#resource-clear-cache)
 
 ### Adding validator
 
 `$jsonapi.addValidator(name, validator)`
 
-Adds validator to validates object schema. [Read more] (#custom-validators)
+Adds validator to validates object schema. [Read more](#custom-validators)
 
 ## Resource
 
@@ -526,7 +524,7 @@ Same as [`resource.get(id, params)`](#getting-object).
 
 `collection.hasErrors()`
 
-Returns true or false wether collection has errors or not, they can be handled as any other error. [Read more](#errors)
+Returns true or false whether collection has errors or not, they can be handled as any other error. [Read more](#errors)
 
 ## Object
 
