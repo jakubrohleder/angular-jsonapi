@@ -91,7 +91,7 @@
 
       var object = _this.cache.get(id);
 
-      object.refresh(params);
+      object.promise = object.refresh(params);
 
       return object;
     }
@@ -110,7 +110,7 @@
         params
       );
 
-      collection.fetch();
+      collection.promise = collection.fetch();
 
       return collection;
     }
