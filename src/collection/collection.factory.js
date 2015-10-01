@@ -106,7 +106,7 @@
 
     /**
      * Shortcut to this.resource.get
-     * @param  {uuid4} id Id of object]
+     * @param  {string} id Id of object]
      * @return {AngularJsonAPIModel}          Model with id
      */
     function get(id, params) {

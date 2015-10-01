@@ -15,8 +15,6 @@
     ngClipProvider.setPath('bower_components/zeroclipboard/dist/ZeroClipboard.swf');
   })
   .config(function($stateProvider, $urlRouterProvider) {
-    var uuid4Regex = '[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}';
-
     $stateProvider
       .state('frame', {
         url: '',
@@ -50,7 +48,7 @@
         }
       })
       .state('frame.request.get', {
-        url: '/{id:' + uuid4Regex + '}',
+        url: '/{id}',
         templateUrl: 'app/request/get.html',
         controller: 'RequestGetCtrl',
         resolve: {

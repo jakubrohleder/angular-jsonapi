@@ -5,7 +5,6 @@
   .factory('AngularJsonAPIResourceCache', AngularJsonAPIResourceCacheWrapper);
 
   function AngularJsonAPIResourceCacheWrapper(
-    uuid4,
     $log
   ) {
 
@@ -184,9 +183,9 @@
       _this.indexIds = [];
 
       angular.forEach(array, function(element) {
-        if (angular.isString(element) && uuid4.validate(element)) {
+        if (angular.isString(element)) {
           _this.indexIds.push(element);
-        } else if (angular.isObject(element) && uuid4.validate(element.data.id)) {
+        } else if (angular.isObject(element) && angular.isString(element.data.id)) {
           _this.indexIds.push(element.data.id);
         }
       });

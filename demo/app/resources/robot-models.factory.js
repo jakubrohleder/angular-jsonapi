@@ -11,7 +11,7 @@
   ) {
     var schema = {
       type: 'robotModels',
-      id: 'uuid4',
+      id: '',
       attributes: {
         name: {presence: true, length: {maximum: 20, minimum: 3}},
         code: {presence: true, length: {maximum: 20, minimum: 3}}
