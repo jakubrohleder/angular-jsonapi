@@ -320,7 +320,7 @@ Is a simple synchronizator with the RESTAPI supporting JSON API format. It perfo
 
 To use this synchronization you must include `angular-jsonapi-rest` in your module dependencies.
 
-Synchronization constructor takes one argument - `url` of the resource, there is no default value.
+Synchronization constructor takes 2 arguments: `name` and `url` of the resource, there is no default value.
 
 ~~~javascript
 var novelsSynchro = new AngularJsonAPISynchronizationRest('Rest synchronization', 'localhost:3000/novels');
