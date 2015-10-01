@@ -11,7 +11,7 @@
   ) {
     var schema = {
       type: 'locations',
-      id: 'uuid4',
+      id: '',
       attributes: {
         cordsX: {presence: true, numericality: {onlyInteger: true}},
         cordsY: {presence: true, numericality: {onlyInteger: true}}

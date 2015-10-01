@@ -114,7 +114,7 @@ First step is to provide data schema, that is used later on to create objects, v
 | field | description |
 |---|---|
 | **type** | Type of an object must be the same as the one in the JSON API response. Should be in plural. |
-| **id** | Type of id field, currenty only `uuid4` is supported. |
+| **id** | Must be a string. |
 | **attributes** | Object with the model attributes names as keys and [validation constraints](#validators) as values. |
 | **relationships** | Object with the model relationships names as keys and [relationship schema](#relationship-schema) as values. |
 | **include** | Object with extra values that should be included in the `get` or `all` request. |
@@ -125,7 +125,7 @@ For example schema for a Novel model can look like this:
 ~~~javascript
 var novelsSchema = {
   type: 'novels',
-  id: 'uuid4',
+  id: '',
   attributes: {
     title: {presence: true, length: {maximum: 20, minimum: 3}},
     part: {presence: true, numericality: {onlyInteger: true}}
@@ -309,7 +309,7 @@ To use this synchronization you must include `angular-jsonapi-local` in your mod
 Synchronization constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
 
 ~~~javascript
-var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
+var localeSynchro = new AngularJsonAPISynchronizationLocal('LocalStore synchronization', 'AngularJsonAPI');
 
 ~~~
 
@@ -323,7 +323,7 @@ To use this synchronization you must include `angular-jsonapi-rest` in your modu
 Synchronization constructor takes one argument - `url` of the resource, there is no default value.
 
 ~~~javascript
-var novelsSynchro = new AngularJsonAPISynchronizationRest('localhost:3000/novels');
+var novelsSynchro = new AngularJsonAPISynchronizationRest('Rest synchronization', 'localhost:3000/novels');
 
 ~~~
 
@@ -351,7 +351,7 @@ All in all configuration of the factory for novels can look like this:
   ) {
     var novelsSchema = {
       type: 'novels',
-      id: 'uuid4',
+      id: '',
       attributes: {
         title: ['required', 'string', {minlength: 3}, {maxlength: 50}],
         part: ['integer', {maxvalue: 10, minvalue: 1}]
@@ -365,8 +365,8 @@ All in all configuration of the factory for novels can look like this:
       }
     };
 
-    var localeSynchronization = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
-    var restSynchronization = new AngularJsonAPISynchronizationRest('/novels');
+    var localeSynchronization = new AngularJsonAPISynchronizationLocal('LocalStore synchronization', 'AngularJsonAPI');
+    var restSynchronization = new AngularJsonAPISynchronizationRest('Rest synchronization', '/novels');
     var novelsSynchronizer = new AngularJsonAPISynchronizerSimple([
       localeSynchronization, restSynchronization
     ]);
@@ -460,6 +460,7 @@ Include key supported explicitly, but other keys will also be passed to the sync
 `resource.all(params)`
 
 All object can be accessed by resource using `resource.all(params)`. It returns a [**collection**](#collection) with all objects of resource type stored in the memory, at the same time `all` synchronization is triggered so the objects data are synchronized with the server.
+Promise can be accessed as resource.all(params).$promise
 
 #### Params
 

@@ -11,7 +11,7 @@
   ) {
     var schema = {
       type: 'planets',
-      id: 'uuid4',
+      id: '',
       attributes: {
         name: {presence: true, length: {maximum: 20, minimum: 3}},
         cordsX: {presence: true, numericality: {onlyInteger: true}},
