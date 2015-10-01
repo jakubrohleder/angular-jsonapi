@@ -10,7 +10,6 @@
     AngularJsonAPIModelErrorsManager,
     AngularJsonAPIModelLinkerService,
     AngularJsonAPIModelForm,
-    uuid4,
     $rootScope,
     $injector,
     $log,
@@ -640,8 +639,8 @@
         return false;
       }
 
-      if (!uuid4.validate(object.data.id)) {
-        $log.error('Invalid id');
+      if (!angular.isString(object.data.id)) {
+        $log.error(object.data.id + ' - Invalid id');
         return false;
       }
 

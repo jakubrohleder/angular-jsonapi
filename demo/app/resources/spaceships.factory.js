@@ -11,7 +11,7 @@
   ) {
     var schema = {
       type: 'spaceships',
-      id: 'uuid4',
+      id: '',
       attributes: {
         name: {presence: true, length: {maximum: 20, minimum: 3}},
         durability: {presence: true, numericality: {onlyInteger: true}},

@@ -3,3 +3,16 @@ bower_components/
 .sass-cache/
 .tmp/
 .sublime-gulp.cache
+
+#Webstorm
+.idea
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed

@@ -79,14 +79,14 @@
 
     /**
      * Get request
-     * @param  {uuid} id
+     * @param  {string} id
      * @return {AngularJsonAPIModel} Model associated with id, synchronized
      */
     function get(id, params) {
       var _this = this;
 
-      if (!uuid4.validate(id)) {
-        return $q.reject({errors: [{status: 0, statusText: 'Invalid id not uuid4'}]});
+      if (!angular.isString(id)) {
+        return $q.reject({errors: [{status: 0, statusText: 'ID must be a string'}]});
       }
 
       var object = _this.cache.get(id);
@@ -110,7 +110,7 @@
         params
       );
 
-      collection.fetch();
+      collection.$promise = collection.fetch();
 
       return collection;
     }

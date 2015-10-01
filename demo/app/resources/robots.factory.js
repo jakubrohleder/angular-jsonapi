@@ -11,7 +11,7 @@
   ) {
     var schema = {
       type: 'robots',
-      id: 'uuid4',
+      id: '',
       attributes: {
         nameFirst: {presence: true, length: {maximum: 20, minimum: 3}},
         nameLast: {presence: true, length: {maximum: 20, minimum: 3}},
