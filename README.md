@@ -441,7 +441,7 @@ This attributes shouldn't be modified.
 
 `resource.get(id, params)`
 
-Objects can be accessed by resource using `resource.get(id, params)`. It returns an [**object**](#object) with given id stored in the memory, at the same time `get` synchronization is triggered so the object data is synchronized with the server.
+Objects can be accessed by resource using `resource.get(id, params)`. It returns an [**object**](#object) with given id stored in the memory, at the same time `get` synchronization is triggered so the object data is synchronized with the server. The promise associated with synchronization can accessed by `result.promise`.
 
 #### Params
 
@@ -457,7 +457,7 @@ Include key supported explicitly, but other keys will also be passed to the sync
 
 `resource.all(params)`
 
-All object can be accessed by resource using `resource.all(params)`. It returns a [**collection**](#collection) with all objects of resource type stored in the memory, at the same time `all` synchronization is triggered so the objects data are synchronized with the server.
+All object can be accessed by resource using `resource.all(params)`. It returns a [**collection**](#collection) with all objects of resource type stored in the memory, at the same time `all` synchronization is triggered so the objects data are synchronized with the server. The promise associated with synchronization can accessed by `result.promise`.
 
 #### Params
 
@@ -506,6 +506,7 @@ Collection is a bucket of objects it is returned by `all` method of Resource. Ea
 * **pristine** - marks if collection hasn't been loaded from cache (it is being loaded for the first time)
 * **synchronized** - marks if collection has be synchronized with the server during this session
 * **updatedAt** - timestamp of last synchronization that updated the collection
+* **promise** - promise that is set when the collection is fetched for the first time (by `resource.all(params)`) and resolved or rejected with collection object.
 
 ### Refreshing collection
 
@@ -543,6 +544,7 @@ Object is a final wrapper for data returned by your API.
 * **loadingCount** - number of different synchronizations that are loading the object
 * **savingCount** - number of different synchronizations that are saving the object
 * **updatedAt** - timestamp of last synchronization that updated the object
+* **promise** - promise that is set when the object is fetched for the first time (by `resource.get(id, params)`) and resolved or rejected with collection object.
 
 ### Object data
 
@@ -695,7 +697,7 @@ Adds each error to `errorsObject.errors[key]`.
 ## 1.0.0-alpha.3
 * [x] Two-way object.form linking (easy)
 * [x] Updating object with values returned by update/add (easy)
-* [ ] Add method to track get synchronization promise (easy-medium)
+* [x] Add method to track get synchronization promise (easy-medium)
 * [-] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
 * [ ] amplify.js for localstorage (easy)

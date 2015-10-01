@@ -892,7 +892,7 @@
         )
       };
 
-      _this.promises = {};
+      _this.promise = $q.resolve(_this);
 
       __setData(_this, data);
 
@@ -2498,7 +2498,7 @@
 
       var object = _this.cache.get(id);
 
-      object.refresh(params);
+      object.promise = object.refresh(params);
 
       return object;
     }
@@ -2517,7 +2517,7 @@
         params
       );
 
-      collection.fetch();
+      collection.promise = collection.fetch();
 
       return collection;
     }
@@ -2727,6 +2727,8 @@
       _this.loadingCount = 0;
       _this.synchronized = false;
       _this.pristine = _this.data === undefined;
+
+      _this.promise = $q.resolve(_this);
 
       var onObjectRemove = $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
       var onFactoryClear = $rootScope.$on('angularJsonAPI:' + _this.type + ':resource:clearCache', clear);

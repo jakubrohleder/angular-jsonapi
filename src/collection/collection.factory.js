@@ -52,6 +52,8 @@
       _this.synchronized = false;
       _this.pristine = _this.data === undefined;
 
+      _this.promise = $q.resolve(_this);
+
       var onObjectRemove = $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
       var onFactoryClear = $rootScope.$on('angularJsonAPI:' + _this.type + ':resource:clearCache', clear);
       var onObjectAdd = $rootScope.$on('angularJsonAPI:' + _this.type + ':object:add', add);

@@ -98,7 +98,7 @@
         )
       };
 
-      _this.promises = {};
+      _this.promise = $q.resolve(_this);
 
       __setData(_this, data);
 
