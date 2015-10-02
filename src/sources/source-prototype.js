@@ -2,18 +2,18 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPISynchronizationPrototype', AngularJsonAPISynchronizationPrototypeWrapper);
+  .factory('AngularJsonAPISourcePrototype', AngularJsonAPISourcePrototypeWrapper);
 
-  function AngularJsonAPISynchronizationPrototypeWrapper() {
-    AngularJsonAPISynchronizationPrototype.prototype.before = beforeSynchro;
-    AngularJsonAPISynchronizationPrototype.prototype.after = afterSynchro;
-    AngularJsonAPISynchronizationPrototype.prototype.begin = begin;
-    AngularJsonAPISynchronizationPrototype.prototype.finish = finish;
-    AngularJsonAPISynchronizationPrototype.prototype.synchronization = synchronization;
+  function AngularJsonAPISourcePrototypeWrapper() {
+    AngularJsonAPISourcePrototype.prototype.before = beforeSynchro;
+    AngularJsonAPISourcePrototype.prototype.after = afterSynchro;
+    AngularJsonAPISourcePrototype.prototype.begin = begin;
+    AngularJsonAPISourcePrototype.prototype.finish = finish;
+    AngularJsonAPISourcePrototype.prototype.synchronization = synchronization;
 
-    return AngularJsonAPISynchronizationPrototype;
+    return AngularJsonAPISourcePrototype;
 
-    function AngularJsonAPISynchronizationPrototype(name) {
+    function AngularJsonAPISourcePrototype(name) {
       var _this = this;
       var allHooks = [
         'add',

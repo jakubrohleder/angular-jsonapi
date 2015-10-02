@@ -5,7 +5,7 @@
   .factory('AngularJsonAPICollection', AngularJsonAPICollectionWrapper);
 
   function AngularJsonAPICollectionWrapper(
-    AngularJsonAPIModelSynchronizationError,
+    AngularJsonAPIModelSourceError,
     AngularJsonAPIModelErrorsManager,
     $rootScope,
     $injector,
@@ -39,9 +39,9 @@
 
       _this.errors = {
         synchronization: AngularJsonAPIModelErrorsManager.create(
-          'Synchronization',
+          'Source',
           'Errors of synchronizations',
-          AngularJsonAPIModelSynchronizationError
+          AngularJsonAPIModelSourceError
         )
       };
 

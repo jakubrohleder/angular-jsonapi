@@ -10,10 +10,10 @@
 
     return AngularJsonAPISynchronizerPrototype;
 
-    function AngularJsonAPISynchronizerPrototype(synchronizations) {
+    function AngularJsonAPISynchronizerPrototype(sources) {
       var _this = this;
 
-      _this.synchronizations = synchronizations;
+      _this.sources = sources;
     }
 
     function synchronize(config) {

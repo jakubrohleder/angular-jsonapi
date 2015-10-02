@@ -2,33 +2,33 @@
   'use strict';
 
   angular.module('angular-jsonapi-local', ['angular-jsonapi'])
-  .factory('AngularJsonAPISynchronizationLocal', AngularJsonAPISynchronizationLocalWrapper);
+  .factory('AngularJsonAPISourceLocal', AngularJsonAPISourceLocalWrapper);
 
-  function AngularJsonAPISynchronizationLocalWrapper(
-    AngularJsonAPISynchronizationPrototype,
+  function AngularJsonAPISourceLocalWrapper(
+    AngularJsonAPISourcePrototype,
     $window,
     $q
   ) {
 
-    AngularJsonAPISynchronizationLocal.prototype = Object.create(AngularJsonAPISynchronizationPrototype.prototype);
-    AngularJsonAPISynchronizationLocal.prototype.constructor = AngularJsonAPISynchronizationLocal;
+    AngularJsonAPISourceLocal.prototype = Object.create(AngularJsonAPISourcePrototype.prototype);
+    AngularJsonAPISourceLocal.prototype.constructor = AngularJsonAPISourceLocal;
 
     return {
-      create: AngularJsonAPISynchronizationLocalFactory
+      create: AngularJsonAPISourceLocalFactory
     };
 
-    function AngularJsonAPISynchronizationLocalFactory(name, prefix) {
-      return new AngularJsonAPISynchronizationLocal(name, prefix);
+    function AngularJsonAPISourceLocalFactory(name, prefix) {
+      return new AngularJsonAPISourceLocal(name, prefix);
     }
 
-    function AngularJsonAPISynchronizationLocal(name, prefix) {
+    function AngularJsonAPISourceLocal(name, prefix) {
       var _this = this;
 
       prefix = prefix || 'AngularJsonAPI';
 
       _this.__updateStorage = updateStorage;
 
-      AngularJsonAPISynchronizationPrototype.apply(_this, arguments);
+      AngularJsonAPISourcePrototype.apply(_this, arguments);
 
       _this.synchronization('init', init);
 
