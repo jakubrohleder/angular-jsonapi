@@ -148,6 +148,7 @@
         angular.forEach(_this.data, __decrementLoadingCounter);
 
         _this.data = results.data;
+        _this.links = response.data.links;
 
         _this.updatedAt = Date.now();
         _this.synchronized = true;

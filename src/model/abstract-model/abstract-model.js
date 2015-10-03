@@ -112,7 +112,6 @@
     function save() {
       var _this = this;
       var deferred = $q.defer();
-      var $jsonapi = $injector.get('$jsonapi');
       var config = {
         action: _this.new === true ? 'add' : 'update',
         object: _this
@@ -132,9 +131,8 @@
       }
 
       function resolve(response) {
-        $jsonapi.__proccesResults(response.data);
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response);
-        _this.update(_this.form.data);
+        _this.update(response.data.data);
 
         if (_this.new === true) {
           _this.resource.cache.indexIds = _this.resource.cache.indexIds || [];
@@ -647,6 +645,7 @@
         return false;
       }
 
+      object.data.links = validatedData.links;
       validatedData.attributes = validatedData.attributes || {};
       validatedData.relationships = validatedData.relationships || {};
 
