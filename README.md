@@ -39,7 +39,7 @@ The future development plan involves:
 - [Configuration](#configuration)
   - [Schema](#schema)
   - [Synchronizers](#synchronizers)
-  - [Synchronizations](#synchronizations)
+  - [Sources](#sources)
   - [Wrap up](#wrap-up)
 - [API](#api)
   - [`$jsonapi`](#jsonapi)
@@ -92,7 +92,7 @@ gulp serve
 bower install angular-jsonapi --save
 ~~~
 
-* Include `angular-jsonapi` and synchronization modules (`angular-jsonapi-rest`, `angular-jsonapi-local`) in your module's dependencies:
+* Include `angular-jsonapi` and sources modules (`angular-jsonapi-rest`, `angular-jsonapi-local`) in your module's dependencies:
 
 ~~~javascript
 // in your js app's module definition
@@ -278,15 +278,15 @@ Custom functions are extremly helpfull if you need to inject some methods common
 
 ## Synchronizers
 
-Synchronizers are object that keep synchronizations work together by running hooks in the right order, as well as creating the final data that is used to update object.
+Synchronizers are object that keep sources work together by running hooks in the right order, as well as creating the final data that is used to update object.
 
 In most cases `AngularJsonAPISynchronizerSimple` is enought. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
 
-`AngularJsonAPISynchronizerSimple` constructor takes one argument - array of [synchronizations] (#synchronizations).
+`AngularJsonAPISynchronizerSimple` constructor takes one argument - array of [sources] (#sources).
 
 ~~~javascript
     var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([
-      localeSynchronization, restSynchronization
+      localeSource, restSource
     ]);
 ~~~
 
@@ -294,40 +294,40 @@ In most cases `AngularJsonAPISynchronizerSimple` is enought. But if for example,
 
 todo
 
-## Synchronizations
+## Sources
 
-Synchronizations are strategies of updating model with given source. At the moment two synchronization types are supported:
+Sources places to store and fetch data. At the moment two sources types are supported:
 
-### AngularJsonAPISynchronizationLocal
+### AngularJsonAPISourceLocal
 
 Saves data in the local store and loads them each time you visit the site, in this way your users can access data immidiately even if they are offline. All the data are cleared when the users logs out.
 
 Date is saved each time it changes and loaded during initialization of the module.
 
-To use this synchronization you must include `angular-jsonapi-local` in your module dependencies.
+To use this source you must include `angular-jsonapi-local` in your module dependencies.
 
-Synchronization constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
+Source constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
 
 ~~~javascript
-var localeSynchro = AngularJsonAPISynchronizationLocal.create('AngularJsonAPI');
+var localeSynchro = AngularJsonAPISourceLocal.create('AngularJsonAPI');
 
 ~~~
 
-### AngularJsonAPISynchronizationRest
+### AngularJsonAPISourceRest
 
 Is a simple synchronizator with the RESTAPI supporting JSON API format. It performs following operations:
 `remove`, `unlink`, `link`, `update`, `add`, `all`, `get`. Everytime the data changes the suitable request is made to keep your data synchronized.
 
-To use this synchronization you must include `angular-jsonapi-rest` in your module dependencies.
+To use this source you must include `angular-jsonapi-rest` in your module dependencies.
 
-Synchronization constructor takes 2 arguments: `name` and `url` of the resource, there is no default value.
+Source constructor takes 2 arguments: `name` and `url` of the resource, there is no default value.
 
 ~~~javascript
-var novelsSynchro = AngularJsonAPISynchronizationRest.create('localhost:3000/novels');
+var novelsSynchro = AngularJsonAPISourceRest.create('localhost:3000/novels');
 
 ~~~
 
-### Custom Synchronizations
+### Custom Sources
 
 todo
 
@@ -345,8 +345,8 @@ All in all configuration of the factory for novels can look like this:
 
   .run(function(
     $jsonapi,
-    AngularJsonAPISynchronizationLocal,
-    AngularJsonAPISynchronizationRest,
+    AngularJsonAPISourceLocal,
+    AngularJsonAPISourceRest,
     AngularJsonAPISynchronizerSimple
   ) {
     var novelsSchema = {
@@ -365,9 +365,9 @@ All in all configuration of the factory for novels can look like this:
       }
     };
 
-    var localeSynchronization = AngularJsonAPISynchronizationLocal.create('LocalStore synchronization', 'AngularJsonAPI');
-    var restSynchronization = AngularJsonAPISynchronizationRest.create('Rest synchronization', '/novels');
-    var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
+    var localeSource = AngularJsonAPISourceLocal.create('LocalStore source', 'AngularJsonAPI');
+    var restSource = AngularJsonAPISourceRest.create('Rest source', '/novels');
+    var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([localeSource, restSource]);
 
     $jsonapi.addResource(novelsSchema, novelsSynchronizer);
   })
@@ -488,7 +488,7 @@ Initializes a new [**object**](#object). It can be filled up by editing its [for
 
 Clears resource cache memory and runs `clearCache` synchronization.
 
-If you are using `AngularJsonAPISynchronizationLocal` it also clears locally stored data.
+If you are using `AngularJsonAPISourceLocal` it also clears locally stored data.
 
 ## Collection
 
