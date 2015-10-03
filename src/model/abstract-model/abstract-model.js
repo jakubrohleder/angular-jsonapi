@@ -146,7 +146,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(_this);
+        deferred.resolve(response.data.meta);
       }
 
       function reject(response) {
@@ -235,7 +235,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -312,7 +312,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(_this);
+        deferred.resolve(response.data.meta);
       }
 
       function reject(response) {
@@ -389,7 +389,7 @@
 
           response.finish();
           _this.errors.synchronization.concat(response.errors);
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
 
         function reject(response) {
@@ -476,7 +476,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -563,7 +563,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 

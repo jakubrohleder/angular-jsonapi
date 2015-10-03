@@ -441,7 +441,7 @@ This attributes shouldn't be modified.
 
 `resource.get(id, params)`
 
-Objects can be accessed by resource using `resource.get(id, params)`. It returns an [**object**](#object) with given id stored in the memory, at the same time `get` synchronization is triggered so the object data is synchronized with the server. The promise associated with synchronization can accessed by `result.promise`.
+Objects can be accessed by resource using `resource.get(id, params)`. It returns an [**object**](#object) with given id stored in the memory, at the same time `get` synchronization is triggered so the object data is synchronized with the server. The promise associated with synchronization can accessed by `result.promise`, it is resolved with request meta information.
 
 #### Params
 
@@ -457,7 +457,7 @@ Include key supported explicitly, but other keys will also be passed to the sync
 
 `resource.all(params)`
 
-All object can be accessed by resource using `resource.all(params)`. It returns a [**collection**](#collection) with all objects of resource type stored in the memory, at the same time `all` synchronization is triggered so the objects data are synchronized with the server. The promise associated with synchronization can accessed by `result.promise`.
+All object can be accessed by resource using `resource.all(params)`. It returns a [**collection**](#collection) with all objects of resource type stored in the memory, at the same time `all` synchronization is triggered so the objects data are synchronized with the server. The promise associated with synchronization can accessed by `result.promise`, it is resolved with request meta information.
 
 #### Params
 
@@ -474,7 +474,7 @@ Those two keys are supported explicitly, but other keys will also be passed to t
 
 `resource.remove(id)`
 
-Removes object with given `id`, promise associated with synchronization is returned.
+Removes object with given `id`, promise associated with synchronization is returned, it is resolved with request meta information.
 
 ### Initializing new object
 
@@ -492,7 +492,7 @@ If you are using `AngularJsonAPISourceLocal` it also clears locally stored data.
 
 ## Collection
 
-Collection is a bucket of objects it is returned by `all` method of Resource. Each collection is bind to the request params (filter, include etc.).
+Collection is a bucket of objects it is returned by `all` method of Resource. Each collection is bind to the request params (filter, include etc.). All of the asynchronous object method are resolved with synchronization meta data.
 
 ### Properties
 
@@ -512,7 +512,7 @@ Collection is a bucket of objects it is returned by `all` method of Resource. Ea
 
 `collection.refresh()` or `collection.fetch()`
 
-Fetches the collection data through `all` synchronization. Returns a promise that is resolved or rejected with the collection after the synchronization is finished.
+Fetches the collection data through `all` synchronization. Returns a promise that is resolved with request meta data or rejected after the synchronization is finished.
 
 ### Getting object from collection
 
@@ -529,7 +529,7 @@ Returns true or false whether collection has errors or not, they can be handled 
 
 ## Object
 
-Object is a final wrapper for data returned by your API.
+Object is a final wrapper for data returned by your API. All of the asynchronous object method are resolved with synchronization meta data.
 
 ### Properties
 
@@ -544,7 +544,7 @@ Object is a final wrapper for data returned by your API.
 * **loadingCount** - number of different synchronizations that are loading the object
 * **savingCount** - number of different synchronizations that are saving the object
 * **updatedAt** - timestamp of last synchronization that updated the object
-* **promise** - promise that is set when the object is fetched for the first time (by `resource.get(id, params)`) and resolved or rejected with collection object.
+* **promise** - promise that is set when the object is fetched for the first time (by `resource.get(id, params)`) and resolved with request meta.
 
 ### Object data
 

@@ -175,10 +175,8 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
-
-        deferred.resolve(_this);
       }
 
       function reject(response) {

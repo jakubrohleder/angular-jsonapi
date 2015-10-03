@@ -796,37 +796,6 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIModelValidationError', AngularJsonAPIModelValidationErrorWrapper);
-
-  function AngularJsonAPIModelValidationErrorWrapper() {
-    ValidationError.prototype = Object.create(Error.prototype);
-    ValidationError.prototype.constructor = ValidationError;
-    ValidationError.prototype.name = 'ValidationError';
-
-    return {
-      create: ValidationErrorFactory
-    };
-
-    function ValidationErrorFactory(message, attribute) {
-      return new ValidationError(message, attribute);
-    }
-
-    function ValidationError(message, attribute) {
-      var _this = this;
-      Error.captureStackTrace(_this, _this.constructor);
-
-      _this.message = message;
-      _this.context = {
-        attribute: attribute
-      };
-    }
-  }
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
   .factory('AngularJsonAPIAbstractModel', AngularJsonAPIAbstractModelWrapper);
 
   function AngularJsonAPIAbstractModelWrapper(
@@ -971,7 +940,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(_this);
+        deferred.resolve(response.data.meta);
       }
 
       function reject(response) {
@@ -1060,7 +1029,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -1137,7 +1106,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(_this);
+        deferred.resolve(response.data.meta);
       }
 
       function reject(response) {
@@ -1214,7 +1183,7 @@
 
           response.finish();
           _this.errors.synchronization.concat(response.errors);
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
 
         function reject(response) {
@@ -1301,7 +1270,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -1388,7 +1357,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -1576,6 +1545,37 @@
     object = object === undefined ? this : object;
     object.savingCount -= 1;
     object.saving = object.savingCount > 0;
+  }
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+  .factory('AngularJsonAPIModelValidationError', AngularJsonAPIModelValidationErrorWrapper);
+
+  function AngularJsonAPIModelValidationErrorWrapper() {
+    ValidationError.prototype = Object.create(Error.prototype);
+    ValidationError.prototype.constructor = ValidationError;
+    ValidationError.prototype.name = 'ValidationError';
+
+    return {
+      create: ValidationErrorFactory
+    };
+
+    function ValidationErrorFactory(message, attribute) {
+      return new ValidationError(message, attribute);
+    }
+
+    function ValidationError(message, attribute) {
+      var _this = this;
+      Error.captureStackTrace(_this, _this.constructor);
+
+      _this.message = message;
+      _this.context = {
+        attribute: attribute
+      };
+    }
   }
 })();
 
@@ -2850,10 +2850,8 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
-
-        deferred.resolve(_this);
       }
 
       function reject(response) {
