@@ -142,7 +142,7 @@
         return $http({
           method: 'POST',
           headers: headers,
-          url: url + '/',
+          url: url,
           data: config.object.form.toJson()
         }).then(resolveHttp, rejectHttp.bind(null, 'add'));
       }
