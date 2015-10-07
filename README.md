@@ -698,11 +698,12 @@ Adds each error to `errorsObject.errors[key]`.
 * [x] Two-way object.form linking (easy)
 * [x] Updating object with values returned by update/add (easy)
 * [x] Add method to track get/all synchronization promise (easy-medium)
+* [x] Multiple types of ids
+* [x] Rename Synchronization to Source (easy)
 * [ ] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
-* [ ] amplify.js for localstorage (easy)
+* [ ] store.js for localstorage (easy)
 * [ ] I18n support (medium)
-* [ ] Rename Synchronization to Source (easy)
 
 ## 1.0.0-beta.1
 * [ ] unit tests (at least 50% coverage)
