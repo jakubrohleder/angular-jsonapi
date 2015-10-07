@@ -50,7 +50,8 @@ The future development plan involves:
 - [Directives](#directives)
   - [Promise-button](#promise-button)
 - [Roadmap](#roadmap)
-  - [1.0.0-alpha.3](#100-alpha3)
+  - [1.0.0-alpha.3 (done)](#100-alpha3-done)
+  - [1.0.0-alpha.4](#100-alpha4)
   - [1.0.0-beta.1](#100-beta1)
   - [1.0.0-beta.2](#100-beta2)
   - [1.0.0](#100)
@@ -694,22 +695,22 @@ Adds each error to `errorsObject.errors[key]`.
 
 # Roadmap
 
-## 1.0.0-alpha.3
+## 1.0.0-alpha.3 (done)
 * [x] Two-way object.form linking (easy)
 * [x] Updating object with values returned by update/add (easy)
 * [x] Add method to track get/all synchronization promise (easy-medium)
 * [x] Multiple types of ids
 * [x] Rename Synchronization to Source (easy)
+
+## 1.0.0-alpha.4
 * [ ] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
-* [ ] store.js for localstorage (easy)
 * [ ] I18n support (medium)
+* [ ] readonly attributes (can't be changed)
 
 ## 1.0.0-beta.1
 * [ ] unit tests (at least 50% coverage)
 * [ ] `sexy` demo
-* [ ] readonly attributes
-* [ ] survey for missing features and/or usability improvements
 
 ## 1.0.0-beta.2
 * [ ] unit tests (at least 70% coverage)
