@@ -47,7 +47,7 @@
   <angular-jsonapi-object
     nested="false"
     data="object"
-    ng-repeat="object in filteredObjects = (newObjects | filter: {saved: false})"
+    ng-repeat="object in filteredObjects = (newObjects | filter: {new: true})"
   ></angular-jsonapi-object>
 
 </div>

@@ -11,6 +11,197 @@
   'use strict';
 
   angular.module('angular-jsonapi')
+  .factory('AngularJsonAPIModelForm', AngularJsonAPIModelFormWrapper);
+
+  function AngularJsonAPIModelFormWrapper(
+    AngularJsonAPIModelValidationError,
+    AngularJsonAPIModelLinkerService,
+    validateJS,
+    $q
+  ) {
+
+    AngularJsonAPIModelForm.prototype.save = save;
+    AngularJsonAPIModelForm.prototype.reset = reset;
+    AngularJsonAPIModelForm.prototype.validate = validate;
+
+    AngularJsonAPIModelForm.prototype.link = link;
+    AngularJsonAPIModelForm.prototype.unlink = unlink;
+
+    AngularJsonAPIModelForm.prototype.toJson = toJson;
+
+    return {
+      create: AngularJsonAPIModelFormFactory
+    };
+
+    function AngularJsonAPIModelFormFactory(parent) {
+      return new AngularJsonAPIModelForm(parent);
+    }
+
+    function AngularJsonAPIModelForm(parent) {
+      var _this = this;
+
+      _this.data = {
+        id: parent.data.id,
+        type: parent.data.type,
+        attributes: {},
+        relationships: {}
+      };
+
+      _this.relationships = {};
+      _this.parent = parent;
+      _this.schema = parent.schema;
+      _this.reset();
+    }
+
+    /**
+     * Encodes object into json
+     * @return {json} Json object
+     */
+    function toJson() {
+      var _this = this;
+      var data = angular.copy(_this.data);
+      var relationships = {};
+
+      angular.forEach(data.relationships, function(value, key) {
+        if (value.data !== undefined) {
+          relationships[key] = value;
+        }
+      });
+
+      data.relationships = relationships;
+
+      return {
+        data: data
+      };
+    }
+
+    /**
+     * Saves form, shortcut to parent.save()
+     * @return {promise} Promise associated with synchronization
+     */
+    function save() {
+      var _this = this;
+
+      return _this.parent.save();
+    }
+
+    /**
+     * Resets form to state of a parent
+     * @return {undefined}
+     */
+    function reset(auto) {
+      var _this = this;
+
+      angular.forEach(_this.schema.relationships, function(data, key) {
+        _this.data.relationships[key] = angular.copy(_this.parent.data.relationships[key]) || {};
+        if (angular.isArray(_this.relationships[key])) {
+          _this.relationships[key] = _this.parent.relationships[key].slice();
+        } else {
+          _this.relationships[key] = _this.parent.relationships[key];
+        }
+      });
+
+      if (auto === true && _this.parent.synchronized === true) {
+        return;
+      }
+
+      angular.forEach(_this.schema.attributes, function(validator, key) {
+        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]);
+      });
+
+      _this.parent.errors.validation.clear();
+    }
+
+    /**
+     * Validates form
+     * @return {promise} Promise rejected to errors object indexed by keys. If the
+     * key param i stated it only validates an attribute, else all attributes.
+     */
+    function validate(key) {
+      var _this = this;
+      var attributesWrapper;
+      var constraintsWrapper;
+      var deferred = $q.defer();
+
+      if (key === undefined) {
+        attributesWrapper = _this.data.attributes;
+        constraintsWrapper = _this.schema.attributes;
+      } else {
+        attributesWrapper = {};
+        constraintsWrapper = {};
+
+        attributesWrapper[key] = _this.data.attributes[key];
+        constraintsWrapper[key] = _this.schema.attributes[key];
+      }
+
+      validateJS.async(
+        attributesWrapper,
+        constraintsWrapper
+      ).then(resolve, reject);
+
+      function resolve() {
+        if (key === undefined) {
+          _this.parent.errors.validation.clear();
+        } else {
+          _this.parent.errors.validation.clear(key);
+        }
+
+        deferred.resolve();
+      }
+
+      function reject(errorsMap) {
+        _this.parent.error = true;
+        if (key === undefined) {
+          _this.parent.errors.validation.clear();
+        } else {
+          _this.parent.errors.validation.clear(key);
+        }
+
+        angular.forEach(errorsMap, function(errors, attribute) {
+          angular.forEach(errors, function(error) {
+            _this.parent.errors.validation.add(attribute, AngularJsonAPIModelValidationError.create(error, attribute));
+          });
+        });
+
+        deferred.reject(_this.parent.errors.validation);
+      }
+
+      return deferred.promise;
+    }
+
+    /**
+     * Adds link to a form without synchronization
+     * @param {string} key    Relationship name
+     * @param {AngularJsonAPIModel} target Object to be linked
+     * @return {Boolean}        Status
+     */
+    function link(key, target, oneWay) {
+      var _this = this;
+      oneWay = oneWay === undefined ? false : true;
+
+      return $q.resolve(AngularJsonAPIModelLinkerService.link(_this.parent, key, target, oneWay, true));
+    }
+
+    /**
+     * Removes link from form without synchronization
+     * @param  {[type]} key    Relationship name
+     * @param {AngularJsonAPIModel} target Object to be linked
+     * @return {Boolean}        Status
+     */
+    function unlink(key, target, oneWay) {
+      var _this = this;
+      oneWay = oneWay === undefined ? false : true;
+
+      return $q.resolve(AngularJsonAPIModelLinkerService.unlink(_this.parent, key, target, oneWay, true));
+    }
+  }
+  AngularJsonAPIModelFormWrapper.$inject = ["AngularJsonAPIModelValidationError", "AngularJsonAPIModelLinkerService", "validateJS", "$q"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
   .factory('AngularJsonAPIResourceCache', AngularJsonAPIResourceCacheWrapper);
 
   function AngularJsonAPIResourceCacheWrapper(
@@ -193,9 +384,9 @@
       _this.indexIds = [];
 
       angular.forEach(array, function(element) {
-        if (angular.isString(element) && uuid4.validate(element)) {
+        if (angular.isString(element) && _this.resource.schema.id.validate(element)) {
           _this.indexIds.push(element);
-        } else if (angular.isObject(element) && uuid4.validate(element.data.id)) {
+        } else if (angular.isObject(element) && _this.resource.schema.id.validate(element.data.id)) {
           _this.indexIds.push(element.data.id);
         }
       });
@@ -605,197 +796,6 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIModelForm', AngularJsonAPIModelFormWrapper);
-
-  function AngularJsonAPIModelFormWrapper(
-    AngularJsonAPIModelValidationError,
-    AngularJsonAPIModelLinkerService,
-    validateJS,
-    $q
-  ) {
-
-    AngularJsonAPIModelForm.prototype.save = save;
-    AngularJsonAPIModelForm.prototype.reset = reset;
-    AngularJsonAPIModelForm.prototype.validate = validate;
-
-    AngularJsonAPIModelForm.prototype.link = link;
-    AngularJsonAPIModelForm.prototype.unlink = unlink;
-
-    AngularJsonAPIModelForm.prototype.toJson = toJson;
-
-    return {
-      create: AngularJsonAPIModelFormFactory
-    };
-
-    function AngularJsonAPIModelFormFactory(parent) {
-      return new AngularJsonAPIModelForm(parent);
-    }
-
-    function AngularJsonAPIModelForm(parent) {
-      var _this = this;
-
-      _this.data = {
-        id: parent.data.id,
-        type: parent.data.type,
-        attributes: {},
-        relationships: {}
-      };
-
-      _this.relationships = {};
-      _this.parent = parent;
-      _this.schema = parent.schema;
-      _this.reset();
-    }
-
-    /**
-     * Encodes object into json
-     * @return {json} Json object
-     */
-    function toJson() {
-      var _this = this;
-      var data = angular.copy(_this.data);
-      var relationships = {};
-
-      angular.forEach(data.relationships, function(value, key) {
-        if (value.data !== undefined) {
-          relationships[key] = value;
-        }
-      });
-
-      data.relationships = relationships;
-
-      return {
-        data: data
-      };
-    }
-
-    /**
-     * Saves form, shortcut to parent.save()
-     * @return {promise} Promise associated with synchronization
-     */
-    function save() {
-      var _this = this;
-
-      return _this.parent.save();
-    }
-
-    /**
-     * Resets form to state of a parent
-     * @return {undefined}
-     */
-    function reset(auto) {
-      var _this = this;
-
-      angular.forEach(_this.schema.relationships, function(data, key) {
-        _this.data.relationships[key] = angular.copy(_this.parent.data.relationships[key]) || {};
-        if (angular.isArray(_this.relationships[key])) {
-          _this.relationships[key] = _this.parent.relationships[key].slice();
-        } else {
-          _this.relationships[key] = _this.parent.relationships[key];
-        }
-      });
-
-      if (auto === true && _this.parent.synchronized === true) {
-        return;
-      }
-
-      angular.forEach(_this.schema.attributes, function(validator, key) {
-        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]);
-      });
-
-      _this.parent.errors.validation.clear();
-    }
-
-    /**
-     * Validates form
-     * @return {promise} Promise rejected to errors object indexed by keys. If the
-     * key param i stated it only validates an attribute, else all attributes.
-     */
-    function validate(key) {
-      var _this = this;
-      var attributesWrapper;
-      var constraintsWrapper;
-      var deferred = $q.defer();
-
-      if (key === undefined) {
-        attributesWrapper = _this.data.attributes;
-        constraintsWrapper = _this.schema.attributes;
-      } else {
-        attributesWrapper = {};
-        constraintsWrapper = {};
-
-        attributesWrapper[key] = _this.data.attributes[key];
-        constraintsWrapper[key] = _this.schema.attributes[key];
-      }
-
-      validateJS.async(
-        attributesWrapper,
-        constraintsWrapper
-      ).then(resolve, reject);
-
-      function resolve() {
-        if (key === undefined) {
-          _this.parent.errors.validation.clear();
-        } else {
-          _this.parent.errors.validation.clear(key);
-        }
-
-        deferred.resolve();
-      }
-
-      function reject(errorsMap) {
-        _this.parent.error = true;
-        if (key === undefined) {
-          _this.parent.errors.validation.clear();
-        } else {
-          _this.parent.errors.validation.clear(key);
-        }
-
-        angular.forEach(errorsMap, function(errors, attribute) {
-          angular.forEach(errors, function(error) {
-            _this.parent.errors.validation.add(attribute, AngularJsonAPIModelValidationError.create(error, attribute));
-          });
-        });
-
-        deferred.reject(_this.parent.errors.validation);
-      }
-
-      return deferred.promise;
-    }
-
-    /**
-     * Adds link to a form without synchronization
-     * @param {string} key    Relationship name
-     * @param {AngularJsonAPIModel} target Object to be linked
-     * @return {Boolean}        Status
-     */
-    function link(key, target, oneWay) {
-      var _this = this;
-      oneWay = oneWay === undefined ? false : true;
-
-      return $q.resolve(AngularJsonAPIModelLinkerService.link(_this.parent, key, target, oneWay, true));
-    }
-
-    /**
-     * Removes link from form without synchronization
-     * @param  {[type]} key    Relationship name
-     * @param {AngularJsonAPIModel} target Object to be linked
-     * @return {Boolean}        Status
-     */
-    function unlink(key, target, oneWay) {
-      var _this = this;
-      oneWay = oneWay === undefined ? false : true;
-
-      return $q.resolve(AngularJsonAPIModelLinkerService.unlink(_this.parent, key, target, oneWay, true));
-    }
-  }
-  AngularJsonAPIModelFormWrapper.$inject = ["AngularJsonAPIModelValidationError", "AngularJsonAPIModelLinkerService", "validateJS", "$q"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
   .factory('AngularJsonAPIAbstractModel', AngularJsonAPIAbstractModelWrapper);
 
   function AngularJsonAPIAbstractModelWrapper(
@@ -804,7 +804,6 @@
     AngularJsonAPIModelErrorsManager,
     AngularJsonAPIModelLinkerService,
     AngularJsonAPIModelForm,
-    uuid4,
     $rootScope,
     $injector,
     $log,
@@ -1434,7 +1433,7 @@
         return false;
       }
 
-      if (!uuid4.validate(object.data.id)) {
+      if (!object.schema.id.validate(object.data.id)) {
         $log.error('Invalid id');
         return false;
       }
@@ -1517,7 +1516,7 @@
       }
     }
   }
-  AngularJsonAPIAbstractModelWrapper.$inject = ["AngularJsonAPIModelSourceError", "AngularJsonAPIModelValidationError", "AngularJsonAPIModelErrorsManager", "AngularJsonAPIModelLinkerService", "AngularJsonAPIModelForm", "uuid4", "$rootScope", "$injector", "$log", "$q"];
+  AngularJsonAPIAbstractModelWrapper.$inject = ["AngularJsonAPIModelSourceError", "AngularJsonAPIModelValidationError", "AngularJsonAPIModelErrorsManager", "AngularJsonAPIModelLinkerService", "AngularJsonAPIModelForm", "$rootScope", "$injector", "$log", "$q"];
 
   /////////////
   // Private //
@@ -2092,7 +2091,7 @@
         return $http({
           method: 'POST',
           headers: headers,
-          url: url + '/',
+          url: url,
           data: config.object.form.toJson()
         }).then(resolveHttp, rejectHttp.bind(null, 'add'));
       }
@@ -2305,7 +2304,12 @@
   angular.module('angular-jsonapi')
   .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
 
-  function AngularJsonAPISchemaWrapper($log, pluralize, AngularJsonAPISchemaLink) {
+  function AngularJsonAPISchemaWrapper(
+    $log,
+    pluralize,
+    uuid4,
+    AngularJsonAPISchemaLink
+  ) {
 
     return {
       create: AngularJsonAPISchemaFactory
@@ -2326,6 +2330,24 @@
         get: {},
         all: {}
       };
+
+      if (schema.id === 'uuid4') {
+        schema.id = uuid4;
+      } else if (schema.id === 'int') {
+        schema.id = {
+          generate: angular.noop,
+          validate: angular.isNumber
+        };
+      } else if (angular.isObject(schema.id)) {
+        if (!angular.isFunction(schema.id.generate)) {
+          schema.id.generate = angular.noop;
+        }
+      } else {
+        schema.id = {
+          generate: angular.noop,
+          validate: angular.identity.bind(null, true)
+        };
+      }
 
       angular.forEach(schema.relationships, function(linkSchema, linkName) {
         var linkSchemaObj = AngularJsonAPISchemaLink.create(linkSchema, linkName, schema.type);
@@ -2350,7 +2372,7 @@
     }
 
   }
-  AngularJsonAPISchemaWrapper.$inject = ["$log", "pluralize", "AngularJsonAPISchemaLink"];
+  AngularJsonAPISchemaWrapper.$inject = ["$log", "pluralize", "uuid4", "AngularJsonAPISchemaLink"];
 })();
 
 (function() {
@@ -2415,7 +2437,6 @@
     AngularJsonAPISchema,
     AngularJsonAPIResourceCache,
     AngularJsonAPICollection,
-    uuid4,
     $rootScope,
     $log,
     $q
@@ -2491,8 +2512,8 @@
     function get(id, params) {
       var _this = this;
 
-      if (!uuid4.validate(id)) {
-        return $q.reject({errors: [{status: 0, statusText: 'Invalid id not uuid4'}]});
+      if (!_this.schema.id.validate(id)) {
+        return $q.reject({errors: [{status: 0, statusText: 'Invalid id'}]});
       }
 
       var object = _this.cache.get(id);
@@ -2556,7 +2577,7 @@
 
       var data = {
         type: _this.type,
-        id: uuid4.generate(),
+        id: _this.schema.id.generate(),
         attributes: {},
         relationships: relationships
       };
@@ -2569,7 +2590,7 @@
         initialization: false
       };
 
-      var object = _this.cache.addOrUpdate(data, config);
+      var object = _this.modelFactory(data, config);
 
       $rootScope.$emit('angularJsonAPI:' + _this.type + ':resource:initialize', 'resolved', object);
 
@@ -2614,7 +2635,7 @@
       }
     }
   }
-  AngularJsonAPIResourceWrapper.$inject = ["AngularJsonAPIModel", "AngularJsonAPISchema", "AngularJsonAPIResourceCache", "AngularJsonAPICollection", "uuid4", "$rootScope", "$log", "$q"];
+  AngularJsonAPIResourceWrapper.$inject = ["AngularJsonAPIModel", "AngularJsonAPISchema", "AngularJsonAPIResourceCache", "AngularJsonAPICollection", "$rootScope", "$log", "$q"];
 })();
 
 (function() {
@@ -2783,7 +2804,7 @@
 
     /**
      * Shortcut to this.resource.get
-     * @param  {uuid4} id Id of object]
+     * @param  {string} id Id of object]
      * @return {AngularJsonAPIModel}          Model with id
      */
     function get(id, params) {

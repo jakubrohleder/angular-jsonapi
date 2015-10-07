@@ -114,7 +114,7 @@ First step is to provide data schema, that is used later on to create objects, v
 | field | description |
 |---|---|
 | **type** | Type of an object must be the same as the one in the JSON API response. Should be in plural. |
-| **id** | Type of id field, currenty only `uuid4` is supported. |
+| **id** | Type of id field, supported types are: `'uuid4'`, `'int'`, `'string'` and custom, any other type defaults to `'string'`. Custom id type should be an object with two methods: `validate(id)` and `generate()`. If ids cannot be generated in the front you can ommit `generate()`. |
 | **attributes** | Object with the model attributes names as keys and [validation constraints](#validators) as values. |
 | **relationships** | Object with the model relationships names as keys and [relationship schema](#relationship-schema) as values. |
 | **include** | Object with extra values that should be included in the `get` or `all` request. |

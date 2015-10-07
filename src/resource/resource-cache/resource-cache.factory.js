@@ -184,9 +184,9 @@
       _this.indexIds = [];
 
       angular.forEach(array, function(element) {
-        if (angular.isString(element) && uuid4.validate(element)) {
+        if (angular.isString(element) && _this.resource.schema.id.validate(element)) {
           _this.indexIds.push(element);
-        } else if (angular.isObject(element) && uuid4.validate(element.data.id)) {
+        } else if (angular.isObject(element) && _this.resource.schema.id.validate(element.data.id)) {
           _this.indexIds.push(element.data.id);
         }
       });
