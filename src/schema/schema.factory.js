@@ -4,7 +4,12 @@
   angular.module('angular-jsonapi')
   .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
 
-  function AngularJsonAPISchemaWrapper($log, pluralize, AngularJsonAPISchemaLink) {
+  function AngularJsonAPISchemaWrapper(
+    $log,
+    pluralize,
+    uuid4,
+    AngularJsonAPISchemaLink
+  ) {
 
     return {
       create: AngularJsonAPISchemaFactory
@@ -25,6 +30,24 @@
         get: {},
         all: {}
       };
+
+      if (schema.id === 'uuid4') {
+        schema.id = uuid4;
+      } else if (schema.id === 'int') {
+        schema.id = {
+          generate: angular.noop,
+          validate: angular.isNumber
+        };
+      } else if (angular.isObject(schema.id)) {
+        if (!angular.isFunction(schema.id.generate)) {
+          schema.id.generate = angular.noop;
+        }
+      } else {
+        schema.id = {
+          generate: angular.noop,
+          validate: angular.identity.bind(null, true)
+        };
+      }
 
       angular.forEach(schema.relationships, function(linkSchema, linkName) {
         var linkSchemaObj = AngularJsonAPISchemaLink.create(linkSchema, linkName, schema.type);

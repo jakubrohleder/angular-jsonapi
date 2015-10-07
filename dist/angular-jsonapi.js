@@ -11,6 +11,197 @@
   'use strict';
 
   angular.module('angular-jsonapi')
+  .factory('AngularJsonAPIModelForm', AngularJsonAPIModelFormWrapper);
+
+  function AngularJsonAPIModelFormWrapper(
+    AngularJsonAPIModelValidationError,
+    AngularJsonAPIModelLinkerService,
+    validateJS,
+    $q
+  ) {
+
+    AngularJsonAPIModelForm.prototype.save = save;
+    AngularJsonAPIModelForm.prototype.reset = reset;
+    AngularJsonAPIModelForm.prototype.validate = validate;
+
+    AngularJsonAPIModelForm.prototype.link = link;
+    AngularJsonAPIModelForm.prototype.unlink = unlink;
+
+    AngularJsonAPIModelForm.prototype.toJson = toJson;
+
+    return {
+      create: AngularJsonAPIModelFormFactory
+    };
+
+    function AngularJsonAPIModelFormFactory(parent) {
+      return new AngularJsonAPIModelForm(parent);
+    }
+
+    function AngularJsonAPIModelForm(parent) {
+      var _this = this;
+
+      _this.data = {
+        id: parent.data.id,
+        type: parent.data.type,
+        attributes: {},
+        relationships: {}
+      };
+
+      _this.relationships = {};
+      _this.parent = parent;
+      _this.schema = parent.schema;
+      _this.reset();
+    }
+
+    /**
+     * Encodes object into json
+     * @return {json} Json object
+     */
+    function toJson() {
+      var _this = this;
+      var data = angular.copy(_this.data);
+      var relationships = {};
+
+      angular.forEach(data.relationships, function(value, key) {
+        if (value.data !== undefined) {
+          relationships[key] = value;
+        }
+      });
+
+      data.relationships = relationships;
+
+      return {
+        data: data
+      };
+    }
+
+    /**
+     * Saves form, shortcut to parent.save()
+     * @return {promise} Promise associated with synchronization
+     */
+    function save() {
+      var _this = this;
+
+      return _this.parent.save();
+    }
+
+    /**
+     * Resets form to state of a parent
+     * @return {undefined}
+     */
+    function reset(auto) {
+      var _this = this;
+
+      angular.forEach(_this.schema.relationships, function(data, key) {
+        _this.data.relationships[key] = angular.copy(_this.parent.data.relationships[key]) || {};
+        if (angular.isArray(_this.relationships[key])) {
+          _this.relationships[key] = _this.parent.relationships[key].slice();
+        } else {
+          _this.relationships[key] = _this.parent.relationships[key];
+        }
+      });
+
+      if (auto === true && _this.parent.synchronized === true) {
+        return;
+      }
+
+      angular.forEach(_this.schema.attributes, function(validator, key) {
+        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]);
+      });
+
+      _this.parent.errors.validation.clear();
+    }
+
+    /**
+     * Validates form
+     * @return {promise} Promise rejected to errors object indexed by keys. If the
+     * key param i stated it only validates an attribute, else all attributes.
+     */
+    function validate(key) {
+      var _this = this;
+      var attributesWrapper;
+      var constraintsWrapper;
+      var deferred = $q.defer();
+
+      if (key === undefined) {
+        attributesWrapper = _this.data.attributes;
+        constraintsWrapper = _this.schema.attributes;
+      } else {
+        attributesWrapper = {};
+        constraintsWrapper = {};
+
+        attributesWrapper[key] = _this.data.attributes[key];
+        constraintsWrapper[key] = _this.schema.attributes[key];
+      }
+
+      validateJS.async(
+        attributesWrapper,
+        constraintsWrapper
+      ).then(resolve, reject);
+
+      function resolve() {
+        if (key === undefined) {
+          _this.parent.errors.validation.clear();
+        } else {
+          _this.parent.errors.validation.clear(key);
+        }
+
+        deferred.resolve();
+      }
+
+      function reject(errorsMap) {
+        _this.parent.error = true;
+        if (key === undefined) {
+          _this.parent.errors.validation.clear();
+        } else {
+          _this.parent.errors.validation.clear(key);
+        }
+
+        angular.forEach(errorsMap, function(errors, attribute) {
+          angular.forEach(errors, function(error) {
+            _this.parent.errors.validation.add(attribute, AngularJsonAPIModelValidationError.create(error, attribute));
+          });
+        });
+
+        deferred.reject(_this.parent.errors.validation);
+      }
+
+      return deferred.promise;
+    }
+
+    /**
+     * Adds link to a form without synchronization
+     * @param {string} key    Relationship name
+     * @param {AngularJsonAPIModel} target Object to be linked
+     * @return {Boolean}        Status
+     */
+    function link(key, target, oneWay) {
+      var _this = this;
+      oneWay = oneWay === undefined ? false : true;
+
+      return $q.resolve(AngularJsonAPIModelLinkerService.link(_this.parent, key, target, oneWay, true));
+    }
+
+    /**
+     * Removes link from form without synchronization
+     * @param  {[type]} key    Relationship name
+     * @param {AngularJsonAPIModel} target Object to be linked
+     * @return {Boolean}        Status
+     */
+    function unlink(key, target, oneWay) {
+      var _this = this;
+      oneWay = oneWay === undefined ? false : true;
+
+      return $q.resolve(AngularJsonAPIModelLinkerService.unlink(_this.parent, key, target, oneWay, true));
+    }
+  }
+  AngularJsonAPIModelFormWrapper.$inject = ["AngularJsonAPIModelValidationError", "AngularJsonAPIModelLinkerService", "validateJS", "$q"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
   .factory('AngularJsonAPIResourceCache', AngularJsonAPIResourceCacheWrapper);
 
   function AngularJsonAPIResourceCacheWrapper(
@@ -193,9 +384,9 @@
       _this.indexIds = [];
 
       angular.forEach(array, function(element) {
-        if (angular.isString(element) && uuid4.validate(element)) {
+        if (angular.isString(element) && _this.resource.schema.id.validate(element)) {
           _this.indexIds.push(element);
-        } else if (angular.isObject(element) && uuid4.validate(element.data.id)) {
+        } else if (angular.isObject(element) && _this.resource.schema.id.validate(element.data.id)) {
           _this.indexIds.push(element.data.id);
         }
       });
@@ -287,8 +478,9 @@
      * @param {AngularJsonAPIModel} target     Object to be linked
      * @param {AngularJsonAPISchema} schema     Relationship schema
      */
-    function link(object, key, target, oneWay) {
+    function link(object, key, target, oneWay, form) {
       var schema;
+      form = form === undefined ? false : form;
 
       if (object === undefined) {
         $log.error('Can\'t add link to non existing object', object, key, target);
@@ -329,17 +521,17 @@
 
       if (schema.type === 'hasMany') {
         if (oneWay === true) {
-          __addHasMany(object, key, target, false);
+          __addHasMany(object, key, target, form);
           return [];
         } else {
-          return __processAddHasMany(object, key, target);
+          return __processAddHasMany(object, key, target, form);
         }
       } else if (schema.type === 'hasOne') {
         if (oneWay === true) {
-          __addHasOne(object, key, target, false);
+          __addHasOne(object, key, target, form);
           return [];
         } else {
-          return __processAddHasOne(object, key, target);
+          return __processAddHasOne(object, key, target, form);
         }
       }
     }
@@ -351,8 +543,9 @@
      * @param {AngularJsonAPIModel} target     Object to be unlinked
      * @param {AngularJsonAPISchema} schema     Relationship schema
      */
-    function unlink(object, key, target, oneWay) {
+    function unlink(object, key, target, oneWay, form) {
       var schema;
+      form = form === undefined ? false : form;
 
       if (object === undefined) {
         $log.error('Can\'t remove link from non existing object', object, key, target);
@@ -374,10 +567,10 @@
       }
 
       if (oneWay === true) {
-        __removeHasMany(object, key, target, false);
+        __removeHasMany(object, key, target, form);
         return [];
       } else {
-        return __processRemove(object, key, target);
+        return __processRemove(object, key, target, form);
       }
     }
 
@@ -385,12 +578,12 @@
     // Private //
     /////////////
 
-    function __processAddHasMany(object, key, target) {
+    function __processAddHasMany(object, key, target, form) {
       var reflectionKey = object.schema.relationships[key].reflection;
       var reflectionSchema;
 
       if (reflectionKey === false) {
-        __addHasMany(object, key, target);
+        __addHasMany(object, key, target, form);
         return [];
       }
 
@@ -400,31 +593,31 @@
         return __swapResults(
           __wrapResults(object, key, target),
           __wrapResults(target, reflectionKey, object),
-          __processAddHasOne(target, reflectionKey, object)
+          __processAddHasOne(target, reflectionKey, object, form)
         );
       } else if (reflectionSchema.type === 'hasMany') {
-        __addHasMany(object, key, target);
-        __addHasMany(target, reflectionKey, object);
+        __addHasMany(object, key, target, form);
+        __addHasMany(target, reflectionKey, object, form);
         return [__wrapResults(target, reflectionKey, object)];
       }
     }
 
-    function __processAddHasOne(object, key, target) {
+    function __processAddHasOne(object, key, target, form) {
       var reflectionKey = object.schema.relationships[key].reflection;
       var oldReflection = object.relationships[key];
       var reflectionSchema;
       var oldReflectionSchema;
       var result = [];
 
-      __addHasOne(object, key, target);
+      __addHasOne(object, key, target, form);
 
       if (oldReflection !== undefined && oldReflection !== null) {
         oldReflectionSchema = oldReflection.schema.relationships[reflectionKey];
 
         if (oldReflectionSchema.type === 'hasOne') {
-          __removeHasOne(oldReflection, reflectionKey, object);
+          __removeHasOne(oldReflection, reflectionKey, object, form);
         } else if (oldReflectionSchema.type === 'hasMany') {
-          __removeHasMany(oldReflection, reflectionKey, object);
+          __removeHasMany(oldReflection, reflectionKey, object, form);
         }
 
         result.push(__wrapResults(oldReflection, reflectionKey, object));
@@ -434,9 +627,9 @@
         reflectionSchema = target.schema.relationships[reflectionKey];
 
         if (reflectionSchema.type === 'hasOne') {
-          __addHasOne(target, reflectionKey, object);
+          __addHasOne(target, reflectionKey, object, form);
         } else if (reflectionSchema.type === 'hasMany') {
-          __addHasMany(target, reflectionKey, object);
+          __addHasMany(target, reflectionKey, object, form);
         }
 
         result.push(__wrapResults(target, reflectionKey, object));
@@ -445,15 +638,15 @@
       return result;
     }
 
-    function __processRemove(object, key, target) {
+    function __processRemove(object, key, target, form) {
       var schema = object.schema.relationships[key];
       var reflectionKey = schema.reflection;
       var reflectionSchema;
 
       if (schema.type === 'hasMany') {
-        __removeHasMany(object, key, target);
+        __removeHasMany(object, key, target, form);
       } else if (schema.type === 'hasOne') {
-        __removeHasOne(object, key, target);
+        __removeHasOne(object, key, target, form);
       }
 
       if (reflectionKey === false) {
@@ -463,29 +656,38 @@
       reflectionSchema = target.schema.relationships[reflectionKey];
 
       if (reflectionSchema.type === 'hasOne') {
-        __removeHasOne(target, reflectionKey, object);
+        __removeHasOne(target, reflectionKey, object, form);
       } else if (reflectionSchema.type === 'hasMany') {
-        __removeHasMany(target, reflectionKey, object);
+        __removeHasMany(target, reflectionKey, object, form);
       }
 
       return [__wrapResults(target, reflectionKey, object)];
     }
 
-    function __addHasOne(object, key, target, reset) {
+    function __addHasOne(object, key, target, form) {
       $log.debug('addHasOne', object, key, target);
+
+      if (form === true) {
+        object = object.form;
+      }
 
       object.relationships[key] = target;
       object.data.relationships[key].data = toLinkData(target);
-      if (reset !== false) {
+
+      if (form === false) {
         object.reset(true);
       }
 
       return true;
     }
 
-    function __addHasMany(object, key, target, reset) {
-      var linkData = toLinkData(target);
+    function __addHasMany(object, key, target, form) {
       $log.debug('addHasMany', object, key, target);
+
+      var linkData = toLinkData(target);
+      if (form === true) {
+        object = object.form;
+      }
 
       if (angular.isArray(object.relationships[key]) && object.relationships[key].indexOf(target) > -1) {
         return false;
@@ -496,15 +698,20 @@
 
       object.relationships[key].push(target);
       object.data.relationships[key].data.push(linkData);
-      if (reset !== false) {
+
+      if (form === false) {
         object.reset(true);
       }
 
       return true;
     }
 
-    function __removeHasOne(object, key, target, reset) {
+    function __removeHasOne(object, key, target, form) {
       $log.debug('removeHasOne', object, key, target);
+
+      if (form === true) {
+        object = object.form;
+      }
 
       if (target !== undefined && object.relationships[key] !== target) {
         return false;
@@ -512,15 +719,20 @@
 
       object.relationships[key] = null;
       object.data.relationships[key].data = undefined;
-      if (reset !== false) {
+
+      if (form === false) {
         object.reset(true);
       }
 
       return true;
     }
 
-    function __removeHasMany(object, key, target, reset) {
+    function __removeHasMany(object, key, target, form) {
       $log.debug('removeHasMany', object, key, target);
+
+      if (form === true) {
+        object = object.form;
+      }
 
       if (object.relationships[key] === undefined) {
         return;
@@ -529,7 +741,7 @@
       if (target === undefined) {
         object.relationships[key] = [];
         object.data.relationships[key].data = [];
-        if (reset !== false) {
+        if (form === false) {
           object.reset(true);
         }
 
@@ -544,7 +756,8 @@
 
       object.relationships[key].splice(index, 1);
       object.data.relationships[key].data.splice(index, 1);
-      if (reset !== false) {
+
+      if (form === false) {
         object.reset(true);
       }
 
@@ -583,204 +796,14 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIModelForm', AngularJsonAPIModelFormWrapper);
-
-  function AngularJsonAPIModelFormWrapper(
-    AngularJsonAPIModelValidationError,
-    AngularJsonAPIModelLinkerService,
-    validateJS,
-    $q
-  ) {
-
-    AngularJsonAPIModelForm.prototype.save = save;
-    AngularJsonAPIModelForm.prototype.reset = reset;
-    AngularJsonAPIModelForm.prototype.validate = validate;
-
-    AngularJsonAPIModelForm.prototype.link = link;
-    AngularJsonAPIModelForm.prototype.unlink = unlink;
-
-    AngularJsonAPIModelForm.prototype.toJson = toJson;
-
-    return {
-      create: AngularJsonAPIModelFormFactory
-    };
-
-    function AngularJsonAPIModelFormFactory(parent) {
-      return new AngularJsonAPIModelForm(parent);
-    }
-
-    function AngularJsonAPIModelForm(parent) {
-      var _this = this;
-
-      _this.data = {
-        id: parent.data.id,
-        type: parent.data.type,
-        attributes: {},
-        relationships: {}
-      };
-
-      _this.relationships = {};
-      _this.parent = parent;
-      _this.schema = parent.schema;
-      _this.reset();
-    }
-
-    /**
-     * Encodes object into json
-     * @return {json} Json object
-     */
-    function toJson() {
-      var _this = this;
-      var data = angular.copy(_this.data);
-      var relationships = {};
-
-      angular.forEach(data.relationships, function(value, key) {
-        if (value.data !== undefined) {
-          relationships[key] = value;
-        }
-      });
-
-      data.relationships = relationships;
-
-      return {
-        data: data
-      };
-    }
-
-    /**
-     * Saves form, shortcut to parent.save()
-     * @return {promise} Promise associated with synchronization
-     */
-    function save() {
-      var _this = this;
-
-      return _this.parent.save();
-    }
-
-    /**
-     * Resets form to state of a parent
-     * @return {undefined}
-     */
-    function reset(auto) {
-      var _this = this;
-
-      angular.forEach(_this.schema.relationships, function(data, key) {
-        _this.data.relationships[key] = angular.copy(_this.parent.data.relationships[key]) || {};
-        if (angular.isArray(_this.relationships[key])) {
-          _this.relationships[key] = _this.parent.relationships[key].slice();
-        } else {
-          _this.relationships[key] = _this.parent.relationships[key];
-        }
-      });
-
-      if (auto === true && _this.parent.synchronized === true) {
-        return;
-      }
-
-      angular.forEach(_this.schema.attributes, function(validator, key) {
-        _this.data.attributes[key] = angular.copy(_this.parent.data.attributes[key]);
-      });
-
-      _this.parent.errors.validation.clear();
-    }
-
-    /**
-     * Validates form
-     * @return {promise} Promise rejected to errors object indexed by keys. If the
-     * key param i stated it only validates an attribute, else all attributes.
-     */
-    function validate(key) {
-      var _this = this;
-      var attributesWrapper;
-      var constraintsWrapper;
-      var deferred = $q.defer();
-
-      if (key === undefined) {
-        attributesWrapper = _this.data.attributes;
-        constraintsWrapper = _this.schema.attributes;
-      } else {
-        attributesWrapper = {};
-        constraintsWrapper = {};
-
-        attributesWrapper[key] = _this.data.attributes[key];
-        constraintsWrapper[key] = _this.schema.attributes[key];
-      }
-
-      validateJS.async(
-        attributesWrapper,
-        constraintsWrapper
-      ).then(resolve, reject);
-
-      function resolve() {
-        if (key === undefined) {
-          _this.parent.errors.validation.clear();
-        } else {
-          _this.parent.errors.validation.clear(key);
-        }
-
-        deferred.resolve();
-      }
-
-      function reject(errorsMap) {
-        _this.parent.error = true;
-        if (key === undefined) {
-          _this.parent.errors.validation.clear();
-        } else {
-          _this.parent.errors.validation.clear(key);
-        }
-
-        angular.forEach(errorsMap, function(errors, attribute) {
-          angular.forEach(errors, function(error) {
-            _this.parent.errors.validation.add(attribute, AngularJsonAPIModelValidationError.create(error, attribute));
-          });
-        });
-
-        deferred.reject(_this.parent.errors.validation);
-      }
-
-      return deferred.promise;
-    }
-
-    /**
-     * Adds link to a form without synchronization
-     * @param {string} key    Relationship name
-     * @param {AngularJsonAPIModel} target Object to be linked
-     * @return {Boolean}        Status
-     */
-    function link(key, target) {
-      var _this = this;
-
-      return $q.resolve(AngularJsonAPIModelLinkerService.link(_this, key, target, true));
-    }
-
-    /**
-     * Removes link from form without synchronization
-     * @param  {[type]} key    Relationship name
-     * @param {AngularJsonAPIModel} target Object to be linked
-     * @return {Boolean}        Status
-     */
-    function unlink(key, target) {
-      var _this = this;
-
-      return $q.resolve(AngularJsonAPIModelLinkerService.unlink(_this, key, target, true));
-    }
-  }
-  AngularJsonAPIModelFormWrapper.$inject = ["AngularJsonAPIModelValidationError", "AngularJsonAPIModelLinkerService", "validateJS", "$q"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
   .factory('AngularJsonAPIAbstractModel', AngularJsonAPIAbstractModelWrapper);
 
   function AngularJsonAPIAbstractModelWrapper(
-    AngularJsonAPIModelSynchronizationError,
+    AngularJsonAPIModelSourceError,
     AngularJsonAPIModelValidationError,
     AngularJsonAPIModelErrorsManager,
     AngularJsonAPIModelLinkerService,
     AngularJsonAPIModelForm,
-    uuid4,
     $rootScope,
     $injector,
     $log,
@@ -862,13 +885,13 @@
           AngularJsonAPIModelValidationError
         ),
         synchronization: AngularJsonAPIModelErrorsManager.create(
-          'Synchronization',
+          'Source',
           'Errors of synchronizations',
-          AngularJsonAPIModelSynchronizationError
+          AngularJsonAPIModelSourceError
         )
       };
 
-      _this.promises = {};
+      _this.promise = $q.resolve(_this);
 
       __setData(_this, data);
 
@@ -902,7 +925,7 @@
 
       function resolve(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response);
-        _this.update(_this.form.data);
+        _this.update(response.data.data);
 
         if (_this.new === true) {
           _this.resource.cache.indexIds = _this.resource.cache.indexIds || [];
@@ -916,7 +939,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(_this);
+        deferred.resolve(response.data.meta);
       }
 
       function reject(response) {
@@ -963,7 +986,7 @@
       };
 
       if (_this.new === true) {
-        var error = AngularJsonAPIModelSynchronizationError.create('Can\'t refresh new object', null, 0, 'refresh');
+        var error = AngularJsonAPIModelSourceError.create('Can\'t refresh new object', null, 0, 'refresh');
         _this.errors.synchronization.add('refresh', error);
         deferred.reject(error);
       } else {
@@ -1005,7 +1028,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -1082,7 +1105,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(_this);
+        deferred.resolve(response.data.meta);
       }
 
       function reject(response) {
@@ -1159,7 +1182,7 @@
 
           response.finish();
           _this.errors.synchronization.concat(response.errors);
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
 
         function reject(response) {
@@ -1197,11 +1220,11 @@
       };
 
       if (target === undefined) {
-        error = AngularJsonAPIModelSynchronizationError.create('Can\'t link undefined', null, 0, 'link');
+        error = AngularJsonAPIModelSourceError.create('Can\'t link undefined', null, 0, 'link');
         _this.errors.synchronization.add('link', error);
         deferred.reject(error);
       } else if (_this.new === true) {
-        error = AngularJsonAPIModelSynchronizationError.create('Can\'t link new object', null, 0, 'link');
+        error = AngularJsonAPIModelSourceError.create('Can\'t link new object', null, 0, 'link');
         _this.errors.synchronization.add('link', error);
         deferred.reject(error);
       } else {
@@ -1246,7 +1269,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -1284,11 +1307,11 @@
       };
 
       if (target === undefined) {
-        error = AngularJsonAPIModelSynchronizationError.create('Can\'t unlink undefined', null, 0, 'unlink');
+        error = AngularJsonAPIModelSourceError.create('Can\'t unlink undefined', null, 0, 'unlink');
         _this.errors.synchronization.add('unlink', error);
         deferred.reject(_this);
       } else if (_this.new === true) {
-        error = AngularJsonAPIModelSynchronizationError.create('Can\'t unlink new object', null, 0, 'unlink');
+        error = AngularJsonAPIModelSourceError.create('Can\'t unlink new object', null, 0, 'unlink');
         _this.errors.synchronization.add('unlink', error);
         deferred.reject(_this);
       } else {
@@ -1333,7 +1356,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -1410,11 +1433,12 @@
         return false;
       }
 
-      if (!uuid4.validate(object.data.id)) {
+      if (!object.schema.id.validate(object.data.id)) {
         $log.error('Invalid id');
         return false;
       }
 
+      object.data.links = validatedData.links;
       validatedData.attributes = validatedData.attributes || {};
       validatedData.relationships = validatedData.relationships || {};
 
@@ -1492,7 +1516,7 @@
       }
     }
   }
-  AngularJsonAPIAbstractModelWrapper.$inject = ["AngularJsonAPIModelSynchronizationError", "AngularJsonAPIModelValidationError", "AngularJsonAPIModelErrorsManager", "AngularJsonAPIModelLinkerService", "AngularJsonAPIModelForm", "uuid4", "$rootScope", "$injector", "$log", "$q"];
+  AngularJsonAPIAbstractModelWrapper.$inject = ["AngularJsonAPIModelSourceError", "AngularJsonAPIModelValidationError", "AngularJsonAPIModelErrorsManager", "AngularJsonAPIModelLinkerService", "AngularJsonAPIModelForm", "$rootScope", "$injector", "$log", "$q"];
 
   /////////////
   // Private //
@@ -1558,28 +1582,28 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIModelSynchronizationError', AngularJsonAPIModelSynchronizationErrorWrapper);
+  .factory('AngularJsonAPIModelSourceError', AngularJsonAPIModelSourceErrorWrapper);
 
-  function AngularJsonAPIModelSynchronizationErrorWrapper() {
-    SynchronizationError.prototype = Object.create(Error.prototype);
-    SynchronizationError.prototype.constructor = SynchronizationError;
-    SynchronizationError.prototype.name = 'SynchronizationError';
+  function AngularJsonAPIModelSourceErrorWrapper() {
+    SourceError.prototype = Object.create(Error.prototype);
+    SourceError.prototype.constructor = SourceError;
+    SourceError.prototype.name = 'SourceError';
 
     return {
-      create: SynchronizationErrorFactory
+      create: SourceErrorFactory
     };
 
-    function SynchronizationErrorFactory(message, synchronization, code, action) {
-      return new SynchronizationError(message, synchronization, code, action);
+    function SourceErrorFactory(message, source, code, action) {
+      return new SourceError(message, source, code, action);
     }
 
-    function SynchronizationError(message, synchronization, code, action) {
+    function SourceError(message, source, code, action) {
       var _this = this;
       Error.captureStackTrace(_this, _this.constructor);
 
       _this.message = message;
       _this.context = {
-        synchronization: synchronization,
+        source: source,
         code: code,
         action: action
       };
@@ -1666,6 +1690,19 @@
       }
     }
   }
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+    .constant('namedFunction', namedFunction);
+
+  function namedFunction(name, fn) {
+    return new Function('fn',
+      'return function ' + name + '(){ return fn.apply(this,arguments)}'
+    )(fn);
+  };
 })();
 
 // from https://www.sitepen.com/blog/2012/10/19/lazy-property-access/
@@ -1770,19 +1807,19 @@
       create: AngularJsonAPISynchronizerSimpleFactory
     };
 
-    function AngularJsonAPISynchronizerSimpleFactory(synchronizations) {
-      return new AngularJsonAPISynchronizerSimple(synchronizations);
+    function AngularJsonAPISynchronizerSimpleFactory(sources) {
+      return new AngularJsonAPISynchronizerSimple(sources);
     }
 
-    function AngularJsonAPISynchronizerSimple(synchronizations) {
+    function AngularJsonAPISynchronizerSimple(sources) {
       var _this = this;
 
       _this.state = {};
 
-      AngularJsonAPISynchronizerPrototype.call(_this, synchronizations);
+      AngularJsonAPISynchronizerPrototype.call(_this, sources);
 
-      angular.forEach(synchronizations, function(synchronization) {
-        synchronization.synchronizer = _this;
+      angular.forEach(sources, function(source) {
+        source.synchronizer = _this;
       });
     }
 
@@ -1794,20 +1831,20 @@
 
       AngularJsonAPISynchronizerPrototype.prototype.synchronize.call(_this, config);
 
-      angular.forEach(_this.synchronizations, function(synchronization) {
-        angular.forEach(synchronization.beginHooks[action], function(hook) {
+      angular.forEach(_this.sources, function(source) {
+        angular.forEach(source.beginHooks[action], function(hook) {
           deferred.notify({step: 'begin', data: hook.call(_this, config)});
         });
       });
 
-      angular.forEach(_this.synchronizations, function(synchronization) {
-        angular.forEach(synchronization.beforeHooks[action], function(hook) {
+      angular.forEach(_this.sources, function(source) {
+        angular.forEach(source.beforeHooks[action], function(hook) {
           deferred.notify({step: 'before', data: hook.call(_this, config)});
         });
       });
 
-      angular.forEach(_this.synchronizations, function(synchronization) {
-        angular.forEach(synchronization.synchronizationHooks[action], function(hook) {
+      angular.forEach(_this.sources, function(source) {
+        angular.forEach(source.synchronizationHooks[action], function(hook) {
           promises.push(hook.call(_this, config));
         });
       });
@@ -1832,8 +1869,8 @@
           }
         });
 
-        angular.forEach(_this.synchronizations, function(synchronization) {
-          angular.forEach(synchronization.afterHooks[action], function(hook) {
+        angular.forEach(_this.sources, function(source) {
+          angular.forEach(source.afterHooks[action], function(hook) {
             deferred.notify({step: 'after', errors: hook.call(_this, config, results)});
           });
         });
@@ -1860,8 +1897,8 @@
       }
 
       function finish() {
-        angular.forEach(_this.synchronizations, function(synchronization) {
-          angular.forEach(synchronization.finishHooks[action], function(hook) {
+        angular.forEach(_this.sources, function(source) {
+          angular.forEach(source.finishHooks[action], function(hook) {
             deferred.notify({step: 'finish', errors: hook.call(_this, config)});
           });
         });
@@ -1891,10 +1928,10 @@
 
     return AngularJsonAPISynchronizerPrototype;
 
-    function AngularJsonAPISynchronizerPrototype(synchronizations) {
+    function AngularJsonAPISynchronizerPrototype(sources) {
       var _this = this;
 
-      _this.synchronizations = synchronizations;
+      _this.sources = sources;
     }
 
     function synchronize(config) {
@@ -1914,36 +1951,36 @@
   'use strict';
 
   angular.module('angular-jsonapi-rest', ['angular-jsonapi'])
-  .factory('AngularJsonAPISynchronizationRest', AngularJsonAPISynchronizationRestWrapper);
+  .factory('AngularJsonAPISourceRest', AngularJsonAPISourceRestWrapper);
 
-  function AngularJsonAPISynchronizationRestWrapper(
-    AngularJsonAPIModelSynchronizationError,
-    AngularJsonAPISynchronizationPrototype,
+  function AngularJsonAPISourceRestWrapper(
+    AngularJsonAPIModelSourceError,
+    AngularJsonAPISourcePrototype,
     AngularJsonAPIModelLinkerService,
     toKebabCase,
     $q,
     $http
   ) {
 
-    AngularJsonAPISynchronizationRest.prototype = Object.create(AngularJsonAPISynchronizationPrototype.prototype);
-    AngularJsonAPISynchronizationRest.prototype.constructor = AngularJsonAPISynchronizationRest;
+    AngularJsonAPISourceRest.prototype = Object.create(AngularJsonAPISourcePrototype.prototype);
+    AngularJsonAPISourceRest.prototype.constructor = AngularJsonAPISourceRest;
 
     return {
-      create: AngularJsonAPISynchronizationRestFactory
+      create: AngularJsonAPISourceRestFactory
     };
 
-    function AngularJsonAPISynchronizationRestFactory(name, url) {
-      return new AngularJsonAPISynchronizationRest(name, url);
+    function AngularJsonAPISourceRestFactory(name, url) {
+      return new AngularJsonAPISourceRest(name, url);
     }
 
-    function AngularJsonAPISynchronizationRest(name, url) {
+    function AngularJsonAPISourceRest(name, url) {
       var _this = this;
       var headers = { // jscs:disable disallowQuotedKeysInObjects
         'Accept': 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json'
       }; // jscs:enable disallowQuotedKeysInObjects
 
-      AngularJsonAPISynchronizationPrototype.apply(_this, arguments);
+      AngularJsonAPISourcePrototype.apply(_this, arguments);
 
       _this.synchronization('remove', remove);
       _this.synchronization('unlink', unlink);
@@ -1985,9 +2022,9 @@
         var schema = config.object.schema.relationships[config.key];
 
         if (config.object.removed === true) {
-          deferred.reject(AngularJsonAPIModelSynchronizationError.create('Object has been removed', _this, 0, 'unlink'));
+          deferred.reject(AngularJsonAPIModelSourceError.create('Object has been removed', _this, 0, 'unlink'));
         } else if (config.target !== undefined && config.target.data.id === undefined) {
-          deferred.reject(AngularJsonAPIModelSynchronizationError.create('Can\'t unlink object without id through rest call', _this, 0, 'unlink'));
+          deferred.reject(AngularJsonAPIModelSourceError.create('Can\'t unlink object without id through rest call', _this, 0, 'unlink'));
         } else if (schema.type === 'hasOne') {
           $http({
             method: 'DELETE',
@@ -2054,7 +2091,7 @@
         return $http({
           method: 'POST',
           headers: headers,
-          url: url + '/',
+          url: url,
           data: config.object.form.toJson()
         }).then(resolveHttp, rejectHttp.bind(null, 'add'));
       }
@@ -2072,40 +2109,40 @@
             url: 'https://status.cloud.google.com/incidents.schema.json'
           }).then(rejectServerOffline, rejectNoConnection);
         } else {
-          deferred.reject(AngularJsonAPIModelSynchronizationError.create(response.statusText, _this, response.status, action));
+          deferred.reject(AngularJsonAPIModelSourceError.create(response.statusText, _this, response.status, action));
         }
 
         return deferred.promise;
 
         function rejectServerOffline(response) {
-          deferred.reject(AngularJsonAPIModelSynchronizationError.create('Server is offline', _this, response.status, action));
+          deferred.reject(AngularJsonAPIModelSourceError.create('Server is offline', _this, response.status, action));
         }
 
         function rejectNoConnection() {
-          deferred.reject(AngularJsonAPIModelSynchronizationError.create('No internet connection', _this, response.status, action));
+          deferred.reject(AngularJsonAPIModelSourceError.create('No internet connection', _this, response.status, action));
         }
       }
     }
   }
-  AngularJsonAPISynchronizationRestWrapper.$inject = ["AngularJsonAPIModelSynchronizationError", "AngularJsonAPISynchronizationPrototype", "AngularJsonAPIModelLinkerService", "toKebabCase", "$q", "$http"];
+  AngularJsonAPISourceRestWrapper.$inject = ["AngularJsonAPIModelSourceError", "AngularJsonAPISourcePrototype", "AngularJsonAPIModelLinkerService", "toKebabCase", "$q", "$http"];
 })();
 
 (function() {
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPISynchronizationPrototype', AngularJsonAPISynchronizationPrototypeWrapper);
+  .factory('AngularJsonAPISourcePrototype', AngularJsonAPISourcePrototypeWrapper);
 
-  function AngularJsonAPISynchronizationPrototypeWrapper() {
-    AngularJsonAPISynchronizationPrototype.prototype.before = beforeSynchro;
-    AngularJsonAPISynchronizationPrototype.prototype.after = afterSynchro;
-    AngularJsonAPISynchronizationPrototype.prototype.begin = begin;
-    AngularJsonAPISynchronizationPrototype.prototype.finish = finish;
-    AngularJsonAPISynchronizationPrototype.prototype.synchronization = synchronization;
+  function AngularJsonAPISourcePrototypeWrapper() {
+    AngularJsonAPISourcePrototype.prototype.before = beforeSynchro;
+    AngularJsonAPISourcePrototype.prototype.after = afterSynchro;
+    AngularJsonAPISourcePrototype.prototype.begin = begin;
+    AngularJsonAPISourcePrototype.prototype.finish = finish;
+    AngularJsonAPISourcePrototype.prototype.synchronization = synchronization;
 
-    return AngularJsonAPISynchronizationPrototype;
+    return AngularJsonAPISourcePrototype;
 
-    function AngularJsonAPISynchronizationPrototype(name) {
+    function AngularJsonAPISourcePrototype(name) {
       var _this = this;
       var allHooks = [
         'add',
@@ -2184,33 +2221,33 @@
   'use strict';
 
   angular.module('angular-jsonapi-local', ['angular-jsonapi'])
-  .factory('AngularJsonAPISynchronizationLocal', AngularJsonAPISynchronizationLocalWrapper);
+  .factory('AngularJsonAPISourceLocal', AngularJsonAPISourceLocalWrapper);
 
-  function AngularJsonAPISynchronizationLocalWrapper(
-    AngularJsonAPISynchronizationPrototype,
+  function AngularJsonAPISourceLocalWrapper(
+    AngularJsonAPISourcePrototype,
     $window,
     $q
   ) {
 
-    AngularJsonAPISynchronizationLocal.prototype = Object.create(AngularJsonAPISynchronizationPrototype.prototype);
-    AngularJsonAPISynchronizationLocal.prototype.constructor = AngularJsonAPISynchronizationLocal;
+    AngularJsonAPISourceLocal.prototype = Object.create(AngularJsonAPISourcePrototype.prototype);
+    AngularJsonAPISourceLocal.prototype.constructor = AngularJsonAPISourceLocal;
 
     return {
-      create: AngularJsonAPISynchronizationLocalFactory
+      create: AngularJsonAPISourceLocalFactory
     };
 
-    function AngularJsonAPISynchronizationLocalFactory(name, prefix) {
-      return new AngularJsonAPISynchronizationLocal(name, prefix);
+    function AngularJsonAPISourceLocalFactory(name, prefix) {
+      return new AngularJsonAPISourceLocal(name, prefix);
     }
 
-    function AngularJsonAPISynchronizationLocal(name, prefix) {
+    function AngularJsonAPISourceLocal(name, prefix) {
       var _this = this;
 
       prefix = prefix || 'AngularJsonAPI';
 
       _this.__updateStorage = updateStorage;
 
-      AngularJsonAPISynchronizationPrototype.apply(_this, arguments);
+      AngularJsonAPISourcePrototype.apply(_this, arguments);
 
       _this.synchronization('init', init);
 
@@ -2258,7 +2295,135 @@
       }
     }
   }
-  AngularJsonAPISynchronizationLocalWrapper.$inject = ["AngularJsonAPISynchronizationPrototype", "$window", "$q"];
+  AngularJsonAPISourceLocalWrapper.$inject = ["AngularJsonAPISourcePrototype", "$window", "$q"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+  .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
+
+  function AngularJsonAPISchemaWrapper(
+    $log,
+    pluralize,
+    uuid4,
+    AngularJsonAPISchemaLink
+  ) {
+
+    return {
+      create: AngularJsonAPISchemaFactory
+    };
+
+    function AngularJsonAPISchemaFactory(schema) {
+      return new AngularJsonAPISchema(schema);
+    }
+
+    function AngularJsonAPISchema(schema) {
+      var _this = this;
+      var include = schema.include || {};
+      schema.include = include;
+      include.get = schema.include.get || [];
+      include.all = schema.include.all || [];
+
+      _this.params = {
+        get: {},
+        all: {}
+      };
+
+      if (schema.id === 'uuid4') {
+        schema.id = uuid4;
+      } else if (schema.id === 'int') {
+        schema.id = {
+          generate: angular.noop,
+          validate: angular.isNumber
+        };
+      } else if (angular.isObject(schema.id)) {
+        if (!angular.isFunction(schema.id.generate)) {
+          schema.id.generate = angular.noop;
+        }
+      } else {
+        schema.id = {
+          generate: angular.noop,
+          validate: angular.identity.bind(null, true)
+        };
+      }
+
+      angular.forEach(schema.relationships, function(linkSchema, linkName) {
+        var linkSchemaObj = AngularJsonAPISchemaLink.create(linkSchema, linkName, schema.type);
+        schema.relationships[linkName] = linkSchemaObj;
+        if (linkSchemaObj.included === true) {
+          include.get.push(linkName);
+          if (linkSchemaObj.type === 'hasOne') {
+            include.all.push(linkName);
+          }
+        }
+      });
+
+      angular.extend(_this, schema);
+
+      if (include.get.length > 0) {
+        _this.params.get.include = include.get.join(',');
+      }
+
+      if (include.all.length > 0) {
+        _this.params.all.include = include.all.join(',');
+      }
+    }
+
+  }
+  AngularJsonAPISchemaWrapper.$inject = ["$log", "pluralize", "uuid4", "AngularJsonAPISchemaLink"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+  .factory('AngularJsonAPISchemaLink', AngularJsonAPILinkSchrapperLink);
+
+  function AngularJsonAPILinkSchrapperLink($log, pluralize) {
+
+    return {
+      create: AngularJsonAPISchemaLinkFactory
+    };
+
+    function AngularJsonAPISchemaLinkFactory(linkSchema, linkName, type) {
+      return new AngularJsonAPISchemaLink(linkSchema, linkName, type);
+    }
+
+    function AngularJsonAPISchemaLink(linkSchema, linkName, type) {
+      var _this = this;
+
+      if (angular.isString(linkSchema)) {
+        _this.model = pluralize.plural(linkName);
+        _this.type = linkSchema;
+        _this.polymorphic = false;
+        _this.reflection = type;
+      } else {
+        if (linkSchema.type === undefined) {
+          $log.error('Schema of link without a type: ', linkSchema, linkName);
+        }
+
+        if (linkSchema.type !== 'hasMany' && linkSchema.type !== 'hasOne') {
+          $log.error('Schema of link with wrong type: ', linkSchema.type, 'available: hasOne, hasMany');
+        }
+
+        _this.model = linkSchema.model || pluralize.plural(linkName);
+        _this.type = linkSchema.type;
+        _this.polymorphic = linkSchema.polymorphic || false;
+
+        if (linkSchema.reflection === undefined) {
+          _this.reflection = _this.type === 'hasMany' ? pluralize.singular(type) : type;
+        } else {
+          _this.reflection = linkSchema.reflection;
+        }
+
+        _this.included = linkSchema.included || false;
+      }
+    }
+
+  }
+  AngularJsonAPILinkSchrapperLink.$inject = ["$log", "pluralize"];
 })();
 
 (function() {
@@ -2272,7 +2437,6 @@
     AngularJsonAPISchema,
     AngularJsonAPIResourceCache,
     AngularJsonAPICollection,
-    uuid4,
     $rootScope,
     $log,
     $q
@@ -2348,13 +2512,13 @@
     function get(id, params) {
       var _this = this;
 
-      if (!uuid4.validate(id)) {
-        return $q.reject({errors: [{status: 0, statusText: 'Invalid id not uuid4'}]});
+      if (!_this.schema.id.validate(id)) {
+        return $q.reject({errors: [{status: 0, statusText: 'Invalid id'}]});
       }
 
       var object = _this.cache.get(id);
 
-      object.refresh(params);
+      object.promise = object.refresh(params);
 
       return object;
     }
@@ -2373,7 +2537,7 @@
         params
       );
 
-      collection.fetch();
+      collection.promise = collection.fetch();
 
       return collection;
     }
@@ -2413,7 +2577,7 @@
 
       var data = {
         type: _this.type,
-        id: uuid4.generate(),
+        id: _this.schema.id.generate(),
         attributes: {},
         relationships: relationships
       };
@@ -2426,7 +2590,7 @@
         initialization: false
       };
 
-      var object = _this.cache.addOrUpdate(data, config);
+      var object = _this.modelFactory(data, config);
 
       $rootScope.$emit('angularJsonAPI:' + _this.type + ':resource:initialize', 'resolved', object);
 
@@ -2471,112 +2635,7 @@
       }
     }
   }
-  AngularJsonAPIResourceWrapper.$inject = ["AngularJsonAPIModel", "AngularJsonAPISchema", "AngularJsonAPIResourceCache", "AngularJsonAPICollection", "uuid4", "$rootScope", "$log", "$q"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
-  .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
-
-  function AngularJsonAPISchemaWrapper($log, pluralize, AngularJsonAPISchemaLink) {
-
-    return {
-      create: AngularJsonAPISchemaFactory
-    };
-
-    function AngularJsonAPISchemaFactory(schema) {
-      return new AngularJsonAPISchema(schema);
-    }
-
-    function AngularJsonAPISchema(schema) {
-      var _this = this;
-      var include = schema.include || {};
-      schema.include = include;
-      include.get = schema.include.get || [];
-      include.all = schema.include.all || [];
-
-      _this.params = {
-        get: {},
-        all: {}
-      };
-
-      angular.forEach(schema.relationships, function(linkSchema, linkName) {
-        var linkSchemaObj = AngularJsonAPISchemaLink.create(linkSchema, linkName, schema.type);
-        schema.relationships[linkName] = linkSchemaObj;
-        if (linkSchemaObj.included === true) {
-          include.get.push(linkName);
-          if (linkSchemaObj.type === 'hasOne') {
-            include.all.push(linkName);
-          }
-        }
-      });
-
-      angular.extend(_this, schema);
-
-      if (include.get.length > 0) {
-        _this.params.get.include = include.get.join(',');
-      }
-
-      if (include.all.length > 0) {
-        _this.params.all.include = include.all.join(',');
-      }
-    }
-
-  }
-  AngularJsonAPISchemaWrapper.$inject = ["$log", "pluralize", "AngularJsonAPISchemaLink"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
-  .factory('AngularJsonAPISchemaLink', AngularJsonAPILinkSchrapperLink);
-
-  function AngularJsonAPILinkSchrapperLink($log, pluralize) {
-
-    return {
-      create: AngularJsonAPISchemaLinkFactory
-    };
-
-    function AngularJsonAPISchemaLinkFactory(linkSchema, linkName, type) {
-      return new AngularJsonAPISchemaLink(linkSchema, linkName, type);
-    }
-
-    function AngularJsonAPISchemaLink(linkSchema, linkName, type) {
-      var _this = this;
-
-      if (angular.isString(linkSchema)) {
-        _this.model = pluralize.plural(linkName);
-        _this.type = linkSchema;
-        _this.polymorphic = false;
-        _this.reflection = type;
-      } else {
-        if (linkSchema.type === undefined) {
-          $log.error('Schema of link without a type: ', linkSchema, linkName);
-        }
-
-        if (linkSchema.type !== 'hasMany' && linkSchema.type !== 'hasOne') {
-          $log.error('Schema of link with wrong type: ', linkSchema.type, 'available: hasOne, hasMany');
-        }
-
-        _this.model = linkSchema.model || pluralize.plural(linkName);
-        _this.type = linkSchema.type;
-        _this.polymorphic = linkSchema.polymorphic || false;
-
-        if (linkSchema.reflection === undefined) {
-          _this.reflection = _this.type === 'hasMany' ? pluralize.singular(type) : type;
-        } else {
-          _this.reflection = linkSchema.reflection;
-        }
-
-        _this.included = linkSchema.included || false;
-      }
-    }
-
-  }
-  AngularJsonAPILinkSchrapperLink.$inject = ["$log", "pluralize"];
+  AngularJsonAPIResourceWrapper.$inject = ["AngularJsonAPIModel", "AngularJsonAPISchema", "AngularJsonAPIResourceCache", "AngularJsonAPICollection", "$rootScope", "$log", "$q"];
 })();
 
 (function() {
@@ -2585,14 +2644,22 @@
   angular.module('angular-jsonapi')
   .factory('AngularJsonAPIModel', AngularJsonAPIModel);
 
-  function AngularJsonAPIModel(AngularJsonAPIAbstractModel, AngularJsonAPISchema, $log) {
+  function AngularJsonAPIModel(
+    AngularJsonAPIAbstractModel,
+    AngularJsonAPISchema,
+    namedFunction,
+    pluralize,
+    $log
+  ) {
 
     return {
       modelFactory: createModelFactory
     };
 
     function createModelFactory(schemaObj, resource) {
-      var Model = function(data, config, updatedAt) {
+      var constructorName = pluralize.plural(schemaObj.type, 1);
+
+      var Model = namedFunction(constructorName, function(data, config, updatedAt) {
         var _this = this;
 
         if (data.type !== _this.schema.type) {
@@ -2602,7 +2669,7 @@
         AngularJsonAPIAbstractModel.call(_this, data, config, updatedAt);
 
         _this.form.parent = _this;
-      };
+      });
 
       Model.prototype = Object.create(AngularJsonAPIAbstractModel.prototype);
       Model.prototype.constructor = Model;
@@ -2623,9 +2690,8 @@
         return new Model(data, updatedAt, isNew);
       }
     }
-
   }
-  AngularJsonAPIModel.$inject = ["AngularJsonAPIAbstractModel", "AngularJsonAPISchema", "$log"];
+  AngularJsonAPIModel.$inject = ["AngularJsonAPIAbstractModel", "AngularJsonAPISchema", "namedFunction", "pluralize", "$log"];
 })();
 
 (function() {
@@ -2635,7 +2701,7 @@
   .factory('AngularJsonAPICollection', AngularJsonAPICollectionWrapper);
 
   function AngularJsonAPICollectionWrapper(
-    AngularJsonAPIModelSynchronizationError,
+    AngularJsonAPIModelSourceError,
     AngularJsonAPIModelErrorsManager,
     $rootScope,
     $injector,
@@ -2669,9 +2735,9 @@
 
       _this.errors = {
         synchronization: AngularJsonAPIModelErrorsManager.create(
-          'Synchronization',
+          'Source',
           'Errors of synchronizations',
-          AngularJsonAPIModelSynchronizationError
+          AngularJsonAPIModelSourceError
         )
       };
 
@@ -2681,6 +2747,8 @@
       _this.loadingCount = 0;
       _this.synchronized = false;
       _this.pristine = _this.data === undefined;
+
+      _this.promise = $q.resolve(_this);
 
       var onObjectRemove = $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
       var onFactoryClear = $rootScope.$on('angularJsonAPI:' + _this.type + ':resource:clearCache', clear);
@@ -2736,7 +2804,7 @@
 
     /**
      * Shortcut to this.resource.get
-     * @param  {uuid4} id Id of object]
+     * @param  {string} id Id of object]
      * @return {AngularJsonAPIModel}          Model with id
      */
     function get(id, params) {
@@ -2776,6 +2844,7 @@
         angular.forEach(_this.data, __decrementLoadingCounter);
 
         _this.data = results.data;
+        _this.links = response.data.links;
 
         _this.updatedAt = Date.now();
         _this.synchronized = true;
@@ -2802,10 +2871,8 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
-
-        deferred.resolve(_this);
       }
 
       function reject(response) {
@@ -2824,7 +2891,7 @@
       }
     }
   }
-  AngularJsonAPICollectionWrapper.$inject = ["AngularJsonAPIModelSynchronizationError", "AngularJsonAPIModelErrorsManager", "$rootScope", "$injector", "$q"];
+  AngularJsonAPICollectionWrapper.$inject = ["AngularJsonAPIModelSourceError", "AngularJsonAPIModelErrorsManager", "$rootScope", "$injector", "$q"];
 
   function __incrementLoadingCounter(object) {
     object = object === undefined ? this : object;
@@ -2862,8 +2929,8 @@
         __proccesResults: __proccesResults
       };
 
-      function addResource(schema, synchronization) {
-        var resource = AngularJsonAPIResource.create(schema, synchronization);
+      function addResource(schema, synchronizer) {
+        var resource = AngularJsonAPIResource.create(schema, synchronizer);
 
         memory[schema.type] = resource;
         names.push(schema.type);

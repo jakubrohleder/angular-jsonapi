@@ -166,10 +166,11 @@
      * @param {AngularJsonAPIModel} target Object to be linked
      * @return {Boolean}        Status
      */
-    function link(key, target) {
+    function link(key, target, oneWay) {
       var _this = this;
+      oneWay = oneWay === undefined ? false : true;
 
-      return $q.resolve(AngularJsonAPIModelLinkerService.link(_this, key, target, true));
+      return $q.resolve(AngularJsonAPIModelLinkerService.link(_this.parent, key, target, oneWay, true));
     }
 
     /**
@@ -178,10 +179,11 @@
      * @param {AngularJsonAPIModel} target Object to be linked
      * @return {Boolean}        Status
      */
-    function unlink(key, target) {
+    function unlink(key, target, oneWay) {
       var _this = this;
+      oneWay = oneWay === undefined ? false : true;
 
-      return $q.resolve(AngularJsonAPIModelLinkerService.unlink(_this, key, target, true));
+      return $q.resolve(AngularJsonAPIModelLinkerService.unlink(_this.parent, key, target, oneWay, true));
     }
   }
 })();

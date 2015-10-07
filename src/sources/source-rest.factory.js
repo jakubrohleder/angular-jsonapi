@@ -2,36 +2,36 @@
   'use strict';
 
   angular.module('angular-jsonapi-rest', ['angular-jsonapi'])
-  .factory('AngularJsonAPISynchronizationRest', AngularJsonAPISynchronizationRestWrapper);
+  .factory('AngularJsonAPISourceRest', AngularJsonAPISourceRestWrapper);
 
-  function AngularJsonAPISynchronizationRestWrapper(
-    AngularJsonAPIModelSynchronizationError,
-    AngularJsonAPISynchronizationPrototype,
+  function AngularJsonAPISourceRestWrapper(
+    AngularJsonAPIModelSourceError,
+    AngularJsonAPISourcePrototype,
     AngularJsonAPIModelLinkerService,
     toKebabCase,
     $q,
     $http
   ) {
 
-    AngularJsonAPISynchronizationRest.prototype = Object.create(AngularJsonAPISynchronizationPrototype.prototype);
-    AngularJsonAPISynchronizationRest.prototype.constructor = AngularJsonAPISynchronizationRest;
+    AngularJsonAPISourceRest.prototype = Object.create(AngularJsonAPISourcePrototype.prototype);
+    AngularJsonAPISourceRest.prototype.constructor = AngularJsonAPISourceRest;
 
     return {
-      create: AngularJsonAPISynchronizationRestFactory
+      create: AngularJsonAPISourceRestFactory
     };
 
-    function AngularJsonAPISynchronizationRestFactory(name, url) {
-      return new AngularJsonAPISynchronizationRest(name, url);
+    function AngularJsonAPISourceRestFactory(name, url) {
+      return new AngularJsonAPISourceRest(name, url);
     }
 
-    function AngularJsonAPISynchronizationRest(name, url) {
+    function AngularJsonAPISourceRest(name, url) {
       var _this = this;
       var headers = { // jscs:disable disallowQuotedKeysInObjects
         'Accept': 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json'
       }; // jscs:enable disallowQuotedKeysInObjects
 
-      AngularJsonAPISynchronizationPrototype.apply(_this, arguments);
+      AngularJsonAPISourcePrototype.apply(_this, arguments);
 
       _this.synchronization('remove', remove);
       _this.synchronization('unlink', unlink);
@@ -73,9 +73,9 @@
         var schema = config.object.schema.relationships[config.key];
 
         if (config.object.removed === true) {
-          deferred.reject(AngularJsonAPIModelSynchronizationError.create('Object has been removed', _this, 0, 'unlink'));
+          deferred.reject(AngularJsonAPIModelSourceError.create('Object has been removed', _this, 0, 'unlink'));
         } else if (config.target !== undefined && config.target.data.id === undefined) {
-          deferred.reject(AngularJsonAPIModelSynchronizationError.create('Can\'t unlink object without id through rest call', _this, 0, 'unlink'));
+          deferred.reject(AngularJsonAPIModelSourceError.create('Can\'t unlink object without id through rest call', _this, 0, 'unlink'));
         } else if (schema.type === 'hasOne') {
           $http({
             method: 'DELETE',
@@ -142,7 +142,7 @@
         return $http({
           method: 'POST',
           headers: headers,
-          url: url + '/',
+          url: url,
           data: config.object.form.toJson()
         }).then(resolveHttp, rejectHttp.bind(null, 'add'));
       }
@@ -160,17 +160,17 @@
             url: 'https://status.cloud.google.com/incidents.schema.json'
           }).then(rejectServerOffline, rejectNoConnection);
         } else {
-          deferred.reject(AngularJsonAPIModelSynchronizationError.create(response.statusText, _this, response.status, action));
+          deferred.reject(AngularJsonAPIModelSourceError.create(response.statusText, _this, response.status, action));
         }
 
         return deferred.promise;
 
         function rejectServerOffline(response) {
-          deferred.reject(AngularJsonAPIModelSynchronizationError.create('Server is offline', _this, response.status, action));
+          deferred.reject(AngularJsonAPIModelSourceError.create('Server is offline', _this, response.status, action));
         }
 
         function rejectNoConnection() {
-          deferred.reject(AngularJsonAPIModelSynchronizationError.create('No internet connection', _this, response.status, action));
+          deferred.reject(AngularJsonAPIModelSourceError.create('No internet connection', _this, response.status, action));
         }
       }
     }

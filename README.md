@@ -39,7 +39,7 @@ The future development plan involves:
 - [Configuration](#configuration)
   - [Schema](#schema)
   - [Synchronizers](#synchronizers)
-  - [Synchronizations](#synchronizations)
+  - [Sources](#sources)
   - [Wrap up](#wrap-up)
 - [API](#api)
   - [`$jsonapi`](#jsonapi)
@@ -50,7 +50,8 @@ The future development plan involves:
 - [Directives](#directives)
   - [Promise-button](#promise-button)
 - [Roadmap](#roadmap)
-  - [1.0.0-alpha.3](#100-alpha3)
+  - [1.0.0-alpha.3 (done)](#100-alpha3-done)
+  - [1.0.0-alpha.4](#100-alpha4)
   - [1.0.0-beta.1](#100-beta1)
   - [1.0.0-beta.2](#100-beta2)
   - [1.0.0](#100)
@@ -92,7 +93,7 @@ gulp serve
 bower install angular-jsonapi --save
 ~~~
 
-* Include `angular-jsonapi` and synchronization modules (`angular-jsonapi-rest`, `angular-jsonapi-local`) in your module's dependencies:
+* Include `angular-jsonapi` and sources modules (`angular-jsonapi-rest`, `angular-jsonapi-local`) in your module's dependencies:
 
 ~~~javascript
 // in your js app's module definition
@@ -114,7 +115,7 @@ First step is to provide data schema, that is used later on to create objects, v
 | field | description |
 |---|---|
 | **type** | Type of an object must be the same as the one in the JSON API response. Should be in plural. |
-| **id** | Type of id field, currenty only `uuid4` is supported. |
+| **id** | Type of id field, supported types are: `'uuid4'`, `'int'`, `'string'` and custom, any other type defaults to `'string'`. Custom id type should be an object with two methods: `validate(id)` and `generate()`. If ids cannot be generated in the front you can ommit `generate()`. |
 | **attributes** | Object with the model attributes names as keys and [validation constraints](#validators) as values. |
 | **relationships** | Object with the model relationships names as keys and [relationship schema](#relationship-schema) as values. |
 | **include** | Object with extra values that should be included in the `get` or `all` request. |
@@ -278,15 +279,15 @@ Custom functions are extremly helpfull if you need to inject some methods common
 
 ## Synchronizers
 
-Synchronizers are object that keep synchronizations work together by running hooks in the right order, as well as creating the final data that is used to update object.
+Synchronizers are object that keep sources work together by running hooks in the right order, as well as creating the final data that is used to update object.
 
 In most cases `AngularJsonAPISynchronizerSimple` is enought. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
 
-`AngularJsonAPISynchronizerSimple` constructor takes one argument - array of [synchronizations] (#synchronizations).
+`AngularJsonAPISynchronizerSimple` constructor takes one argument - array of [sources] (#sources).
 
 ~~~javascript
-    var novelsSynchronizer = new AngularJsonAPISynchronizerSimple([
-      localeSynchronization, restSynchronization
+    var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([
+      localeSource, restSource
     ]);
 ~~~
 
@@ -294,40 +295,40 @@ In most cases `AngularJsonAPISynchronizerSimple` is enought. But if for example,
 
 todo
 
-## Synchronizations
+## Sources
 
-Synchronizations are strategies of updating model with given source. At the moment two synchronization types are supported:
+Sources places to store and fetch data. At the moment two sources types are supported:
 
-### AngularJsonAPISynchronizationLocal
+### AngularJsonAPISourceLocal
 
 Saves data in the local store and loads them each time you visit the site, in this way your users can access data immidiately even if they are offline. All the data are cleared when the users logs out.
 
 Date is saved each time it changes and loaded during initialization of the module.
 
-To use this synchronization you must include `angular-jsonapi-local` in your module dependencies.
+To use this source you must include `angular-jsonapi-local` in your module dependencies.
 
-Synchronization constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
+Source constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
 
 ~~~javascript
-var localeSynchro = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
+var localeSynchro = AngularJsonAPISourceLocal.create('AngularJsonAPI');
 
 ~~~
 
-### AngularJsonAPISynchronizationRest
+### AngularJsonAPISourceRest
 
 Is a simple synchronizator with the RESTAPI supporting JSON API format. It performs following operations:
 `remove`, `unlink`, `link`, `update`, `add`, `all`, `get`. Everytime the data changes the suitable request is made to keep your data synchronized.
 
-To use this synchronization you must include `angular-jsonapi-rest` in your module dependencies.
+To use this source you must include `angular-jsonapi-rest` in your module dependencies.
 
-Synchronization constructor takes one argument - `url` of the resource, there is no default value.
+Source constructor takes 2 arguments: `name` and `url` of the resource, there is no default value.
 
 ~~~javascript
-var novelsSynchro = new AngularJsonAPISynchronizationRest('localhost:3000/novels');
+var novelsSynchro = AngularJsonAPISourceRest.create('localhost:3000/novels');
 
 ~~~
 
-### Custom Synchronizations
+### Custom Sources
 
 todo
 
@@ -345,8 +346,8 @@ All in all configuration of the factory for novels can look like this:
 
   .run(function(
     $jsonapi,
-    AngularJsonAPISynchronizationLocal,
-    AngularJsonAPISynchronizationRest,
+    AngularJsonAPISourceLocal,
+    AngularJsonAPISourceRest,
     AngularJsonAPISynchronizerSimple
   ) {
     var novelsSchema = {
@@ -365,11 +366,9 @@ All in all configuration of the factory for novels can look like this:
       }
     };
 
-    var localeSynchronization = new AngularJsonAPISynchronizationLocal('AngularJsonAPI');
-    var restSynchronization = new AngularJsonAPISynchronizationRest('/novels');
-    var novelsSynchronizer = new AngularJsonAPISynchronizerSimple([
-      localeSynchronization, restSynchronization
-    ]);
+    var localeSource = AngularJsonAPISourceLocal.create('LocalStore source', 'AngularJsonAPI');
+    var restSource = AngularJsonAPISourceRest.create('Rest source', '/novels');
+    var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([localeSource, restSource]);
 
     $jsonapi.addResource(novelsSchema, novelsSynchronizer);
   })
@@ -417,13 +416,13 @@ Returns array with all resources `types`.
 
 `$jsonapi.listResources()`
 
-Runs `clearCache` for each resource. [Read more] (#resource-clear-cache)
+Runs `clearCache` for each resource. [Read more](#resource-clear-cache)
 
 ### Adding validator
 
 `$jsonapi.addValidator(name, validator)`
 
-Adds validator to validates object schema. [Read more] (#custom-validators)
+Adds validator to validates object schema. [Read more](#custom-validators)
 
 ## Resource
 
@@ -443,7 +442,7 @@ This attributes shouldn't be modified.
 
 `resource.get(id, params)`
 
-Objects can be accessed by resource using `resource.get(id, params)`. It returns an [**object**](#object) with given id stored in the memory, at the same time `get` synchronization is triggered so the object data is synchronized with the server.
+Objects can be accessed by resource using `resource.get(id, params)`. It returns an [**object**](#object) with given id stored in the memory, at the same time `get` synchronization is triggered so the object data is synchronized with the server. The promise associated with synchronization can accessed by `result.promise`, it is resolved with request meta information.
 
 #### Params
 
@@ -459,7 +458,7 @@ Include key supported explicitly, but other keys will also be passed to the sync
 
 `resource.all(params)`
 
-All object can be accessed by resource using `resource.all(params)`. It returns a [**collection**](#collection) with all objects of resource type stored in the memory, at the same time `all` synchronization is triggered so the objects data are synchronized with the server.
+All object can be accessed by resource using `resource.all(params)`. It returns a [**collection**](#collection) with all objects of resource type stored in the memory, at the same time `all` synchronization is triggered so the objects data are synchronized with the server. The promise associated with synchronization can accessed by `result.promise`, it is resolved with request meta information.
 
 #### Params
 
@@ -476,7 +475,7 @@ Those two keys are supported explicitly, but other keys will also be passed to t
 
 `resource.remove(id)`
 
-Removes object with given `id`, promise associated with synchronization is returned.
+Removes object with given `id`, promise associated with synchronization is returned, it is resolved with request meta information.
 
 ### Initializing new object
 
@@ -490,11 +489,11 @@ Initializes a new [**object**](#object). It can be filled up by editing its [for
 
 Clears resource cache memory and runs `clearCache` synchronization.
 
-If you are using `AngularJsonAPISynchronizationLocal` it also clears locally stored data.
+If you are using `AngularJsonAPISourceLocal` it also clears locally stored data.
 
 ## Collection
 
-Collection is a bucket of objects it is returned by `all` method of Resource. Each collection is bind to the request params (filter, include etc.).
+Collection is a bucket of objects it is returned by `all` method of Resource. Each collection is bind to the request params (filter, include etc.). All of the asynchronous object method are resolved with synchronization meta data.
 
 ### Properties
 
@@ -508,12 +507,13 @@ Collection is a bucket of objects it is returned by `all` method of Resource. Ea
 * **pristine** - marks if collection hasn't been loaded from cache (it is being loaded for the first time)
 * **synchronized** - marks if collection has be synchronized with the server during this session
 * **updatedAt** - timestamp of last synchronization that updated the collection
+* **promise** - promise that is set when the collection is fetched for the first time (by `resource.all(params)`) and resolved or rejected with collection object.
 
 ### Refreshing collection
 
 `collection.refresh()` or `collection.fetch()`
 
-Fetches the collection data through `all` synchronization. Returns a promise that is resolved or rejected with the collection after the synchronization is finished.
+Fetches the collection data through `all` synchronization. Returns a promise that is resolved with request meta data or rejected after the synchronization is finished.
 
 ### Getting object from collection
 
@@ -526,11 +526,11 @@ Same as [`resource.get(id, params)`](#getting-object).
 
 `collection.hasErrors()`
 
-Returns true or false wether collection has errors or not, they can be handled as any other error. [Read more](#errors)
+Returns true or false whether collection has errors or not, they can be handled as any other error. [Read more](#errors)
 
 ## Object
 
-Object is a final wrapper for data returned by your API.
+Object is a final wrapper for data returned by your API. All of the asynchronous object method are resolved with synchronization meta data.
 
 ### Properties
 
@@ -545,6 +545,7 @@ Object is a final wrapper for data returned by your API.
 * **loadingCount** - number of different synchronizations that are loading the object
 * **savingCount** - number of different synchronizations that are saving the object
 * **updatedAt** - timestamp of last synchronization that updated the object
+* **promise** - promise that is set when the object is fetched for the first time (by `resource.get(id, params)`) and resolved with request meta.
 
 ### Object data
 
@@ -600,11 +601,11 @@ There are two ways of linking object to other object: through form or directly.
 
 ##### Linking object relationship through form
 
-`object.form.link(key, target)`
+`object.form.link(key, target, oneWay = false)`
 
-Object form relationship with `key` gets linked to the target. New relationship state is synchronized when you [`save` the object](#saving-object).
+Object form relationship with `key` gets linked to the `target.form`. New relationship state is synchronized when you [`save` the object](#saving-object).
 
-*Currenty this operation does not link the target form back, but it's on the [roadmap](#roadmap)*
+If you do not want to make relationship affect the target form you can set oneWay to `true`.
 
 ##### Linking object relationship without a form
 
@@ -614,11 +615,11 @@ Object relationship with `key` gets linked to the target. New relationship state
 
 #### Unlinking object relationship through form
 
-`object.form.unlink(key, target)`
+`object.form.unlink(key, target, oneWay = false)`
 
 Object form relationship with `key` gets unlinked from the target. New relationship state is synchronized when you [`save` the object](#saving-object).
 
-*Currenty this operation does not unlink the target form back, but it's on the [roadmap](#roadmap)*
+If you do not want to make unlinked relationship affect the target form you can set oneWay to `true`.
 
 #### Unlinking object relationship without a form
 
@@ -694,21 +695,22 @@ Adds each error to `errorsObject.errors[key]`.
 
 # Roadmap
 
-## 1.0.0-alpha.3
-* [ ] Two-way object.form linking (easy)
-* [ ] Updating object with values returned by update/add (easy)
-* [ ] Add method to track get synchronization promise (easy-medium)
+## 1.0.0-alpha.3 (done)
+* [x] Two-way object.form linking (easy)
+* [x] Updating object with values returned by update/add (easy)
+* [x] Add method to track get/all synchronization promise (easy-medium)
+* [x] Multiple types of ids
+* [x] Rename Synchronization to Source (easy)
+
+## 1.0.0-alpha.4
 * [ ] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
-* [ ] amplify.js for localstorage (easy)
-* [ ] I18n support (easy-medium)
-* [ ] Rename Synchronization to Source (easy)
+* [ ] I18n support (medium)
+* [ ] readonly attributes (can't be changed)
 
 ## 1.0.0-beta.1
 * [ ] unit tests (at least 50% coverage)
 * [ ] `sexy` demo
-* [ ] readonly attributes
-* [ ] survey for missing features and/or usability improvements
 
 ## 1.0.0-beta.2
 * [ ] unit tests (at least 70% coverage)

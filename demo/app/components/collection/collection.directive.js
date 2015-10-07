@@ -32,7 +32,7 @@
         }
 
         function add() {
-          $scope.newObjects.push($scope.collection.factory.initialize());
+          $scope.newObjects.push($scope.collection.resource.initialize());
         }
       }
     };

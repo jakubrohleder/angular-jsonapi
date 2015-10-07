@@ -21,8 +21,8 @@
         __proccesResults: __proccesResults
       };
 
-      function addResource(schema, synchronization) {
-        var resource = AngularJsonAPIResource.create(schema, synchronization);
+      function addResource(schema, synchronizer) {
+        var resource = AngularJsonAPIResource.create(schema, synchronizer);
 
         memory[schema.type] = resource;
         names.push(schema.type);

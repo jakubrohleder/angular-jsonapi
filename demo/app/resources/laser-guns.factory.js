@@ -4,8 +4,8 @@
   angular.module('angularJsonapiExample')
   .run(function(
     $jsonapi,
-    AngularJsonAPISynchronizationLocal,
-    AngularJsonAPISynchronizationRest,
+    AngularJsonAPISourceLocal,
+    AngularJsonAPISourceRest,
     AngularJsonAPISynchronizerSimple,
     apiURL
   ) {
@@ -38,8 +38,8 @@
       }
     };
 
-    var localeSynchro = AngularJsonAPISynchronizationLocal.create('LocalStore synchronization', 'AngularJsonAPI');
-    var restSynchro = AngularJsonAPISynchronizationRest.create('Rest synchronization', apiURL + '/laserGuns');
+    var localeSynchro = AngularJsonAPISourceLocal.create('LocalStore synchronization', 'AngularJsonAPI');
+    var restSynchro = AngularJsonAPISourceRest.create('Rest synchronization', apiURL + '/laserGuns');
     var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
 
     $jsonapi.addResource(schema, synchronizer);

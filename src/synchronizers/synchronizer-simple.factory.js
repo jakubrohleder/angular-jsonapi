@@ -15,19 +15,19 @@
       create: AngularJsonAPISynchronizerSimpleFactory
     };
 
-    function AngularJsonAPISynchronizerSimpleFactory(synchronizations) {
-      return new AngularJsonAPISynchronizerSimple(synchronizations);
+    function AngularJsonAPISynchronizerSimpleFactory(sources) {
+      return new AngularJsonAPISynchronizerSimple(sources);
     }
 
-    function AngularJsonAPISynchronizerSimple(synchronizations) {
+    function AngularJsonAPISynchronizerSimple(sources) {
       var _this = this;
 
       _this.state = {};
 
-      AngularJsonAPISynchronizerPrototype.call(_this, synchronizations);
+      AngularJsonAPISynchronizerPrototype.call(_this, sources);
 
-      angular.forEach(synchronizations, function(synchronization) {
-        synchronization.synchronizer = _this;
+      angular.forEach(sources, function(source) {
+        source.synchronizer = _this;
       });
     }
 
@@ -39,20 +39,20 @@
 
       AngularJsonAPISynchronizerPrototype.prototype.synchronize.call(_this, config);
 
-      angular.forEach(_this.synchronizations, function(synchronization) {
-        angular.forEach(synchronization.beginHooks[action], function(hook) {
+      angular.forEach(_this.sources, function(source) {
+        angular.forEach(source.beginHooks[action], function(hook) {
           deferred.notify({step: 'begin', data: hook.call(_this, config)});
         });
       });
 
-      angular.forEach(_this.synchronizations, function(synchronization) {
-        angular.forEach(synchronization.beforeHooks[action], function(hook) {
+      angular.forEach(_this.sources, function(source) {
+        angular.forEach(source.beforeHooks[action], function(hook) {
           deferred.notify({step: 'before', data: hook.call(_this, config)});
         });
       });
 
-      angular.forEach(_this.synchronizations, function(synchronization) {
-        angular.forEach(synchronization.synchronizationHooks[action], function(hook) {
+      angular.forEach(_this.sources, function(source) {
+        angular.forEach(source.synchronizationHooks[action], function(hook) {
           promises.push(hook.call(_this, config));
         });
       });
@@ -77,8 +77,8 @@
           }
         });
 
-        angular.forEach(_this.synchronizations, function(synchronization) {
-          angular.forEach(synchronization.afterHooks[action], function(hook) {
+        angular.forEach(_this.sources, function(source) {
+          angular.forEach(source.afterHooks[action], function(hook) {
             deferred.notify({step: 'after', errors: hook.call(_this, config, results)});
           });
         });
@@ -105,8 +105,8 @@
       }
 
       function finish() {
-        angular.forEach(_this.synchronizations, function(synchronization) {
-          angular.forEach(synchronization.finishHooks[action], function(hook) {
+        angular.forEach(_this.sources, function(source) {
+          angular.forEach(source.finishHooks[action], function(hook) {
             deferred.notify({step: 'finish', errors: hook.call(_this, config)});
           });
         });

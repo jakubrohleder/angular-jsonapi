@@ -9,7 +9,6 @@
     AngularJsonAPISchema,
     AngularJsonAPIResourceCache,
     AngularJsonAPICollection,
-    uuid4,
     $rootScope,
     $log,
     $q
@@ -85,13 +84,13 @@
     function get(id, params) {
       var _this = this;
 
-      if (!uuid4.validate(id)) {
-        return $q.reject({errors: [{status: 0, statusText: 'Invalid id not uuid4'}]});
+      if (!_this.schema.id.validate(id)) {
+        return $q.reject({errors: [{status: 0, statusText: 'Invalid id'}]});
       }
 
       var object = _this.cache.get(id);
 
-      object.refresh(params);
+      object.promise = object.refresh(params);
 
       return object;
     }
@@ -110,7 +109,7 @@
         params
       );
 
-      collection.fetch();
+      collection.promise = collection.fetch();
 
       return collection;
     }
@@ -150,7 +149,7 @@
 
       var data = {
         type: _this.type,
-        id: uuid4.generate(),
+        id: _this.schema.id.generate(),
         attributes: {},
         relationships: relationships
       };
@@ -163,7 +162,7 @@
         initialization: false
       };
 
-      var object = _this.cache.addOrUpdate(data, config);
+      var object = _this.modelFactory(data, config);
 
       $rootScope.$emit('angularJsonAPI:' + _this.type + ':resource:initialize', 'resolved', object);
 

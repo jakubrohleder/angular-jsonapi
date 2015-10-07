@@ -5,7 +5,7 @@
   .factory('AngularJsonAPICollection', AngularJsonAPICollectionWrapper);
 
   function AngularJsonAPICollectionWrapper(
-    AngularJsonAPIModelSynchronizationError,
+    AngularJsonAPIModelSourceError,
     AngularJsonAPIModelErrorsManager,
     $rootScope,
     $injector,
@@ -39,9 +39,9 @@
 
       _this.errors = {
         synchronization: AngularJsonAPIModelErrorsManager.create(
-          'Synchronization',
+          'Source',
           'Errors of synchronizations',
-          AngularJsonAPIModelSynchronizationError
+          AngularJsonAPIModelSourceError
         )
       };
 
@@ -51,6 +51,8 @@
       _this.loadingCount = 0;
       _this.synchronized = false;
       _this.pristine = _this.data === undefined;
+
+      _this.promise = $q.resolve(_this);
 
       var onObjectRemove = $rootScope.$on('angularJsonAPI:' + _this.type + ':object:remove', remove);
       var onFactoryClear = $rootScope.$on('angularJsonAPI:' + _this.type + ':resource:clearCache', clear);
@@ -106,7 +108,7 @@
 
     /**
      * Shortcut to this.resource.get
-     * @param  {uuid4} id Id of object]
+     * @param  {string} id Id of object]
      * @return {AngularJsonAPIModel}          Model with id
      */
     function get(id, params) {
@@ -146,6 +148,7 @@
         angular.forEach(_this.data, __decrementLoadingCounter);
 
         _this.data = results.data;
+        _this.links = response.data.links;
 
         _this.updatedAt = Date.now();
         _this.synchronized = true;
@@ -172,10 +175,8 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
-
-        deferred.resolve(_this);
       }
 
       function reject(response) {

@@ -5,12 +5,11 @@
   .factory('AngularJsonAPIAbstractModel', AngularJsonAPIAbstractModelWrapper);
 
   function AngularJsonAPIAbstractModelWrapper(
-    AngularJsonAPIModelSynchronizationError,
+    AngularJsonAPIModelSourceError,
     AngularJsonAPIModelValidationError,
     AngularJsonAPIModelErrorsManager,
     AngularJsonAPIModelLinkerService,
     AngularJsonAPIModelForm,
-    uuid4,
     $rootScope,
     $injector,
     $log,
@@ -92,13 +91,13 @@
           AngularJsonAPIModelValidationError
         ),
         synchronization: AngularJsonAPIModelErrorsManager.create(
-          'Synchronization',
+          'Source',
           'Errors of synchronizations',
-          AngularJsonAPIModelSynchronizationError
+          AngularJsonAPIModelSourceError
         )
       };
 
-      _this.promises = {};
+      _this.promise = $q.resolve(_this);
 
       __setData(_this, data);
 
@@ -132,7 +131,7 @@
 
       function resolve(response) {
         $rootScope.$emit('angularJsonAPI:' + _this.data.type + ':object:' + config.action, 'resolved', _this, response);
-        _this.update(_this.form.data);
+        _this.update(response.data.data);
 
         if (_this.new === true) {
           _this.resource.cache.indexIds = _this.resource.cache.indexIds || [];
@@ -146,7 +145,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(_this);
+        deferred.resolve(response.data.meta);
       }
 
       function reject(response) {
@@ -193,7 +192,7 @@
       };
 
       if (_this.new === true) {
-        var error = AngularJsonAPIModelSynchronizationError.create('Can\'t refresh new object', null, 0, 'refresh');
+        var error = AngularJsonAPIModelSourceError.create('Can\'t refresh new object', null, 0, 'refresh');
         _this.errors.synchronization.add('refresh', error);
         deferred.reject(error);
       } else {
@@ -235,7 +234,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -312,7 +311,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(_this);
+        deferred.resolve(response.data.meta);
       }
 
       function reject(response) {
@@ -389,7 +388,7 @@
 
           response.finish();
           _this.errors.synchronization.concat(response.errors);
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
 
         function reject(response) {
@@ -427,11 +426,11 @@
       };
 
       if (target === undefined) {
-        error = AngularJsonAPIModelSynchronizationError.create('Can\'t link undefined', null, 0, 'link');
+        error = AngularJsonAPIModelSourceError.create('Can\'t link undefined', null, 0, 'link');
         _this.errors.synchronization.add('link', error);
         deferred.reject(error);
       } else if (_this.new === true) {
-        error = AngularJsonAPIModelSynchronizationError.create('Can\'t link new object', null, 0, 'link');
+        error = AngularJsonAPIModelSourceError.create('Can\'t link new object', null, 0, 'link');
         _this.errors.synchronization.add('link', error);
         deferred.reject(error);
       } else {
@@ -476,7 +475,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -514,11 +513,11 @@
       };
 
       if (target === undefined) {
-        error = AngularJsonAPIModelSynchronizationError.create('Can\'t unlink undefined', null, 0, 'unlink');
+        error = AngularJsonAPIModelSourceError.create('Can\'t unlink undefined', null, 0, 'unlink');
         _this.errors.synchronization.add('unlink', error);
         deferred.reject(_this);
       } else if (_this.new === true) {
-        error = AngularJsonAPIModelSynchronizationError.create('Can\'t unlink new object', null, 0, 'unlink');
+        error = AngularJsonAPIModelSourceError.create('Can\'t unlink new object', null, 0, 'unlink');
         _this.errors.synchronization.add('unlink', error);
         deferred.reject(_this);
       } else {
@@ -563,7 +562,7 @@
             }
           });
 
-          deferred.resolve(_this);
+          deferred.resolve(response.data.meta);
         }
       }
 
@@ -640,11 +639,12 @@
         return false;
       }
 
-      if (!uuid4.validate(object.data.id)) {
+      if (!object.schema.id.validate(object.data.id)) {
         $log.error('Invalid id');
         return false;
       }
 
+      object.data.links = validatedData.links;
       validatedData.attributes = validatedData.attributes || {};
       validatedData.relationships = validatedData.relationships || {};
 
