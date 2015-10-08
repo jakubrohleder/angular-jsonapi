@@ -661,7 +661,10 @@
         var relationshipData = validatedData.relationships[key];
 
         if (relationshipData === undefined) {
-          object.data.relationships[key] = {data: undefined};
+          if (object.data.relationships[key] === undefined) {
+            object.data.relationships[key] = {data: undefined};
+          }
+
           return;
         }
 
