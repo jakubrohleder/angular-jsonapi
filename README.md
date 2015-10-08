@@ -51,7 +51,8 @@ The future development plan involves:
   - [Promise-button](#promise-button)
 - [Roadmap](#roadmap)
   - [1.0.0-alpha.3 (done)](#100-alpha3-done)
-  - [1.0.0-alpha.4](#100-alpha4)
+  - [1.0.0-alpha.4 (done)](#100-alpha4-done)
+  - [1.0.0-alpha.5 (in progress)](#100-alpha5-in-progress)
   - [1.0.0-beta.1](#100-beta1)
   - [1.0.0-beta.2](#100-beta2)
   - [1.0.0](#100)
@@ -702,7 +703,10 @@ Adds each error to `errorsObject.errors[key]`.
 * [x] Multiple types of ids
 * [x] Rename Synchronization to Source (easy)
 
-## 1.0.0-alpha.4
+## 1.0.0-alpha.4 (done)
+* [x] Fix bugs introduced by previous version
+
+## 1.0.0-alpha.5 (in progress)
 * [ ] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
 * [ ] I18n support (medium)
