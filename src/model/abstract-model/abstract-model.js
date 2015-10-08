@@ -311,7 +311,8 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(response.data.meta);
+
+        deferred.resolve();
       }
 
       function reject(response) {
@@ -388,7 +389,7 @@
 
           response.finish();
           _this.errors.synchronization.concat(response.errors);
-          deferred.resolve(response.data.meta);
+          deferred.resolve();
         }
 
         function reject(response) {
@@ -562,7 +563,7 @@
             }
           });
 
-          deferred.resolve(response.data.meta);
+          deferred.resolve();
         }
       }
 
