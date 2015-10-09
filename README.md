@@ -711,6 +711,10 @@ Adds each error to `errorsObject.errors[key]`.
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
 * [ ] I18n support (medium)
 * [ ] readonly attributes (can't be changed)
+* [ ] Api versioning!
+* [ ] Filters
+* [ ] File source
+* [ ] Parse.com source
 
 ## 1.0.0-beta.1
 * [ ] unit tests (at least 50% coverage)
