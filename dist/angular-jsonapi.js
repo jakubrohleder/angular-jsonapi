@@ -173,14 +173,24 @@
      */
     function index(params) {
       var _this = this;
-
-      $log.debug('Unused params', params);
+      params = params || {};
 
       if (_this.indexIds === undefined) {
         return _this.indexIds;
       }
 
-      return _this.indexIds.map(_this.get.bind(_this));
+      return _this.indexIds.map(_this.get.bind(_this)).filter(filter);
+
+      function filter(argument) {
+        var filterParams  = params.filter;
+        var valid = true;
+
+        angular.forEach(filterParams, function(constraint) {
+          valid = valid && argument.data.attributes[constraint.key] === constraint.value;
+        });
+
+        return valid;
+      }
     }
 
     /**
@@ -1053,7 +1063,7 @@
      */
     function toJson() {
       var _this = this;
-      var data = angular.copy(_this.data);
+      var data = _this.data;
       var relationships = {};
 
       angular.forEach(data.relationships, function(value, key) {
@@ -1970,7 +1980,9 @@
     AngularJsonAPISourceRest.prototype.constructor = AngularJsonAPISourceRest;
 
     return {
-      create: AngularJsonAPISourceRestFactory
+      create: AngularJsonAPISourceRestFactory,
+      encodeParams: encodeParams,
+      decodeParams: decodeParams
     };
 
     function AngularJsonAPISourceRestFactory(name, url) {
@@ -2000,7 +2012,7 @@
           method: 'GET',
           headers: headers,
           url: url,
-          params: config.params || {}
+          params: encodeParams(config.params)
         }).then(resolveHttp, rejectHttp.bind(null, 'all'));
       }
 
@@ -2009,7 +2021,7 @@
           method: 'GET',
           headers: headers,
           url: url + '/' + config.object.data.id,
-          params: config.params || {}
+          params: encodeParams(config.params)
         }).then(resolveHttp, rejectHttp.bind(null, 'get'));
       }
 
@@ -2126,6 +2138,58 @@
           deferred.reject(AngularJsonAPIModelSourceError.create('No internet connection', _this, response.status, action));
         }
       }
+    }
+
+    function encodeParams(params) {
+      var encodedParams = {};
+
+      if (params === undefined) {
+        return {};
+      }
+
+      angular.forEach(params, function(paramValue, paramKey) {
+        if (angular.isArray(paramValue)) {
+          encodedParams[paramKey] = encodeValue(paramValue);
+        } else if (angular.isObject(paramValue)) {
+          angular.forEach(paramValue, function(paramInnerValue, paramInnerKey) {
+            encodedParams[paramKey + '[' + paramInnerKey + ']'] = encodeValue(paramInnerValue);
+          });
+        } else {
+          encodedParams[paramKey] = paramValue;
+        }
+      });
+
+      return encodedParams;
+
+      function encodeValue(argument) {
+        if (angular.isArray(argument)) {
+          return argument.join(',');
+        } else {
+          return argument;
+        }
+      }
+    }
+
+    function decodeParams(params) {
+      var decodedParams = {};
+
+      angular.forEach(params, function(value, key) {
+        var objectKeyStart = key.indexOf('[');
+        value = value.split(',');
+        value = value.length === 1 ? value[0] : value;
+
+        if (objectKeyStart > -1) {
+          var objectKey = key.substr(0, objectKeyStart);
+          var objectElementKey = key.substr(objectKeyStart + 1, key.indexOf(']') - objectKeyStart - 1);
+
+          decodedParams[objectKey] = {};
+          decodedParams[objectKey][objectElementKey] = value;
+        } else {
+          decodedParams[key] = value;
+        }
+      });
+
+      return decodedParams;
     }
   }
   AngularJsonAPISourceRestWrapper.$inject = ["AngularJsonAPIModelSourceError", "AngularJsonAPISourcePrototype", "AngularJsonAPIModelLinkerService", "toKebabCase", "$q", "$http"];
@@ -2256,17 +2320,6 @@
       _this.synchronization('init', init);
 
       _this.begin('clearCache', clear);
-      _this.begin('remove', updateStorage);
-      _this.begin('refresh', updateStorage);
-      _this.begin('unlink', updateStorage);
-      _this.begin('unlinkReflection', updateStorage);
-      _this.begin('link', updateStorage);
-      _this.begin('linkReflection', updateStorage);
-      _this.begin('update', updateStorage);
-      _this.begin('add', updateStorage);
-      _this.begin('get', updateStorage);
-      _this.begin('all', updateStorage);
-      _this.begin('include', updateStorage);
 
       _this.finish('init', updateStorage);
       _this.finish('clearCache', updateStorage);
@@ -2367,11 +2420,11 @@
       angular.extend(_this, schema);
 
       if (include.get.length > 0) {
-        _this.params.get.include = include.get.join(',');
+        _this.params.get.include = include.get;
       }
 
       if (include.all.length > 0) {
-        _this.params.all.include = include.all.join(',');
+        _this.params.all.include = include.all;
       }
     }
 
@@ -2534,7 +2587,7 @@
      */
     function all(params) {
       var _this = this;
-      params = params === undefined ? _this.schema.params.all : params;
+      params = angular.extend({}, _this.schema.params.all, params);
 
       var collection = AngularJsonAPICollection.create(
         _this,
@@ -2735,7 +2788,7 @@
 
       _this.resource = resource;
       _this.type = resource.schema.type;
-      _this.params = params;
+      _this.params = params || {};
 
       _this.errors = {
         synchronization: AngularJsonAPIModelErrorsManager.create(

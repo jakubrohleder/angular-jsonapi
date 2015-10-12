@@ -1,6 +1,8 @@
 
 
-<h3 class="h3">{{collection.type}}</h3>
+<h3 class="h3">{{collection.type}}
+  <json-formatter style="display: inline;" json="collection.params" open="0"></json-formatter>
+</h3>
 <small>Loading {{collection.loadingCount}}:{{collection.loading}}</small>
 
 <div class="row">
@@ -22,6 +24,11 @@
     class="ui button mini yellow"
     ng-click="add()"
   >Add</button>
+
+  <button
+    class="ui button mini violet"
+    ng-click="addFilter()"
+  >Add Filter</button>
 
   <div class="ui red basic mini right floated button" ng-hide="collection.synchronized">Synchronizing...</div>
   <div

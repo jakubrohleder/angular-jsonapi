@@ -35,7 +35,7 @@
 
       _this.resource = resource;
       _this.type = resource.schema.type;
-      _this.params = params;
+      _this.params = params || {};
 
       _this.errors = {
         synchronization: AngularJsonAPIModelErrorsManager.create(

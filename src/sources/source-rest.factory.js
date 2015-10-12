@@ -17,7 +17,9 @@
     AngularJsonAPISourceRest.prototype.constructor = AngularJsonAPISourceRest;
 
     return {
-      create: AngularJsonAPISourceRestFactory
+      create: AngularJsonAPISourceRestFactory,
+      encodeParams: encodeParams,
+      decodeParams: decodeParams
     };
 
     function AngularJsonAPISourceRestFactory(name, url) {
@@ -47,7 +49,7 @@
           method: 'GET',
           headers: headers,
           url: url,
-          params: config.params || {}
+          params: encodeParams(config.params)
         }).then(resolveHttp, rejectHttp.bind(null, 'all'));
       }
 
@@ -56,7 +58,7 @@
           method: 'GET',
           headers: headers,
           url: url + '/' + config.object.data.id,
-          params: config.params || {}
+          params: encodeParams(config.params)
         }).then(resolveHttp, rejectHttp.bind(null, 'get'));
       }
 
@@ -173,6 +175,58 @@
           deferred.reject(AngularJsonAPIModelSourceError.create('No internet connection', _this, response.status, action));
         }
       }
+    }
+
+    function encodeParams(params) {
+      var encodedParams = {};
+
+      if (params === undefined) {
+        return {};
+      }
+
+      angular.forEach(params, function(paramValue, paramKey) {
+        if (angular.isArray(paramValue)) {
+          encodedParams[paramKey] = encodeValue(paramValue);
+        } else if (angular.isObject(paramValue)) {
+          angular.forEach(paramValue, function(paramInnerValue, paramInnerKey) {
+            encodedParams[paramKey + '[' + paramInnerKey + ']'] = encodeValue(paramInnerValue);
+          });
+        } else {
+          encodedParams[paramKey] = paramValue;
+        }
+      });
+
+      return encodedParams;
+
+      function encodeValue(argument) {
+        if (angular.isArray(argument)) {
+          return argument.join(',');
+        } else {
+          return argument;
+        }
+      }
+    }
+
+    function decodeParams(params) {
+      var decodedParams = {};
+
+      angular.forEach(params, function(value, key) {
+        var objectKeyStart = key.indexOf('[');
+        value = value.split(',');
+        value = value.length === 1 ? value[0] : value;
+
+        if (objectKeyStart > -1) {
+          var objectKey = key.substr(0, objectKeyStart);
+          var objectElementKey = key.substr(objectKeyStart + 1, key.indexOf(']') - objectKeyStart - 1);
+
+          decodedParams[objectKey] = {};
+          decodedParams[objectKey][objectElementKey] = value;
+        } else {
+          decodedParams[key] = value;
+        }
+      });
+
+      return decodedParams;
     }
   }
 })();

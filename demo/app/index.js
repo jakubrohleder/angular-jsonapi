@@ -42,8 +42,10 @@
         templateUrl: 'app/request/all.html',
         controller: 'RequestAllCtrl',
         resolve: {
-          collection: function(factory) {
-            return factory.all();
+          collection: function(factory, $location, AngularJsonAPISourceRest) {
+            var params = AngularJsonAPISourceRest.decodeParams($location.search());
+
+            return factory.all(params);
           }
         }
       })
