@@ -65,6 +65,7 @@
 
         if (results === undefined) {
           $log.error('Can\'t proccess results:', results);
+          return;
         }
 
         var config = {
@@ -83,7 +84,7 @@
           angular.forEach(results.data, function(data) {
             objects.data.push(getResource(data.type).cache.addOrUpdate(data, config));
           });
-        } else {
+        } else if (results.data !== undefined) {
           objects.data.push(getResource(results.data.type).cache.addOrUpdate(results.data, config));
         }
 

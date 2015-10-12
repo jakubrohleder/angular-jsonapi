@@ -1904,9 +1904,9 @@
         });
 
         if (errors.length > 0) {
-          deferred.reject({data: data, finish: finish, errors: errors});
+          deferred.reject({data: data || {}, finish: finish, errors: errors});
         } else {
-          deferred.resolve({data: data, finish: finish, errors: errors});
+          deferred.resolve({data: data || {}, finish: finish, errors: errors});
         }
       }
 
@@ -3059,6 +3059,7 @@
 
         if (results === undefined) {
           $log.error('Can\'t proccess results:', results);
+          return;
         }
 
         var config = {
@@ -3077,7 +3078,7 @@
           angular.forEach(results.data, function(data) {
             objects.data.push(getResource(data.type).cache.addOrUpdate(data, config));
           });
-        } else {
+        } else if (results.data !== undefined) {
           objects.data.push(getResource(results.data.type).cache.addOrUpdate(results.data, config));
         }
 

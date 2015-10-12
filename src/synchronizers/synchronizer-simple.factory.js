@@ -98,9 +98,9 @@
         });
 
         if (errors.length > 0) {
-          deferred.reject({data: data, finish: finish, errors: errors});
+          deferred.reject({data: data || {}, finish: finish, errors: errors});
         } else {
-          deferred.resolve({data: data, finish: finish, errors: errors});
+          deferred.resolve({data: data || {}, finish: finish, errors: errors});
         }
       }
 
