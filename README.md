@@ -709,6 +709,7 @@ Adds each error to `errorsObject.errors[key]`.
 
 ## 1.0.0-alpha.5 (in progress)
 * [x] Filters
+* [x] Localstore space occupation data
 * [ ] I18n support (medium)
 * [ ] File source
 * [ ] Parse.com source
