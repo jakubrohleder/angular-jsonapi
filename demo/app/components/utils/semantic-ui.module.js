@@ -1,6 +1,6 @@
 (function() {
   'use strict';
-  /* global $:false */
+  /* global $:false*/
 
   var app = angular.module('angularJsonapiExample');
 
@@ -22,7 +22,6 @@
           ngModel: '='
         },
         link: function(scope, iElement) {
-
           if (!scope.options) {
             scope.options = {};
           }
