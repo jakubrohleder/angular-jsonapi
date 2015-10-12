@@ -14,6 +14,7 @@
   <button promise-button
     class="ui button mini primary"
     ng-click="collection.get(getInput)"
+    ng-class="{disabled: getInput === undefined || getInput.length === 0}"
   >Get</button>
   <button promise-button
     class="ui button mini green"

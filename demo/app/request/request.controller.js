@@ -2,9 +2,9 @@
   'use strict';
 
   angular.module('angularJsonapiExample')
-    .controller('RequestCtrl', RequestCtrl);
+    .controller('RequestController', RequestController);
 
-  function RequestCtrl(
+  function RequestController(
   ) {
   }
 })();
