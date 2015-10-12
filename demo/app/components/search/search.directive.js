@@ -12,7 +12,7 @@
       link: link,
       scope: {
         object: '=',
-        key: '=',
+        key: '='
       }
     };
 

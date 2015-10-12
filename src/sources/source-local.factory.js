@@ -33,17 +33,6 @@
       _this.synchronization('init', init);
 
       _this.begin('clearCache', clear);
-      _this.begin('remove', updateStorage);
-      _this.begin('refresh', updateStorage);
-      _this.begin('unlink', updateStorage);
-      _this.begin('unlinkReflection', updateStorage);
-      _this.begin('link', updateStorage);
-      _this.begin('linkReflection', updateStorage);
-      _this.begin('update', updateStorage);
-      _this.begin('add', updateStorage);
-      _this.begin('get', updateStorage);
-      _this.begin('all', updateStorage);
-      _this.begin('include', updateStorage);
 
       _this.finish('init', updateStorage);
       _this.finish('clearCache', updateStorage);

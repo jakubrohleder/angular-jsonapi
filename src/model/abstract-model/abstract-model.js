@@ -259,7 +259,7 @@
      */
     function toJson() {
       var _this = this;
-      var data = angular.copy(_this.data);
+      var data = _this.data;
       var relationships = {};
 
       angular.forEach(data.relationships, function(value, key) {
