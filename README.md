@@ -289,7 +289,7 @@ In most cases `jsonapi.synchronizerSimple` is enought. But if for example, you s
 `jsonapi.synchronizerSimple` constructor takes one argument - array of [sources] (#sources).
 
 ~~~javascript
-    var novelsSynchronizer = jsonapi.synchronizerSimple.create([
+    var novelsSynchronizer = $jsonapi.synchronizerSimple.create([
       localeSource, restSource
     ]);
 ~~~
@@ -313,7 +313,7 @@ To use this source you must include `angular-jsonapi-local` in your module depen
 Source constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
 
 ~~~javascript
-var localeSynchro = jsonapi.sourceLocal.create('AngularJsonAPI');
+var localeSynchro = $jsonapi.sourceLocal.create('AngularJsonAPI');
 
 ~~~
 
@@ -327,7 +327,7 @@ To use this source you must include `angular-jsonapi-rest` in your module depend
 Source constructor takes 2 arguments: `name` and `url` of the resource, there is no default value.
 
 ~~~javascript
-var novelsSynchro = jsonapi.sourceRest.create('localhost:3000/novels');
+var novelsSynchro = $jsonapi.sourceRest.create('localhost:3000/novels');
 
 ~~~
 
@@ -367,8 +367,8 @@ All in all configuration of the factory for novels can look like this:
     };
 
     var localeSource = $jsonapi.sourceLocal.create('LocalStore source', 'AngularJsonAPI');
-    var restSource = jsonapi.sourceRest.create('Rest source', '/novels');
-    var novelsSynchronizer = jsonapi.synchronizerSimple.create([localeSource, restSource]);
+    var restSource = $jsonapi.sourceRest.create('Rest source', '/novels');
+    var novelsSynchronizer = $jsonapi.synchronizerSimple.create([localeSource, restSource]);
 
     $jsonapi.addResource(novelsSchema, novelsSynchronizer);
   })
