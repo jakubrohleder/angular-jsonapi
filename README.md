@@ -52,8 +52,8 @@ The future development plan involves:
 - [Roadmap](#roadmap)
   - [1.0.0-alpha.3 (done)](#100-alpha3-done)
   - [1.0.0-alpha.4 (done)](#100-alpha4-done)
-  - [1.0.0-alpha.5 (in progress)](#100-alpha5-in-progress)
-  - [1.0.0-alpha.6](#100-alpha6)
+  - [1.0.0-alpha.5 (done)](#100-alpha5-done)
+  - [1.0.0-alpha.*](#100-alpha)
   - [1.0.0-beta.1](#100-beta1)
   - [1.0.0-beta.2](#100-beta2)
   - [1.0.0](#100)
@@ -707,14 +707,15 @@ Adds each error to `errorsObject.errors[key]`.
 ## 1.0.0-alpha.4 (done)
 * [x] Fix bugs introduced by previous version
 
-## 1.0.0-alpha.5 (in progress)
+## 1.0.0-alpha.5 (done)
 * [x] Filters
 * [x] Localstore space occupation data
+* [x] Adding services to $jsonapi (e.g. `$jsonapi.synchronizerSimple`)
+
+## 1.0.0-alpha.*
 * [ ] I18n support (medium)
 * [ ] File source
 * [ ] Parse.com source
-
-## 1.0.0-alpha.6
 * [ ] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
 * [ ] readonly attributes (can't be changed)
