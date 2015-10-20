@@ -2,7 +2,7 @@
 
 [![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)
 
-## Use with caution it's only 1.0.0-alpha.5
+## Use with caution it's only 1.0.0-alpha.6
 
 *This module is still in a WIP state, many things work fine but it lacks tests and API may change, also documentation can not reflect the real state*
 
@@ -53,6 +53,7 @@ The future development plan involves:
   - [1.0.0-alpha.3 (done)](#100-alpha3-done)
   - [1.0.0-alpha.4 (done)](#100-alpha4-done)
   - [1.0.0-alpha.5 (done)](#100-alpha5-done)
+  - [1.0.0-alpha.6 (done)](#100-alpha6-done)
   - [1.0.0-alpha.*](#100-alpha)
   - [1.0.0-beta.1](#100-beta1)
   - [1.0.0-beta.2](#100-beta2)
@@ -711,6 +712,9 @@ Adds each error to `errorsObject.errors[key]`.
 * [x] Filters
 * [x] Localstore space occupation data
 * [x] Adding services to $jsonapi (e.g. `$jsonapi.synchronizerSimple`)
+
+## 1.0.0-alpha.6 (done)
+* [x] Fix bugs introduced by previous version
 
 ## 1.0.0-alpha.*
 * [ ] I18n support (medium)
