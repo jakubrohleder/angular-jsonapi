@@ -284,9 +284,9 @@ Custom functions are extremly helpfull if you need to inject some methods common
 
 Synchronizers are object that keep sources work together by running hooks in the right order, as well as creating the final data that is used to update object.
 
-In most cases `jsonapi.synchronizerSimple` is enought. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
+In most cases `$jsonapi.synchronizerSimple` is enought. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
 
-`jsonapi.synchronizerSimple` constructor takes one argument - array of [sources] (#sources).
+`$jsonapi.synchronizerSimple` constructor takes one argument - array of [sources] (#sources).
 
 ~~~javascript
     var novelsSynchronizer = $jsonapi.synchronizerSimple.create([
