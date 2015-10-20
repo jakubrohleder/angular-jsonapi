@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('angular-jsonapi-rest', ['angular-jsonapi'])
+  angular.module('angular-jsonapi-rest')
   .factory('AngularJsonAPISourceRest', AngularJsonAPISourceRestWrapper);
 
   function AngularJsonAPISourceRestWrapper(

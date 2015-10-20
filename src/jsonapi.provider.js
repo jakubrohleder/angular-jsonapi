@@ -9,7 +9,11 @@
     var names = [];
     this.$get = jsonapiFactory;
 
-    function jsonapiFactory($log, AngularJsonAPIResource) {
+    function jsonapiFactory(
+      $log,
+      AngularJsonAPIResource,
+      AngularJsonAPISynchronizerSimple
+    ) {
       return {
         addResource: addResource,
         getResource: getResource,
@@ -17,6 +21,7 @@
         allResources: allResources,
         listResources: listResources,
         addValidator: addValidator,
+        synchronizerSimple: AngularJsonAPISynchronizerSimple,
 
         __proccesResults: __proccesResults
       };

@@ -4,7 +4,11 @@
   angular.module('angularJsonapiExample')
     .run(logEvents);
 
-  function logEvents($rootScope, $jsonapi) {
+  function logEvents(
+    $rootScope,
+    $jsonapi,
+    $log
+  ) {
     var events = [
       'resource:init',
       'resource:clearCache',
@@ -32,7 +36,7 @@
 
     function logOnEvent(eventName, resource) {
       var watcher = $rootScope.$on('angularJsonAPI:' + resource + ':' + eventName, function(event, status, object, response) {
-        // console.info(resource, eventName, status, object, response);
+        $log.info(resource, eventName, status, object, response);
       });
 
       watchers.push(watcher);

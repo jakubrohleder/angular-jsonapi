@@ -4,9 +4,6 @@
   angular.module('angularJsonapiExample')
   .run(function(
     $jsonapi,
-    AngularJsonAPISourceLocal,
-    AngularJsonAPISourceRest,
-    AngularJsonAPISynchronizerSimple,
     apiURL
   ) {
     var schema = {
@@ -26,11 +23,11 @@
         },
         robotModel: {
           included: true,
-          type: 'hasOne',
+          type: 'hasOne'
         },
         job: {
           included: true,
-          type: 'hasOne',
+          type: 'hasOne'
         },
         laserGuns: {
           included: true,
@@ -62,9 +59,9 @@
       }
     };
 
-    var localeSynchro = AngularJsonAPISourceLocal.create('LocalStore synchronization', 'AngularJsonAPI');
-    var restSynchro = AngularJsonAPISourceRest.create('Rest synchronization', apiURL + '/robots');
-    var synchronizer = AngularJsonAPISynchronizerSimple.create([localeSynchro, restSynchro]);
+    var localeSynchro = $jsonapi.sourceLocal.create('LocalStore synchronization', 'AngularJsonAPI');
+    var restSynchro = $jsonapi.sourceRest.create('Rest synchronization', apiURL + '/robots');
+    var synchronizer = $jsonapi.synchronizerSimple.create([localeSynchro, restSynchro]);
 
     $jsonapi.addResource(schema, synchronizer);
   })

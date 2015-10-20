@@ -4,7 +4,7 @@
   angular.module('angularJsonapiExample')
     .directive('angularJsonapiCollection', collection);
 
-  function collection(RecursionHelper, $jsonapi) {
+  function collection(RecursionHelper) {
     return {
       restrict: 'E',
       templateUrl: 'app/components/collection/collection.html',
@@ -12,7 +12,7 @@
         collection: '=data'
       },
       compile: RecursionHelper.compile,
-      controller: function($scope, $interval, AngularJsonAPISourceRest, $location, $state) {
+      controller: function($scope, $interval, $jsonapi, $location, $state) {
         $interval(function() {
           $scope.updateDiff = (Date.now() - $scope.collection.updatedAt) / 1000;
         }, 100);
@@ -21,7 +21,7 @@
 
         $scope.newObjects = [];
         $scope.filters = $scope.collection.params.filter || {};
-        var params = AngularJsonAPISourceRest.encodeParams({filter: $scope.filters});
+        var params = $jsonapi.sourceRest.encodeParams({filter: $scope.filters});
         $location.search(params);
 
         $scope.close = close;
@@ -54,7 +54,7 @@
         }
 
         function filter() {
-          var params = AngularJsonAPISourceRest.encodeParams({filter: $scope.filters});
+          var params = $jsonapi.sourceRest.encodeParams({filter: $scope.filters});
           $location.search(params);
           $state.reload();
         }

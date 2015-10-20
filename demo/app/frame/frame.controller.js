@@ -6,11 +6,10 @@
 
   function frameController(
     $jsonapi,
-    $scope,
-    AngularJsonAPISourceLocal
+    $scope
   ) {
     $scope.names = $jsonapi.listResources();
 
-    $scope.localStoreSize = AngularJsonAPISourceLocal.size;
+    $scope.localStoreSize = $jsonapi.sourceLocal.size;
   }
 })();
