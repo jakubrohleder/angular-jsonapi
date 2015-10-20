@@ -284,12 +284,12 @@ Custom functions are extremly helpfull if you need to inject some methods common
 
 Synchronizers are object that keep sources work together by running hooks in the right order, as well as creating the final data that is used to update object.
 
-In most cases `AngularJsonAPISynchronizerSimple` is enought. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
+In most cases `jsonapi.synchronizerSimple` is enought. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
 
-`AngularJsonAPISynchronizerSimple` constructor takes one argument - array of [sources] (#sources).
+`jsonapi.synchronizerSimple` constructor takes one argument - array of [sources] (#sources).
 
 ~~~javascript
-    var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([
+    var novelsSynchronizer = jsonapi.synchronizerSimple.create([
       localeSource, restSource
     ]);
 ~~~
@@ -302,7 +302,7 @@ todo
 
 Sources places to store and fetch data. At the moment two sources types are supported:
 
-### AngularJsonAPISourceLocal
+### SourceLocal
 
 Saves data in the local store and loads them each time you visit the site, in this way your users can access data immidiately even if they are offline. All the data are cleared when the users logs out.
 
@@ -313,11 +313,11 @@ To use this source you must include `angular-jsonapi-local` in your module depen
 Source constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
 
 ~~~javascript
-var localeSynchro = AngularJsonAPISourceLocal.create('AngularJsonAPI');
+var localeSynchro = jsonapi.sourceLocal.create('AngularJsonAPI');
 
 ~~~
 
-### AngularJsonAPISourceRest
+### SourceRest
 
 Is a simple synchronizator with the RESTAPI supporting JSON API format. It performs following operations:
 `remove`, `unlink`, `link`, `update`, `add`, `all`, `get`. Everytime the data changes the suitable request is made to keep your data synchronized.
@@ -327,7 +327,7 @@ To use this source you must include `angular-jsonapi-rest` in your module depend
 Source constructor takes 2 arguments: `name` and `url` of the resource, there is no default value.
 
 ~~~javascript
-var novelsSynchro = AngularJsonAPISourceRest.create('localhost:3000/novels');
+var novelsSynchro = jsonapi.sourceRest.create('localhost:3000/novels');
 
 ~~~
 
@@ -348,10 +348,7 @@ All in all configuration of the factory for novels can look like this:
   angular.module('angularJsonapiExample')
 
   .run(function(
-    $jsonapi,
-    AngularJsonAPISourceLocal,
-    AngularJsonAPISourceRest,
-    AngularJsonAPISynchronizerSimple
+    $jsonapi
   ) {
     var novelsSchema = {
       type: 'novels',
@@ -369,9 +366,9 @@ All in all configuration of the factory for novels can look like this:
       }
     };
 
-    var localeSource = AngularJsonAPISourceLocal.create('LocalStore source', 'AngularJsonAPI');
-    var restSource = AngularJsonAPISourceRest.create('Rest source', '/novels');
-    var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([localeSource, restSource]);
+    var localeSource = $jsonapi.sourceLocal.create('LocalStore source', 'AngularJsonAPI');
+    var restSource = jsonapi.sourceRest.create('Rest source', '/novels');
+    var novelsSynchronizer = jsonapi.synchronizerSimple.create([localeSource, restSource]);
 
     $jsonapi.addResource(novelsSchema, novelsSynchronizer);
   })
