@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  angular.module('angular-jsonapi-local', ['angular-jsonapi'])
+  angular.module('angular-jsonapi-local')
   .factory('AngularJsonAPISourceLocal', AngularJsonAPISourceLocalWrapper);
 
   function AngularJsonAPISourceLocalWrapper(
@@ -9,12 +9,19 @@
     $window,
     $q
   ) {
+    var size = {
+      max: 0,
+      all: 0,
+      limit: 5200000,
+      list: {}
+    };
 
     AngularJsonAPISourceLocal.prototype = Object.create(AngularJsonAPISourcePrototype.prototype);
     AngularJsonAPISourceLocal.prototype.constructor = AngularJsonAPISourceLocal;
 
     return {
-      create: AngularJsonAPISourceLocalFactory
+      create: AngularJsonAPISourceLocalFactory,
+      size: size
     };
 
     function AngularJsonAPISourceLocalFactory(name, prefix) {
@@ -33,17 +40,6 @@
       _this.synchronization('init', init);
 
       _this.begin('clearCache', clear);
-      _this.begin('remove', updateStorage);
-      _this.begin('refresh', updateStorage);
-      _this.begin('unlink', updateStorage);
-      _this.begin('unlinkReflection', updateStorage);
-      _this.begin('link', updateStorage);
-      _this.begin('linkReflection', updateStorage);
-      _this.begin('update', updateStorage);
-      _this.begin('add', updateStorage);
-      _this.begin('get', updateStorage);
-      _this.begin('all', updateStorage);
-      _this.begin('include', updateStorage);
 
       _this.finish('init', updateStorage);
       _this.finish('clearCache', updateStorage);
@@ -66,13 +62,35 @@
 
       function clear() {
         var type = _this.synchronizer.resource.schema.type;
-        $window.localStorage.removeItem(prefix + '.' + type);
+        var key = prefix + '.' + type;
+
+        size.all -= size.list[key];
+        delete size.list[key];
+        size.max = objectMaxKey(size.list);
+        size.fraction = size.list[size.max] / size.limit * 100;
+
+        $window.localStorage.removeItem(key);
       }
 
       function updateStorage() {
         var type = _this.synchronizer.resource.schema.type;
         var cache = _this.synchronizer.resource.cache;
-        $window.localStorage.setItem(prefix + '.' + type, cache.toJson());
+        var json = cache.toJson();
+        var key = prefix + '.' + type;
+
+        size.list[key] = size.list[key] === undefined ? 0 : size.list[key];
+        size.all += json.length - size.list[key];
+        size.list[key] = json.length;
+        size.max = objectMaxKey(size.list);
+        size.fraction = size.list[size.max] / size.limit * 100;
+
+        $window.localStorage.setItem(key, json);
+      }
+
+      function objectMaxKey(object) {
+        return Object.keys(object).reduce(function(m, k) {
+          return object[k] > object[m] ? k : m;
+        }, Object.keys(object)[0]);
       }
     }
   }

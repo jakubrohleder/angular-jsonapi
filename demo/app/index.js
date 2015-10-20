@@ -19,7 +19,7 @@
       .state('frame', {
         url: '',
         templateUrl: 'app/frame/frame.html',
-        controller: 'FrameCtrl',
+        controller: 'FrameController',
         abstract: true
       })
       .state('frame.hello', {
@@ -29,7 +29,7 @@
       .state('frame.request', {
         url: '/{type}',
         template: '<ui-view></ui-view>',
-        controller: 'RequestCtrl',
+        controller: 'RequestController',
         abstract: true,
         resolve: {
           factory: function($jsonapi, $stateParams) {
@@ -40,17 +40,19 @@
       .state('frame.request.all', {
         url: '',
         templateUrl: 'app/request/all.html',
-        controller: 'RequestAllCtrl',
+        controller: 'RequestAllController',
         resolve: {
-          collection: function(factory) {
-            return factory.all();
+          collection: function(factory, $location, $jsonapi) {
+            var params = $jsonapi.sourceRest.decodeParams($location.search());
+
+            return factory.all(params);
           }
         }
       })
       .state('frame.request.get', {
         url: '/{id}',
         templateUrl: 'app/request/get.html',
-        controller: 'RequestGetCtrl',
+        controller: 'RequestGetController',
         resolve: {
           object: function(factory, $stateParams) {
             return factory.get($stateParams.id);

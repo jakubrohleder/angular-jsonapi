@@ -9,7 +9,11 @@
     var names = [];
     this.$get = jsonapiFactory;
 
-    function jsonapiFactory($log, AngularJsonAPIResource) {
+    function jsonapiFactory(
+      $log,
+      AngularJsonAPIResource,
+      AngularJsonAPISynchronizerSimple
+    ) {
       return {
         addResource: addResource,
         getResource: getResource,
@@ -17,6 +21,7 @@
         allResources: allResources,
         listResources: listResources,
         addValidator: addValidator,
+        synchronizerSimple: AngularJsonAPISynchronizerSimple,
 
         __proccesResults: __proccesResults
       };
@@ -65,6 +70,7 @@
 
         if (results === undefined) {
           $log.error('Can\'t proccess results:', results);
+          return;
         }
 
         var config = {
@@ -83,7 +89,7 @@
           angular.forEach(results.data, function(data) {
             objects.data.push(getResource(data.type).cache.addOrUpdate(data, config));
           });
-        } else {
+        } else if (results.data !== undefined) {
           objects.data.push(getResource(results.data.type).cache.addOrUpdate(results.data, config));
         }
 

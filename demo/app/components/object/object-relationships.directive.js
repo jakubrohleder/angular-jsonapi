@@ -4,7 +4,7 @@
   angular.module('angularJsonapiExample')
     .directive('angularJsonapiObjectRelationships', objectRelationships);
 
-  function objectRelationships(RecursionHelper, AngularJsonAPIModelForm) {
+  function objectRelationships(RecursionHelper) {
     return {
       restrict: 'E',
       templateUrl: 'app/components/object/object-relationships.html',

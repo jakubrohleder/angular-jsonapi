@@ -1,6 +1,383 @@
 (function() {
   'use strict';
 
+  angular.module('angular-jsonapi-rest', ['angular-jsonapi']);
+
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi-rest')
+  .factory('AngularJsonAPISourceRest', AngularJsonAPISourceRestWrapper);
+
+  function AngularJsonAPISourceRestWrapper(
+    AngularJsonAPIModelSourceError,
+    AngularJsonAPISourcePrototype,
+    AngularJsonAPIModelLinkerService,
+    toKebabCase,
+    $q,
+    $http
+  ) {
+
+    AngularJsonAPISourceRest.prototype = Object.create(AngularJsonAPISourcePrototype.prototype);
+    AngularJsonAPISourceRest.prototype.constructor = AngularJsonAPISourceRest;
+
+    return {
+      create: AngularJsonAPISourceRestFactory,
+      encodeParams: encodeParams,
+      decodeParams: decodeParams
+    };
+
+    function AngularJsonAPISourceRestFactory(name, url) {
+      return new AngularJsonAPISourceRest(name, url);
+    }
+
+    function AngularJsonAPISourceRest(name, url) {
+      var _this = this;
+      var headers = { // jscs:disable disallowQuotedKeysInObjects
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      }; // jscs:enable disallowQuotedKeysInObjects
+
+      AngularJsonAPISourcePrototype.apply(_this, arguments);
+
+      _this.synchronization('remove', remove);
+      _this.synchronization('unlink', unlink);
+      _this.synchronization('link', link);
+      _this.synchronization('update', update);
+      _this.synchronization('add', add);
+      _this.synchronization('all', all);
+      _this.synchronization('get', get);
+      _this.synchronization('refresh', get);
+
+      function all(config) {
+        return $http({
+          method: 'GET',
+          headers: headers,
+          url: url,
+          params: encodeParams(config.params)
+        }).then(resolveHttp, rejectHttp.bind(null, 'all'));
+      }
+
+      function get(config) {
+        return $http({
+          method: 'GET',
+          headers: headers,
+          url: url + '/' + config.object.data.id,
+          params: encodeParams(config.params)
+        }).then(resolveHttp, rejectHttp.bind(null, 'get'));
+      }
+
+      function remove(config) {
+        return $http({
+          method: 'DELETE',
+          headers: headers,
+          url: url + '/' + config.object.data.id
+        }).then(resolveHttp, rejectHttp.bind(null, 'remove'));
+      }
+
+      function unlink(config) {
+        var deferred = $q.defer();
+        var schema = config.object.schema.relationships[config.key];
+
+        if (config.object.removed === true) {
+          deferred.reject(AngularJsonAPIModelSourceError.create('Object has been removed', _this, 0, 'unlink'));
+        } else if (config.target !== undefined && config.target.data.id === undefined) {
+          deferred.reject(AngularJsonAPIModelSourceError.create('Can\'t unlink object without id through rest call', _this, 0, 'unlink'));
+        } else if (schema.type === 'hasOne') {
+          $http({
+            method: 'DELETE',
+            headers: headers,
+            url: url + '/' + config.object.data.id + '/relationships/' + config.key
+          }).then(resolveHttp, rejectHttp.bind(null, 'get')).then(deferred.resolve, deferred.reject);
+        } else if (schema.type === 'hasMany') {
+          if (config.target === undefined) {
+            $http({
+              method: 'PUT',
+              headers: headers,
+              data: {data: []},
+              url: url + '/' + config.object.data.id + '/relationships/' + config.key
+            }).then(resolveHttp, rejectHttp.bind(null, 'unlink')).then(deferred.resolve, deferred.reject);
+          } else {
+            $http({
+              method: 'DELETE',
+              headers: headers,
+              url: url + '/' + config.object.data.id + '/relationships/' + config.key + '/' + config.target.data.id
+            }).then(resolveHttp, rejectHttp.bind(null, 'unlink')).then(deferred.resolve, deferred.reject);
+          }
+        }
+
+        return deferred.promise;
+      }
+
+      function link(config) {
+        var deferred = $q.defer();
+        var schema = config.object.schema.relationships[config.key];
+
+        if (config.object.removed === true) {
+          deferred.reject({errors: [{status: 0, statusText: 'Object has been removed'}]});
+        } else if (config.target === undefined || config.target.data.id === undefined) {
+          deferred.reject({errors: [{status: 0, statusText: 'Can\'t link object without id through rest call'}]});
+        } else if (schema.type === 'hasOne') {
+          $http({
+            method: 'PUT',
+            headers: headers,
+            data: {data: AngularJsonAPIModelLinkerService.toLinkData(config.target)},
+            url: url + '/' + config.object.data.id + '/relationships/' + config.key
+          }).then(resolveHttp, rejectHttp.bind(null, 'link')).then(deferred.resolve, deferred.reject);
+        } else if (schema.type === 'hasMany') {
+          $http({
+            method: 'POST',
+            headers: headers,
+            data: {data: [AngularJsonAPIModelLinkerService.toLinkData(config.target)]},
+            url: url + '/' + config.object.data.id + '/relationships/' + config.key
+          }).then(resolveHttp, rejectHttp.bind(null, 'link')).then(deferred.resolve, deferred.reject);
+        }
+
+        return deferred.promise;
+      }
+
+      function update(config) {
+        return $http({
+          method: 'PUT',
+          headers: headers,
+          url: url + '/' + config.object.data.id,
+          data: config.object.form.toJson()
+        }).then(resolveHttp, rejectHttp.bind(null, 'update'));
+      }
+
+      function add(config) {
+        return $http({
+          method: 'POST',
+          headers: headers,
+          url: url,
+          data: config.object.form.toJson()
+        }).then(resolveHttp, rejectHttp.bind(null, 'add'));
+      }
+
+      function resolveHttp(response) {
+        return $q.resolve(response.data);
+      }
+
+      function rejectHttp(action, response) {
+        var deferred = $q.defer();
+
+        if (response.status === 0) {
+          $http({
+            method: 'GET',
+            url: 'https://status.cloud.google.com/incidents.schema.json'
+          }).then(rejectServerOffline, rejectNoConnection);
+        } else {
+          deferred.reject(AngularJsonAPIModelSourceError.create(response.statusText, _this, response.status, action));
+        }
+
+        return deferred.promise;
+
+        function rejectServerOffline(response) {
+          deferred.reject(AngularJsonAPIModelSourceError.create('Server is offline', _this, response.status, action));
+        }
+
+        function rejectNoConnection() {
+          deferred.reject(AngularJsonAPIModelSourceError.create('No internet connection', _this, response.status, action));
+        }
+      }
+    }
+
+    function encodeParams(params) {
+      var encodedParams = {};
+
+      if (params === undefined) {
+        return {};
+      }
+
+      angular.forEach(params, function(paramValue, paramKey) {
+        if (angular.isArray(paramValue)) {
+          encodedParams[paramKey] = encodeValue(paramValue);
+        } else if (angular.isObject(paramValue)) {
+          angular.forEach(paramValue, function(paramInnerValue, paramInnerKey) {
+            encodedParams[paramKey + '[' + paramInnerKey + ']'] = encodeValue(paramInnerValue);
+          });
+        } else {
+          encodedParams[paramKey] = paramValue;
+        }
+      });
+
+      return encodedParams;
+
+      function encodeValue(argument) {
+        if (angular.isArray(argument)) {
+          return argument.join(',');
+        } else {
+          return argument;
+        }
+      }
+    }
+
+    function decodeParams(params) {
+      var decodedParams = {};
+
+      angular.forEach(params, function(value, key) {
+        var objectKeyStart = key.indexOf('[');
+        value = value.split(',');
+        value = value.length === 1 ? value[0] : value;
+
+        if (objectKeyStart > -1) {
+          var objectKey = key.substr(0, objectKeyStart);
+          var objectElementKey = key.substr(objectKeyStart + 1, key.indexOf(']') - objectKeyStart - 1);
+
+          decodedParams[objectKey] = {};
+          decodedParams[objectKey][objectElementKey] = value;
+        } else {
+          decodedParams[key] = value;
+        }
+      });
+
+      return decodedParams;
+    }
+  }
+  AngularJsonAPISourceRestWrapper.$inject = ["AngularJsonAPIModelSourceError", "AngularJsonAPISourcePrototype", "AngularJsonAPIModelLinkerService", "toKebabCase", "$q", "$http"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi-rest')
+  .decorator('$jsonapi', decorator);
+
+  function decorator($delegate, AngularJsonAPISourceRest) {
+    var $jsonapi = $delegate;
+
+    $jsonapi.sourceRest = AngularJsonAPISourceRest;
+
+    return $jsonapi;
+  }
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi-local', ['angular-jsonapi']);
+
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi-local')
+  .factory('AngularJsonAPISourceLocal', AngularJsonAPISourceLocalWrapper);
+
+  function AngularJsonAPISourceLocalWrapper(
+    AngularJsonAPISourcePrototype,
+    $window,
+    $q
+  ) {
+    var size = {
+      max: 0,
+      all: 0,
+      limit: 5200000,
+      list: {}
+    };
+
+    AngularJsonAPISourceLocal.prototype = Object.create(AngularJsonAPISourcePrototype.prototype);
+    AngularJsonAPISourceLocal.prototype.constructor = AngularJsonAPISourceLocal;
+
+    return {
+      create: AngularJsonAPISourceLocalFactory,
+      size: size
+    };
+
+    function AngularJsonAPISourceLocalFactory(name, prefix) {
+      return new AngularJsonAPISourceLocal(name, prefix);
+    }
+
+    function AngularJsonAPISourceLocal(name, prefix) {
+      var _this = this;
+
+      prefix = prefix || 'AngularJsonAPI';
+
+      _this.__updateStorage = updateStorage;
+
+      AngularJsonAPISourcePrototype.apply(_this, arguments);
+
+      _this.synchronization('init', init);
+
+      _this.begin('clearCache', clear);
+
+      _this.finish('init', updateStorage);
+      _this.finish('clearCache', updateStorage);
+      _this.finish('remove', updateStorage);
+      _this.finish('refresh', updateStorage);
+      _this.finish('unlink', updateStorage);
+      _this.finish('unlinkReflection', updateStorage);
+      _this.finish('link', updateStorage);
+      _this.finish('linkReflection', updateStorage);
+      _this.finish('update', updateStorage);
+      _this.finish('add', updateStorage);
+      _this.finish('get', updateStorage);
+      _this.finish('all', updateStorage);
+      _this.finish('include', updateStorage);
+
+      function init() {
+        var type = _this.synchronizer.resource.schema.type;
+        return $q.resolve($window.localStorage.getItem(prefix + '.' + type));
+      }
+
+      function clear() {
+        var type = _this.synchronizer.resource.schema.type;
+        var key = prefix + '.' + type;
+
+        size.all -= size.list[key];
+        delete size.list[key];
+        size.max = objectMaxKey(size.list);
+        size.fraction = size.list[size.max] / size.limit * 100;
+
+        $window.localStorage.removeItem(key);
+      }
+
+      function updateStorage() {
+        var type = _this.synchronizer.resource.schema.type;
+        var cache = _this.synchronizer.resource.cache;
+        var json = cache.toJson();
+        var key = prefix + '.' + type;
+
+        size.list[key] = size.list[key] === undefined ? 0 : size.list[key];
+        size.all += json.length - size.list[key];
+        size.list[key] = json.length;
+        size.max = objectMaxKey(size.list);
+        size.fraction = size.list[size.max] / size.limit * 100;
+
+        $window.localStorage.setItem(key, json);
+      }
+
+      function objectMaxKey(object) {
+        return Object.keys(object).reduce(function(m, k) {
+          return object[k] > object[m] ? k : m;
+        }, Object.keys(object)[0]);
+      }
+    }
+  }
+  AngularJsonAPISourceLocalWrapper.$inject = ["AngularJsonAPISourcePrototype", "$window", "$q"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi-local')
+  .decorator('$jsonapi', decorator);
+
+  function decorator($delegate, AngularJsonAPISourceLocal) {
+    var $jsonapi = $delegate;
+
+    $jsonapi.sourceLocal = AngularJsonAPISourceLocal;
+
+    return $jsonapi;
+  }
+})();
+
+(function() {
+  'use strict';
+
   angular.module('angular-jsonapi', ['uuid4'])
   /* global pluralize: false, validate: false */
   .constant('pluralize', pluralize)
@@ -173,14 +550,24 @@
      */
     function index(params) {
       var _this = this;
-
-      $log.debug('Unused params', params);
+      params = params || {};
 
       if (_this.indexIds === undefined) {
         return _this.indexIds;
       }
 
-      return _this.indexIds.map(_this.get.bind(_this));
+      return _this.indexIds.map(_this.get.bind(_this)).filter(filter);
+
+      function filter(argument) {
+        var filterParams  = params.filter;
+        var valid = true;
+
+        angular.forEach(filterParams, function(constraint) {
+          valid = valid && argument.data.attributes[constraint.key] === constraint.value;
+        });
+
+        return valid;
+      }
     }
 
     /**
@@ -1053,7 +1440,7 @@
      */
     function toJson() {
       var _this = this;
-      var data = angular.copy(_this.data);
+      var data = _this.data;
       var relationships = {};
 
       angular.forEach(data.relationships, function(value, key) {
@@ -1706,7 +2093,7 @@
     return new Function('fn',
       'return function ' + name + '(){ return fn.apply(this,arguments)}'
     )(fn);
-  };
+  }
 })();
 
 // from https://www.sitepen.com/blog/2012/10/19/lazy-property-access/
@@ -1749,49 +2136,51 @@
 (function() {
   'use strict';
 
-  angular.module('angular-jsonapi').config(['$provide', function($provide) {
-    $provide.decorator('$q', ['$delegate', function($delegate) {
-      var $q = $delegate;
+  angular.module('angular-jsonapi')
+  .decorator('$q', decorator);
 
-      $q.allSettled = $q.allSettled || function allSettled(promises, resolvedCallback, rejectedCallback) {
-        // Implementation of allSettled function from Kris Kowal's Q:
-        // https://github.com/kriskowal/q/wiki/API-Reference#promiseallsettled
-        // by Michael Kropat from http://stackoverflow.com/a/27114615/1400432 slightly modified
+  function decorator($delegate) {
+    var $q = $delegate;
 
-        var wrapped = angular.isArray(promises) ? [] : {};
+    $q.allSettled = $q.allSettled || allSettled;
 
-        angular.forEach(promises, function(promise, key) {
-          if (!wrapped.hasOwnProperty(key)) {
-            wrapped[key] = wrap(promise);
-          }
-        });
+    function allSettled(promises, resolvedCallback, rejectedCallback) {
+      // Implementation of allSettled function from Kris Kowal's Q:
+      // https://github.com/kriskowal/q/wiki/API-Reference#promiseallsettled
+      // by Michael Kropat from http://stackoverflow.com/a/27114615/1400432 slightly modified
 
-        return $q.all(wrapped);
+      var wrapped = angular.isArray(promises) ? [] : {};
 
-        function wrap(promise) {
-          return $q.resolve(promise)
-            .then(function(value) {
-              if (angular.isFunction(resolvedCallback)) {
-                resolvedCallback(value);
-              }
-
-              return { success: true, value: value };
-            },
-
-            function(reason) {
-              if (angular.isFunction(rejectedCallback)) {
-                rejectedCallback(reason);
-              }
-
-              return { success: false, reason: reason };
-            });
+      angular.forEach(promises, function(promise, key) {
+        if (!wrapped.hasOwnProperty(key)) {
+          wrapped[key] = wrap(promise);
         }
-      };
+      });
 
-      return $q;
-    }]);
-  }]);
+      return $q.all(wrapped);
 
+      function wrap(promise) {
+        return $q.resolve(promise)
+          .then(function(value) {
+            if (angular.isFunction(resolvedCallback)) {
+              resolvedCallback(value);
+            }
+
+            return { success: true, value: value };
+          },
+
+          function(reason) {
+            if (angular.isFunction(rejectedCallback)) {
+              rejectedCallback(reason);
+            }
+
+            return { success: false, reason: reason };
+          });
+      }
+    }
+
+    return $q;
+  }
 })();
 
 (function() {
@@ -1894,9 +2283,9 @@
         });
 
         if (errors.length > 0) {
-          deferred.reject({data: data, finish: finish, errors: errors});
+          deferred.reject({data: data || {}, finish: finish, errors: errors});
         } else {
-          deferred.resolve({data: data, finish: finish, errors: errors});
+          deferred.resolve({data: data || {}, finish: finish, errors: errors});
         }
       }
 
@@ -1949,186 +2338,6 @@
     }
   }
   AngularJsonAPISynchronizerPrototypeWrapper.$inject = ["$log"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi-rest', ['angular-jsonapi'])
-  .factory('AngularJsonAPISourceRest', AngularJsonAPISourceRestWrapper);
-
-  function AngularJsonAPISourceRestWrapper(
-    AngularJsonAPIModelSourceError,
-    AngularJsonAPISourcePrototype,
-    AngularJsonAPIModelLinkerService,
-    toKebabCase,
-    $q,
-    $http
-  ) {
-
-    AngularJsonAPISourceRest.prototype = Object.create(AngularJsonAPISourcePrototype.prototype);
-    AngularJsonAPISourceRest.prototype.constructor = AngularJsonAPISourceRest;
-
-    return {
-      create: AngularJsonAPISourceRestFactory
-    };
-
-    function AngularJsonAPISourceRestFactory(name, url) {
-      return new AngularJsonAPISourceRest(name, url);
-    }
-
-    function AngularJsonAPISourceRest(name, url) {
-      var _this = this;
-      var headers = { // jscs:disable disallowQuotedKeysInObjects
-        'Accept': 'application/vnd.api+json',
-        'Content-Type': 'application/vnd.api+json'
-      }; // jscs:enable disallowQuotedKeysInObjects
-
-      AngularJsonAPISourcePrototype.apply(_this, arguments);
-
-      _this.synchronization('remove', remove);
-      _this.synchronization('unlink', unlink);
-      _this.synchronization('link', link);
-      _this.synchronization('update', update);
-      _this.synchronization('add', add);
-      _this.synchronization('all', all);
-      _this.synchronization('get', get);
-      _this.synchronization('refresh', get);
-
-      function all(config) {
-        return $http({
-          method: 'GET',
-          headers: headers,
-          url: url,
-          params: config.params || {}
-        }).then(resolveHttp, rejectHttp.bind(null, 'all'));
-      }
-
-      function get(config) {
-        return $http({
-          method: 'GET',
-          headers: headers,
-          url: url + '/' + config.object.data.id,
-          params: config.params || {}
-        }).then(resolveHttp, rejectHttp.bind(null, 'get'));
-      }
-
-      function remove(config) {
-        return $http({
-          method: 'DELETE',
-          headers: headers,
-          url: url + '/' + config.object.data.id
-        }).then(resolveHttp, rejectHttp.bind(null, 'remove'));
-      }
-
-      function unlink(config) {
-        var deferred = $q.defer();
-        var schema = config.object.schema.relationships[config.key];
-
-        if (config.object.removed === true) {
-          deferred.reject(AngularJsonAPIModelSourceError.create('Object has been removed', _this, 0, 'unlink'));
-        } else if (config.target !== undefined && config.target.data.id === undefined) {
-          deferred.reject(AngularJsonAPIModelSourceError.create('Can\'t unlink object without id through rest call', _this, 0, 'unlink'));
-        } else if (schema.type === 'hasOne') {
-          $http({
-            method: 'DELETE',
-            headers: headers,
-            url: url + '/' + config.object.data.id + '/relationships/' + config.key
-          }).then(resolveHttp, rejectHttp.bind(null, 'get')).then(deferred.resolve, deferred.reject);
-        } else if (schema.type === 'hasMany') {
-          if (config.target === undefined) {
-            $http({
-              method: 'PUT',
-              headers: headers,
-              data: {data: []},
-              url: url + '/' + config.object.data.id + '/relationships/' + config.key
-            }).then(resolveHttp, rejectHttp.bind(null, 'unlink')).then(deferred.resolve, deferred.reject);
-          } else {
-            $http({
-              method: 'DELETE',
-              headers: headers,
-              url: url + '/' + config.object.data.id + '/relationships/' + config.key + '/' + config.target.data.id
-            }).then(resolveHttp, rejectHttp.bind(null, 'unlink')).then(deferred.resolve, deferred.reject);
-          }
-        }
-
-        return deferred.promise;
-      }
-
-      function link(config) {
-        var deferred = $q.defer();
-        var schema = config.object.schema.relationships[config.key];
-
-        if (config.object.removed === true) {
-          deferred.reject({errors: [{status: 0, statusText: 'Object has been removed'}]});
-        } else if (config.target === undefined || config.target.data.id === undefined) {
-          deferred.reject({errors: [{status: 0, statusText: 'Can\'t link object without id through rest call'}]});
-        } else if (schema.type === 'hasOne') {
-          $http({
-            method: 'PUT',
-            headers: headers,
-            data: {data: AngularJsonAPIModelLinkerService.toLinkData(config.target)},
-            url: url + '/' + config.object.data.id + '/relationships/' + config.key
-          }).then(resolveHttp, rejectHttp.bind(null, 'link')).then(deferred.resolve, deferred.reject);
-        } else if (schema.type === 'hasMany') {
-          $http({
-            method: 'POST',
-            headers: headers,
-            data: {data: [AngularJsonAPIModelLinkerService.toLinkData(config.target)]},
-            url: url + '/' + config.object.data.id + '/relationships/' + config.key
-          }).then(resolveHttp, rejectHttp.bind(null, 'link')).then(deferred.resolve, deferred.reject);
-        }
-
-        return deferred.promise;
-      }
-
-      function update(config) {
-        return $http({
-          method: 'PUT',
-          headers: headers,
-          url: url + '/' + config.object.data.id,
-          data: config.object.form.toJson()
-        }).then(resolveHttp, rejectHttp.bind(null, 'update'));
-      }
-
-      function add(config) {
-        return $http({
-          method: 'POST',
-          headers: headers,
-          url: url,
-          data: config.object.form.toJson()
-        }).then(resolveHttp, rejectHttp.bind(null, 'add'));
-      }
-
-      function resolveHttp(response) {
-        return $q.resolve(response.data);
-      }
-
-      function rejectHttp(action, response) {
-        var deferred = $q.defer();
-
-        if (response.status === 0) {
-          $http({
-            method: 'GET',
-            url: 'https://status.cloud.google.com/incidents.schema.json'
-          }).then(rejectServerOffline, rejectNoConnection);
-        } else {
-          deferred.reject(AngularJsonAPIModelSourceError.create(response.statusText, _this, response.status, action));
-        }
-
-        return deferred.promise;
-
-        function rejectServerOffline(response) {
-          deferred.reject(AngularJsonAPIModelSourceError.create('Server is offline', _this, response.status, action));
-        }
-
-        function rejectNoConnection() {
-          deferred.reject(AngularJsonAPIModelSourceError.create('No internet connection', _this, response.status, action));
-        }
-      }
-    }
-  }
-  AngularJsonAPISourceRestWrapper.$inject = ["AngularJsonAPIModelSourceError", "AngularJsonAPISourcePrototype", "AngularJsonAPIModelLinkerService", "toKebabCase", "$q", "$http"];
 })();
 
 (function() {
@@ -2219,215 +2428,6 @@
     }
 
   }
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi-local', ['angular-jsonapi'])
-  .factory('AngularJsonAPISourceLocal', AngularJsonAPISourceLocalWrapper);
-
-  function AngularJsonAPISourceLocalWrapper(
-    AngularJsonAPISourcePrototype,
-    $window,
-    $q
-  ) {
-
-    AngularJsonAPISourceLocal.prototype = Object.create(AngularJsonAPISourcePrototype.prototype);
-    AngularJsonAPISourceLocal.prototype.constructor = AngularJsonAPISourceLocal;
-
-    return {
-      create: AngularJsonAPISourceLocalFactory
-    };
-
-    function AngularJsonAPISourceLocalFactory(name, prefix) {
-      return new AngularJsonAPISourceLocal(name, prefix);
-    }
-
-    function AngularJsonAPISourceLocal(name, prefix) {
-      var _this = this;
-
-      prefix = prefix || 'AngularJsonAPI';
-
-      _this.__updateStorage = updateStorage;
-
-      AngularJsonAPISourcePrototype.apply(_this, arguments);
-
-      _this.synchronization('init', init);
-
-      _this.begin('clearCache', clear);
-      _this.begin('remove', updateStorage);
-      _this.begin('refresh', updateStorage);
-      _this.begin('unlink', updateStorage);
-      _this.begin('unlinkReflection', updateStorage);
-      _this.begin('link', updateStorage);
-      _this.begin('linkReflection', updateStorage);
-      _this.begin('update', updateStorage);
-      _this.begin('add', updateStorage);
-      _this.begin('get', updateStorage);
-      _this.begin('all', updateStorage);
-      _this.begin('include', updateStorage);
-
-      _this.finish('init', updateStorage);
-      _this.finish('clearCache', updateStorage);
-      _this.finish('remove', updateStorage);
-      _this.finish('refresh', updateStorage);
-      _this.finish('unlink', updateStorage);
-      _this.finish('unlinkReflection', updateStorage);
-      _this.finish('link', updateStorage);
-      _this.finish('linkReflection', updateStorage);
-      _this.finish('update', updateStorage);
-      _this.finish('add', updateStorage);
-      _this.finish('get', updateStorage);
-      _this.finish('all', updateStorage);
-      _this.finish('include', updateStorage);
-
-      function init() {
-        var type = _this.synchronizer.resource.schema.type;
-        return $q.resolve($window.localStorage.getItem(prefix + '.' + type));
-      }
-
-      function clear() {
-        var type = _this.synchronizer.resource.schema.type;
-        $window.localStorage.removeItem(prefix + '.' + type);
-      }
-
-      function updateStorage() {
-        var type = _this.synchronizer.resource.schema.type;
-        var cache = _this.synchronizer.resource.cache;
-        $window.localStorage.setItem(prefix + '.' + type, cache.toJson());
-      }
-    }
-  }
-  AngularJsonAPISourceLocalWrapper.$inject = ["AngularJsonAPISourcePrototype", "$window", "$q"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
-  .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
-
-  function AngularJsonAPISchemaWrapper(
-    $log,
-    pluralize,
-    uuid4,
-    AngularJsonAPISchemaLink
-  ) {
-
-    return {
-      create: AngularJsonAPISchemaFactory
-    };
-
-    function AngularJsonAPISchemaFactory(schema) {
-      return new AngularJsonAPISchema(schema);
-    }
-
-    function AngularJsonAPISchema(schema) {
-      var _this = this;
-      var include = schema.include || {};
-      schema.include = include;
-      include.get = schema.include.get || [];
-      include.all = schema.include.all || [];
-
-      _this.params = {
-        get: {},
-        all: {}
-      };
-
-      if (schema.id === 'uuid4') {
-        schema.id = uuid4;
-      } else if (schema.id === 'int') {
-        schema.id = {
-          generate: angular.noop,
-          validate: angular.isNumber
-        };
-      } else if (angular.isObject(schema.id)) {
-        if (!angular.isFunction(schema.id.generate)) {
-          schema.id.generate = angular.noop;
-        }
-      } else {
-        schema.id = {
-          generate: angular.noop,
-          validate: angular.identity.bind(null, true)
-        };
-      }
-
-      angular.forEach(schema.relationships, function(linkSchema, linkName) {
-        var linkSchemaObj = AngularJsonAPISchemaLink.create(linkSchema, linkName, schema.type);
-        schema.relationships[linkName] = linkSchemaObj;
-        if (linkSchemaObj.included === true) {
-          include.get.push(linkName);
-          if (linkSchemaObj.type === 'hasOne') {
-            include.all.push(linkName);
-          }
-        }
-      });
-
-      angular.extend(_this, schema);
-
-      if (include.get.length > 0) {
-        _this.params.get.include = include.get.join(',');
-      }
-
-      if (include.all.length > 0) {
-        _this.params.all.include = include.all.join(',');
-      }
-    }
-
-  }
-  AngularJsonAPISchemaWrapper.$inject = ["$log", "pluralize", "uuid4", "AngularJsonAPISchemaLink"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
-  .factory('AngularJsonAPISchemaLink', AngularJsonAPILinkSchrapperLink);
-
-  function AngularJsonAPILinkSchrapperLink($log, pluralize) {
-
-    return {
-      create: AngularJsonAPISchemaLinkFactory
-    };
-
-    function AngularJsonAPISchemaLinkFactory(linkSchema, linkName, type) {
-      return new AngularJsonAPISchemaLink(linkSchema, linkName, type);
-    }
-
-    function AngularJsonAPISchemaLink(linkSchema, linkName, type) {
-      var _this = this;
-
-      if (angular.isString(linkSchema)) {
-        _this.model = pluralize.plural(linkName);
-        _this.type = linkSchema;
-        _this.polymorphic = false;
-        _this.reflection = type;
-      } else {
-        if (linkSchema.type === undefined) {
-          $log.error('Schema of link without a type: ', linkSchema, linkName);
-        }
-
-        if (linkSchema.type !== 'hasMany' && linkSchema.type !== 'hasOne') {
-          $log.error('Schema of link with wrong type: ', linkSchema.type, 'available: hasOne, hasMany');
-        }
-
-        _this.model = linkSchema.model || pluralize.plural(linkName);
-        _this.type = linkSchema.type;
-        _this.polymorphic = linkSchema.polymorphic || false;
-
-        if (linkSchema.reflection === undefined) {
-          _this.reflection = _this.type === 'hasMany' ? pluralize.singular(type) : type;
-        } else {
-          _this.reflection = linkSchema.reflection;
-        }
-
-        _this.included = linkSchema.included || false;
-      }
-    }
-
-  }
-  AngularJsonAPILinkSchrapperLink.$inject = ["$log", "pluralize"];
 })();
 
 (function() {
@@ -2534,7 +2534,7 @@
      */
     function all(params) {
       var _this = this;
-      params = params === undefined ? _this.schema.params.all : params;
+      params = angular.extend({}, _this.schema.params.all, params);
 
       var collection = AngularJsonAPICollection.create(
         _this,
@@ -2646,6 +2646,134 @@
   'use strict';
 
   angular.module('angular-jsonapi')
+  .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
+
+  function AngularJsonAPISchemaWrapper(
+    $log,
+    pluralize,
+    uuid4,
+    AngularJsonAPISchemaLink
+  ) {
+
+    return {
+      create: AngularJsonAPISchemaFactory
+    };
+
+    function AngularJsonAPISchemaFactory(schema) {
+      return new AngularJsonAPISchema(schema);
+    }
+
+    function AngularJsonAPISchema(schema) {
+      var _this = this;
+      var include = schema.include || {};
+      schema.include = include;
+      include.get = schema.include.get || [];
+      include.all = schema.include.all || [];
+
+      _this.params = {
+        get: {},
+        all: {}
+      };
+
+      if (schema.id === 'uuid4') {
+        schema.id = uuid4;
+      } else if (schema.id === 'int') {
+        schema.id = {
+          generate: angular.noop,
+          validate: angular.isNumber
+        };
+      } else if (angular.isObject(schema.id)) {
+        if (!angular.isFunction(schema.id.generate)) {
+          schema.id.generate = angular.noop;
+        }
+      } else {
+        schema.id = {
+          generate: angular.noop,
+          validate: angular.identity.bind(null, true)
+        };
+      }
+
+      angular.forEach(schema.relationships, function(linkSchema, linkName) {
+        var linkSchemaObj = AngularJsonAPISchemaLink.create(linkSchema, linkName, schema.type);
+        schema.relationships[linkName] = linkSchemaObj;
+        if (linkSchemaObj.included === true) {
+          include.get.push(linkName);
+          if (linkSchemaObj.type === 'hasOne') {
+            include.all.push(linkName);
+          }
+        }
+      });
+
+      angular.extend(_this, schema);
+
+      if (include.get.length > 0) {
+        _this.params.get.include = include.get;
+      }
+
+      if (include.all.length > 0) {
+        _this.params.all.include = include.all;
+      }
+    }
+
+  }
+  AngularJsonAPISchemaWrapper.$inject = ["$log", "pluralize", "uuid4", "AngularJsonAPISchemaLink"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+  .factory('AngularJsonAPISchemaLink', AngularJsonAPILinkSchrapperLink);
+
+  function AngularJsonAPILinkSchrapperLink($log, pluralize) {
+
+    return {
+      create: AngularJsonAPISchemaLinkFactory
+    };
+
+    function AngularJsonAPISchemaLinkFactory(linkSchema, linkName, type) {
+      return new AngularJsonAPISchemaLink(linkSchema, linkName, type);
+    }
+
+    function AngularJsonAPISchemaLink(linkSchema, linkName, type) {
+      var _this = this;
+
+      if (angular.isString(linkSchema)) {
+        _this.model = pluralize.plural(linkName);
+        _this.type = linkSchema;
+        _this.polymorphic = false;
+        _this.reflection = type;
+      } else {
+        if (linkSchema.type === undefined) {
+          $log.error('Schema of link without a type: ', linkSchema, linkName);
+        }
+
+        if (linkSchema.type !== 'hasMany' && linkSchema.type !== 'hasOne') {
+          $log.error('Schema of link with wrong type: ', linkSchema.type, 'available: hasOne, hasMany');
+        }
+
+        _this.model = linkSchema.model || pluralize.plural(linkName);
+        _this.type = linkSchema.type;
+        _this.polymorphic = linkSchema.polymorphic || false;
+
+        if (linkSchema.reflection === undefined) {
+          _this.reflection = _this.type === 'hasMany' ? pluralize.singular(type) : type;
+        } else {
+          _this.reflection = linkSchema.reflection;
+        }
+
+        _this.included = linkSchema.included || false;
+      }
+    }
+
+  }
+  AngularJsonAPILinkSchrapperLink.$inject = ["$log", "pluralize"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
   .factory('AngularJsonAPIModel', AngularJsonAPIModel);
 
   function AngularJsonAPIModel(
@@ -2735,7 +2863,7 @@
 
       _this.resource = resource;
       _this.type = resource.schema.type;
-      _this.params = params;
+      _this.params = params || {};
 
       _this.errors = {
         synchronization: AngularJsonAPIModelErrorsManager.create(
@@ -2921,7 +3049,11 @@
     var names = [];
     this.$get = jsonapiFactory;
 
-    function jsonapiFactory($log, AngularJsonAPIResource) {
+    function jsonapiFactory(
+      $log,
+      AngularJsonAPIResource,
+      AngularJsonAPISynchronizerSimple
+    ) {
       return {
         addResource: addResource,
         getResource: getResource,
@@ -2929,6 +3061,7 @@
         allResources: allResources,
         listResources: listResources,
         addValidator: addValidator,
+        synchronizerSimple: AngularJsonAPISynchronizerSimple,
 
         __proccesResults: __proccesResults
       };
@@ -2977,6 +3110,7 @@
 
         if (results === undefined) {
           $log.error('Can\'t proccess results:', results);
+          return;
         }
 
         var config = {
@@ -2995,14 +3129,14 @@
           angular.forEach(results.data, function(data) {
             objects.data.push(getResource(data.type).cache.addOrUpdate(data, config));
           });
-        } else {
+        } else if (results.data !== undefined) {
           objects.data.push(getResource(results.data.type).cache.addOrUpdate(results.data, config));
         }
 
         return objects;
       }
     }
-    jsonapiFactory.$inject = ["$log", "AngularJsonAPIResource"];
+    jsonapiFactory.$inject = ["$log", "AngularJsonAPIResource", "AngularJsonAPISynchronizerSimple"];
   }
   jsonapiProvider.$inject = ["validateJS"];
 

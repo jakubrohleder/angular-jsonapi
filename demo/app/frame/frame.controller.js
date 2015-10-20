@@ -2,12 +2,14 @@
   'use strict';
 
   angular.module('angularJsonapiExample')
-    .controller('FrameCtrl', frameCtrl);
+    .controller('FrameController', frameController);
 
-  function frameCtrl(
+  function frameController(
     $jsonapi,
     $scope
   ) {
     $scope.names = $jsonapi.listResources();
+
+    $scope.localStoreSize = $jsonapi.sourceLocal.size;
   }
 })();

@@ -164,14 +164,24 @@
      */
     function index(params) {
       var _this = this;
-
-      $log.debug('Unused params', params);
+      params = params || {};
 
       if (_this.indexIds === undefined) {
         return _this.indexIds;
       }
 
-      return _this.indexIds.map(_this.get.bind(_this));
+      return _this.indexIds.map(_this.get.bind(_this)).filter(filter);
+
+      function filter(argument) {
+        var filterParams  = params.filter;
+        var valid = true;
+
+        angular.forEach(filterParams, function(constraint) {
+          valid = valid && argument.data.attributes[constraint.key] === constraint.value;
+        });
+
+        return valid;
+      }
     }
 
     /**

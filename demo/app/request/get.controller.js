@@ -2,9 +2,9 @@
   'use strict';
 
   angular.module('angularJsonapiExample')
-    .controller('RequestGetCtrl', RequestGetCtrl);
+    .controller('RequestGetController', RequestGetController);
 
-  function RequestGetCtrl(
+  function RequestGetController(
     $scope, object
   ) {
     $scope.object = object;

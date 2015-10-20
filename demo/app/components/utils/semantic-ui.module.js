@@ -1,6 +1,6 @@
 (function() {
   'use strict';
-  /* global $:false */
+  /* global $:false*/
 
   var app = angular.module('angularJsonapiExample');
 
@@ -22,7 +22,6 @@
           ngModel: '='
         },
         link: function(scope, iElement) {
-
           if (!scope.options) {
             scope.options = {};
           }
@@ -36,20 +35,26 @@
           };
 
           $timeout(function() {
-            var element = $(iElement)[module](_.clone(scope.options));
+            var element = iElement[module](_.clone(scope.options));
             if (scope.arguments !== undefined) {
-              $(iElement)[module].apply(element, scope.arguments);
+              iElement[module].apply(element, scope.arguments);
             }
           }, 300);
 
-          $rootScope.$on('semantic-ui:reload', function() {
+          var handler = $rootScope.$on('semantic-ui:reload', function() {
             $timeout(function() {
-              var element = $(iElement)[module](_.clone(scope.options));
+              var element = iElement[module](_.clone(scope.options));
               if (scope.arguments !== undefined) {
-                $(iElement)[module].apply(element, scope.arguments);
+                iElement[module].apply(element, scope.arguments);
               }
             }, 300);
           });
+
+          $rootScope.$on('$destroy', clear);
+
+          function clear() {
+            handler();
+          }
         }
       };
     }]);

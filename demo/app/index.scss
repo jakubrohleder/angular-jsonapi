@@ -171,3 +171,11 @@ a[ui-sref] {
     display: none;
   }
 }
+
+.ui.mini.dropdown {
+  font-size: 0.71428571em;
+
+  .menu > .item {
+    font-size: 1em;
+  }
+}

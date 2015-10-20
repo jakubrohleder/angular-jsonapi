@@ -21,6 +21,34 @@
   <div class="ui divider hidden"></div>
 </header>
 
+<div class="ui container">
+  <a
+    class="ui image right floated label"
+    ng-class="{
+      green: localStoreSize.fraction < 30,
+      yellow: localStoreSize.fraction >= 30 && localStoreSize.fraction < 70,
+      red: localStoreSize.fraction >= 70
+    }"
+  >
+    All
+    <div class="detail">{{localStoreSize.all | bytes}} - {{localStoreSize.fraction | number:2}}%</div>
+  </a>
+  <a
+    class="ui image right floated label"
+    ng-class="{
+      green: localStoreSize.list[localStoreSize.max] < localStoreSize.limit / 10,
+      yellow: localStoreSize.list[localStoreSize.max] >= localStoreSize.limit / 10 &&
+        localStoreSize.list[localStoreSize.max] < localStoreSize.limit / 4,
+      red: localStoreSize.list[localStoreSize.max] >= localStoreSize.limit / 4
+    }"
+  >
+    Max
+    <div class="detail">{{localStoreSize.max}} - {{localStoreSize.list[localStoreSize.max] | bytes}}</div>
+  </a>
+
+  <strong>Localstore space occupied:</strong>
+</div>
+
 <main ui-view class="ui container"></main>
 
 <footer></footer>

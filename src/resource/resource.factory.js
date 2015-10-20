@@ -102,7 +102,7 @@
      */
     function all(params) {
       var _this = this;
-      params = params === undefined ? _this.schema.params.all : params;
+      params = angular.extend({}, _this.schema.params.all, params);
 
       var collection = AngularJsonAPICollection.create(
         _this,

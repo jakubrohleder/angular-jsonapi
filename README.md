@@ -2,7 +2,7 @@
 
 [![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)
 
-## Use with caution it's only 1.0.0-alpha.2
+## Use with caution it's only 1.0.0-alpha.4
 
 *This module is still in a WIP state, many things work fine but it lacks tests and API may change, also documentation can not reflect the real state*
 
@@ -51,7 +51,9 @@ The future development plan involves:
   - [Promise-button](#promise-button)
 - [Roadmap](#roadmap)
   - [1.0.0-alpha.3 (done)](#100-alpha3-done)
-  - [1.0.0-alpha.4](#100-alpha4)
+  - [1.0.0-alpha.4 (done)](#100-alpha4-done)
+  - [1.0.0-alpha.5 (done)](#100-alpha5-done)
+  - [1.0.0-alpha.*](#100-alpha)
   - [1.0.0-beta.1](#100-beta1)
   - [1.0.0-beta.2](#100-beta2)
   - [1.0.0](#100)
@@ -465,9 +467,9 @@ All object can be accessed by resource using `resource.all(params)`. It returns 
 Params must be an object that can contain keys:
 
 * **include** - string with comma delimited relationships that will override schema settings.
-* **filter** - object with `attribute: filter` values.
+* **filter** - object with `attribute: value` values. Filters are used as 'exact match' (only objects with `attribute` value same as `value` are returned).
 
-Those two keys are supported explicitly, but other keys will also be passed to the synchronization
+Those two keys are supported explicitly, but other keys will also be passed to the synchronization.
 
 **If params are ommited `undefined` default params (taken from schema) are used.**
 
@@ -702,11 +704,23 @@ Adds each error to `errorsObject.errors[key]`.
 * [x] Multiple types of ids
 * [x] Rename Synchronization to Source (easy)
 
-## 1.0.0-alpha.4
+## 1.0.0-alpha.4 (done)
+* [x] Fix bugs introduced by previous version
+
+## 1.0.0-alpha.5 (done)
+* [x] Filters
+* [x] Localstore space occupation data
+* [x] Adding services to $jsonapi (e.g. `$jsonapi.synchronizerSimple`)
+
+## 1.0.0-alpha.*
+* [ ] I18n support (medium)
+* [ ] File source
+* [ ] Parse.com source
 * [ ] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
-* [ ] I18n support (medium)
 * [ ] readonly attributes (can't be changed)
+* [ ] Api versioning!
+* [ ] Pagination
 
 ## 1.0.0-beta.1
 * [ ] unit tests (at least 50% coverage)

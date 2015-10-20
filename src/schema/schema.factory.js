@@ -63,11 +63,11 @@
       angular.extend(_this, schema);
 
       if (include.get.length > 0) {
-        _this.params.get.include = include.get.join(',');
+        _this.params.get.include = include.get;
       }
 
       if (include.all.length > 0) {
-        _this.params.all.include = include.all.join(',');
+        _this.params.all.include = include.all;
       }
     }
 
