@@ -2,7 +2,11 @@
   'use strict';
 
   angular.module('angular-jsonapi-local')
-  .decorator('$jsonapi', decorator);
+  .config(provide);
+
+  function provide($provide) {
+    $provide.decorator('$jsonapi', decorator);
+  }
 
   function decorator($delegate, AngularJsonAPISourceLocal) {
     var $jsonapi = $delegate;

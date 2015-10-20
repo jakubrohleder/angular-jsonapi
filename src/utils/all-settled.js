@@ -2,7 +2,11 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .decorator('$q', decorator);
+  .config(provide);
+
+  function provide($provide) {
+    $provide.decorator('$q', decorator);
+  }
 
   function decorator($delegate) {
     var $q = $delegate;

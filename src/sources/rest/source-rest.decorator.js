@@ -2,7 +2,11 @@
   'use strict';
 
   angular.module('angular-jsonapi-rest')
-  .decorator('$jsonapi', decorator);
+  .config(provide);
+
+  function provide($provide) {
+    $provide.decorator('$jsonapi', decorator);
+  }
 
   function decorator($delegate, AngularJsonAPISourceRest) {
     var $jsonapi = $delegate;

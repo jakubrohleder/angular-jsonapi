@@ -243,7 +243,12 @@
   'use strict';
 
   angular.module('angular-jsonapi-rest')
-  .decorator('$jsonapi', decorator);
+  .config(provide);
+
+  function provide($provide) {
+    $provide.decorator('$jsonapi', decorator);
+  }
+  provide.$inject = ["$provide"];
 
   function decorator($delegate, AngularJsonAPISourceRest) {
     var $jsonapi = $delegate;
@@ -252,6 +257,7 @@
 
     return $jsonapi;
   }
+  decorator.$inject = ["$delegate", "AngularJsonAPISourceRest"];
 })();
 
 (function() {
@@ -364,7 +370,12 @@
   'use strict';
 
   angular.module('angular-jsonapi-local')
-  .decorator('$jsonapi', decorator);
+  .config(provide);
+
+  function provide($provide) {
+    $provide.decorator('$jsonapi', decorator);
+  }
+  provide.$inject = ["$provide"];
 
   function decorator($delegate, AngularJsonAPISourceLocal) {
     var $jsonapi = $delegate;
@@ -373,6 +384,7 @@
 
     return $jsonapi;
   }
+  decorator.$inject = ["$delegate", "AngularJsonAPISourceLocal"];
 })();
 
 (function() {
@@ -2137,7 +2149,12 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .decorator('$q', decorator);
+  .config(provide);
+
+  function provide($provide) {
+    $provide.decorator('$q', decorator);
+  }
+  provide.$inject = ["$provide"];
 
   function decorator($delegate) {
     var $q = $delegate;
@@ -2181,6 +2198,7 @@
 
     return $q;
   }
+  decorator.$inject = ["$delegate"];
 })();
 
 (function() {
@@ -2434,6 +2452,134 @@
   'use strict';
 
   angular.module('angular-jsonapi')
+  .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
+
+  function AngularJsonAPISchemaWrapper(
+    $log,
+    pluralize,
+    uuid4,
+    AngularJsonAPISchemaLink
+  ) {
+
+    return {
+      create: AngularJsonAPISchemaFactory
+    };
+
+    function AngularJsonAPISchemaFactory(schema) {
+      return new AngularJsonAPISchema(schema);
+    }
+
+    function AngularJsonAPISchema(schema) {
+      var _this = this;
+      var include = schema.include || {};
+      schema.include = include;
+      include.get = schema.include.get || [];
+      include.all = schema.include.all || [];
+
+      _this.params = {
+        get: {},
+        all: {}
+      };
+
+      if (schema.id === 'uuid4') {
+        schema.id = uuid4;
+      } else if (schema.id === 'int') {
+        schema.id = {
+          generate: angular.noop,
+          validate: angular.isNumber
+        };
+      } else if (angular.isObject(schema.id)) {
+        if (!angular.isFunction(schema.id.generate)) {
+          schema.id.generate = angular.noop;
+        }
+      } else {
+        schema.id = {
+          generate: angular.noop,
+          validate: angular.identity.bind(null, true)
+        };
+      }
+
+      angular.forEach(schema.relationships, function(linkSchema, linkName) {
+        var linkSchemaObj = AngularJsonAPISchemaLink.create(linkSchema, linkName, schema.type);
+        schema.relationships[linkName] = linkSchemaObj;
+        if (linkSchemaObj.included === true) {
+          include.get.push(linkName);
+          if (linkSchemaObj.type === 'hasOne') {
+            include.all.push(linkName);
+          }
+        }
+      });
+
+      angular.extend(_this, schema);
+
+      if (include.get.length > 0) {
+        _this.params.get.include = include.get;
+      }
+
+      if (include.all.length > 0) {
+        _this.params.all.include = include.all;
+      }
+    }
+
+  }
+  AngularJsonAPISchemaWrapper.$inject = ["$log", "pluralize", "uuid4", "AngularJsonAPISchemaLink"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+  .factory('AngularJsonAPISchemaLink', AngularJsonAPILinkSchrapperLink);
+
+  function AngularJsonAPILinkSchrapperLink($log, pluralize) {
+
+    return {
+      create: AngularJsonAPISchemaLinkFactory
+    };
+
+    function AngularJsonAPISchemaLinkFactory(linkSchema, linkName, type) {
+      return new AngularJsonAPISchemaLink(linkSchema, linkName, type);
+    }
+
+    function AngularJsonAPISchemaLink(linkSchema, linkName, type) {
+      var _this = this;
+
+      if (angular.isString(linkSchema)) {
+        _this.model = pluralize.plural(linkName);
+        _this.type = linkSchema;
+        _this.polymorphic = false;
+        _this.reflection = type;
+      } else {
+        if (linkSchema.type === undefined) {
+          $log.error('Schema of link without a type: ', linkSchema, linkName);
+        }
+
+        if (linkSchema.type !== 'hasMany' && linkSchema.type !== 'hasOne') {
+          $log.error('Schema of link with wrong type: ', linkSchema.type, 'available: hasOne, hasMany');
+        }
+
+        _this.model = linkSchema.model || pluralize.plural(linkName);
+        _this.type = linkSchema.type;
+        _this.polymorphic = linkSchema.polymorphic || false;
+
+        if (linkSchema.reflection === undefined) {
+          _this.reflection = _this.type === 'hasMany' ? pluralize.singular(type) : type;
+        } else {
+          _this.reflection = linkSchema.reflection;
+        }
+
+        _this.included = linkSchema.included || false;
+      }
+    }
+
+  }
+  AngularJsonAPILinkSchrapperLink.$inject = ["$log", "pluralize"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
   .factory('AngularJsonAPIResource', AngularJsonAPIResourceWrapper);
 
   function AngularJsonAPIResourceWrapper(
@@ -2640,134 +2786,6 @@
     }
   }
   AngularJsonAPIResourceWrapper.$inject = ["AngularJsonAPIModel", "AngularJsonAPISchema", "AngularJsonAPIResourceCache", "AngularJsonAPICollection", "$rootScope", "$log", "$q"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
-  .factory('AngularJsonAPISchema', AngularJsonAPISchemaWrapper);
-
-  function AngularJsonAPISchemaWrapper(
-    $log,
-    pluralize,
-    uuid4,
-    AngularJsonAPISchemaLink
-  ) {
-
-    return {
-      create: AngularJsonAPISchemaFactory
-    };
-
-    function AngularJsonAPISchemaFactory(schema) {
-      return new AngularJsonAPISchema(schema);
-    }
-
-    function AngularJsonAPISchema(schema) {
-      var _this = this;
-      var include = schema.include || {};
-      schema.include = include;
-      include.get = schema.include.get || [];
-      include.all = schema.include.all || [];
-
-      _this.params = {
-        get: {},
-        all: {}
-      };
-
-      if (schema.id === 'uuid4') {
-        schema.id = uuid4;
-      } else if (schema.id === 'int') {
-        schema.id = {
-          generate: angular.noop,
-          validate: angular.isNumber
-        };
-      } else if (angular.isObject(schema.id)) {
-        if (!angular.isFunction(schema.id.generate)) {
-          schema.id.generate = angular.noop;
-        }
-      } else {
-        schema.id = {
-          generate: angular.noop,
-          validate: angular.identity.bind(null, true)
-        };
-      }
-
-      angular.forEach(schema.relationships, function(linkSchema, linkName) {
-        var linkSchemaObj = AngularJsonAPISchemaLink.create(linkSchema, linkName, schema.type);
-        schema.relationships[linkName] = linkSchemaObj;
-        if (linkSchemaObj.included === true) {
-          include.get.push(linkName);
-          if (linkSchemaObj.type === 'hasOne') {
-            include.all.push(linkName);
-          }
-        }
-      });
-
-      angular.extend(_this, schema);
-
-      if (include.get.length > 0) {
-        _this.params.get.include = include.get;
-      }
-
-      if (include.all.length > 0) {
-        _this.params.all.include = include.all;
-      }
-    }
-
-  }
-  AngularJsonAPISchemaWrapper.$inject = ["$log", "pluralize", "uuid4", "AngularJsonAPISchemaLink"];
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
-  .factory('AngularJsonAPISchemaLink', AngularJsonAPILinkSchrapperLink);
-
-  function AngularJsonAPILinkSchrapperLink($log, pluralize) {
-
-    return {
-      create: AngularJsonAPISchemaLinkFactory
-    };
-
-    function AngularJsonAPISchemaLinkFactory(linkSchema, linkName, type) {
-      return new AngularJsonAPISchemaLink(linkSchema, linkName, type);
-    }
-
-    function AngularJsonAPISchemaLink(linkSchema, linkName, type) {
-      var _this = this;
-
-      if (angular.isString(linkSchema)) {
-        _this.model = pluralize.plural(linkName);
-        _this.type = linkSchema;
-        _this.polymorphic = false;
-        _this.reflection = type;
-      } else {
-        if (linkSchema.type === undefined) {
-          $log.error('Schema of link without a type: ', linkSchema, linkName);
-        }
-
-        if (linkSchema.type !== 'hasMany' && linkSchema.type !== 'hasOne') {
-          $log.error('Schema of link with wrong type: ', linkSchema.type, 'available: hasOne, hasMany');
-        }
-
-        _this.model = linkSchema.model || pluralize.plural(linkName);
-        _this.type = linkSchema.type;
-        _this.polymorphic = linkSchema.polymorphic || false;
-
-        if (linkSchema.reflection === undefined) {
-          _this.reflection = _this.type === 'hasMany' ? pluralize.singular(type) : type;
-        } else {
-          _this.reflection = linkSchema.reflection;
-        }
-
-        _this.included = linkSchema.included || false;
-      }
-    }
-
-  }
-  AngularJsonAPILinkSchrapperLink.$inject = ["$log", "pluralize"];
 })();
 
 (function() {
