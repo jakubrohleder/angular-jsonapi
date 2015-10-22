@@ -19,7 +19,6 @@
 
     function SourceError(message, source, code, action) {
       var _this = this;
-      Error.captureStackTrace(_this, _this.constructor);
 
       _this.message = message;
       _this.context = {
