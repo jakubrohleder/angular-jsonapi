@@ -40,6 +40,8 @@ The future development plan involves:
   - [Schema](#schema)
   - [Synchronizers](#synchronizers)
   - [Sources](#sources)
+  - [Encoding params](#encoding-params)
+  - [Decoding params](#decoding-params)
   - [Wrap up](#wrap-up)
 - [API](#api)
   - [`$jsonapi`](#jsonapi)
@@ -331,6 +333,18 @@ var novelsSynchro = $jsonapi.sourceRest.create('localhost:3000/novels');
 
 ~~~
 
+## Encoding params
+
+`$jsonapi.sourceRest.encodeParams(params)`
+
+Encodes params object into `jsonapi` url params schema. Returned object can be then sent as `params` attribute of `$http` request configuration object.
+
+## Decoding params
+
+`$jsonapi.sourceRest.decodeParams(params)`
+
+Decodes params from `jsonapi` url schema (e.g. obtained by `$location.search()).
+
 ### Custom Sources
 
 todo
@@ -465,7 +479,7 @@ All object can be accessed by resource using `resource.all(params)`. It returns 
 Params must be an object that can contain keys:
 
 * **include** - string with comma delimited relationships that will override schema settings.
-* **filter** - object with `attribute: value` values. Filters are used as 'exact match' (only objects with `attribute` value same as `value` are returned).
+* **filter** - object with `attribute: value` values. Filters are used as 'exact match' (only objects with `attribute` value same as `value` are returned). `value` can also be an array, then only objects with same `attribute` value as one of `values` array elements are returned.
 
 Those two keys are supported explicitly, but other keys will also be passed to the synchronization.
 

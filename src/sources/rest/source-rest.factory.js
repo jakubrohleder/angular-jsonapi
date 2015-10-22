@@ -213,13 +213,12 @@
       angular.forEach(params, function(value, key) {
         var objectKeyStart = key.indexOf('[');
         value = value.split(',');
-        value = value.length === 1 ? value[0] : value;
 
         if (objectKeyStart > -1) {
           var objectKey = key.substr(0, objectKeyStart);
           var objectElementKey = key.substr(objectKeyStart + 1, key.indexOf(']') - objectKeyStart - 1);
 
-          decodedParams[objectKey] = {};
+          decodedParams[objectKey] = decodedParams[objectKey] || {};
           decodedParams[objectKey][objectElementKey] = value;
         } else {
           decodedParams[key] = value;

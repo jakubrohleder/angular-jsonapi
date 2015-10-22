@@ -38,7 +38,6 @@
     <div class="default text">Key</div>
     <div class="menu">
       <div
-        ng-show="$parent.filters[key] === undefined"
         class="item"
         data-value="{{key}}"
         ng-repeat="(key, schema) in collection.resource.schema.attributes"
@@ -50,7 +49,7 @@
   <button
     class="ui button mini violet"
     ng-click="addFilter(filterKey)"
-    ng-class="{disabled: filterKey === undefined || filters[filterKey] !== undefined}"
+    ng-class="{disabled: filterKey === undefined}"
   >Add Filter</button>
    <button
     class="ui button mini red"
@@ -70,31 +69,31 @@
   >Synchronized {{updateDiff}} s. ago</div>
 </div>
 
-<div ng-show="objectKeys(filters)" class="ui hidden divider"></div>
+<div ng-show="filtersArray.length" class="ui hidden divider"></div>
 
 <div class="ui small form">
-  <div class="fields" ng-repeat="(key, value) in filters">
+  <div class="fields" ng-repeat="filter in filtersArray">
     <div class="field">
       <label ng-show="$first">Key</label>
       <div class="ui mini input">
-        <input type="text" ng-model="key" placeholder="Key" readonly="readonly">
+        <input type="text" ng-model="filter.key" placeholder="Key" readonly="readonly">
       </div>
     </div>
     <div class="field">
       <label ng-show="$first">Value</label>
       <div class="ui mini input">
-        <input type="text" ng-model="filters[key]" placeholder="Value">
+        <input type="text" ng-model="filter.value" placeholder="Value">
       </div>
     </div>
     <div class="field">
       <label ng-show="$first" style="visibility: hidden">Remove</label>
-      <button class="mini red right labeled icon ui button" ng-click="removeFilter(key)">
+      <button class="mini red right labeled icon ui button" ng-click="removeFilter($index)">
         <i class="remove icon"></i>
         Remove
       </button>
     </div>
   </div>
-  <button ng-show="objectKeys(filters)" class="mini violet right labeled icon ui button" ng-click="filter()">
+  <button ng-show="filtersArray.length" class="mini violet right labeled icon ui button" ng-click="filter()">
     <i class="filter icon"></i>
     Filter
   </button>
@@ -119,7 +118,8 @@
 
 
 <div class="collection">
-  <h3>All objects</h3>
+  <h3 ng-hide="filtersArray.length">All objects</h3>
+  <h3 ng-show="filtersArray.length">Filtered objects</h3>
 
   <div
     ng-show="collection.pristine && collection.loading"
