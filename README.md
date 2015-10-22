@@ -8,13 +8,13 @@
 
 *To see all of the features in action run and study the demo.*
 
-Simple and lightweight, yet powerfull ORM for your frontend that seamlessly integrates with your JsonAPI server.
+Simple and lightweight, yet powerful ORM for your frontend that seamlessly integrates with your JsonAPI server.
 
 # [Live demo](http://jakubrohleder.github.io/angular-jsonapi)
 
 This module provides the following features:
 
-* Converting JsonApi resonses into data objects
+* Converting JsonApi responses into data objects
 * Creating new objects
 * Removing existing objects
 * Synchronizing objects with multiple sources (currently local-store and RESTApi)
@@ -109,7 +109,7 @@ angular.module('myApp', [
 
 # Configuration
 
-Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any confiuration options. All the configuration shoud be made in the `run` phase using `$jsonapi`. The only option as the moment is `$jsonapi.addResource`, it takes two arguments: [schema](#schema) and [synchronizer](#synchronizers).
+Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any configuration options. All the configuration should be made in the `run` phase using `$jsonapi`. The only option as the moment is `$jsonapi.addResource`, it takes two arguments: [schema](#schema) and [synchronizer](#synchronizers).
 
 ## Schema
 
@@ -118,7 +118,7 @@ First step is to provide data schema, that is used later on to create objects, v
 | field | description |
 |---|---|
 | **type** | Type of an object must be the same as the one in the JSON API response. Should be in plural. |
-| **id** | Type of id field, supported types are: `'uuid4'`, `'int'`, `'string'` and custom, any other type defaults to `'string'`. Custom id type should be an object with two methods: `validate(id)` and `generate()`. If ids cannot be generated in the front you can ommit `generate()`. |
+| **id** | Type of id field, supported types are: `'uuid4'`, `'int'`, `'string'` and custom, any other type defaults to `'string'`. Custom id type should be an object with two methods: `validate(id)` and `generate()`. If ids cannot be generated in the front you can omit `generate()`. |
 | **attributes** | Object with the model attributes names as keys and [validation constraints](#validators) as values. |
 | **relationships** | Object with the model relationships names as keys and [relationship schema](#relationship-schema) as values. |
 | **include** | Object with extra values that should be included in the `get` or `all` request. |
@@ -143,7 +143,7 @@ var novelsSchema = {
     characters: {
       included: true,
       type: 'hasMany',
-      reflection: 'apearences'
+      reflection: 'appearances'
     }
   },
   include: {
@@ -187,7 +187,7 @@ You can also write your own validator, for more information read [Custom Validat
 
 #### Custom validators
 
-If you need more complex validation method, you can use your own function as a validator. As whole validator module it utilies `validate.js` library.
+If you need more complex validation method, you can use your own function as a validator. As whole validator module it utilizes `validate.js` library.
 
 ##### Normal
 
@@ -238,12 +238,12 @@ For more information read [http://validatejs.org/#custom-validator-async](http:/
 
 ### Relationship schema
 
-Each relationship is decribed by separate schema with following properties:
+Each relationship is described by separate schema with following properties:
 
 | property | default value | description |
 |---|---|---|
 | `type ` | **required**  | Type of the relationship, either `hasMany` or `hasOne`. |
-| `model` | pluralized raltionship name  | Type of the model that this relationship can be linked to, not checked if `polymorphic` is set `true`. |
+| `model` | pluralized relationship name  | Type of the model that this relationship can be linked to, not checked if `polymorphic` is set `true`. |
 | `polymorphic ` | `false`  | Can the relationship link to objects with different type? |
 | `reflection ` | object type  | Name of the inversed relationship in the related object. If set to `false` the relationship will not update inversed relationship in the related object. |
 | `included ` | `true` for `hasOne`, `false` for `hasMany`  | Should the related resource be returned in the `GET` request as well. **Does not affect `ALL` requests!** If you want to extra resources to be returned with `ALL` request use [include schema](#include-schema).  |
@@ -276,15 +276,15 @@ Accept: application/vnd.api+json
 
 ### Custom functions schema
 
-Custom functions schema is nothing more they just simple object with function names as keys and functions as a value. All of the functions will be runned with an object instance binded to `this` and no arguments.
+Custom functions schema is nothing more than just a simple object with function names as keys and functions as a value. All of the functions will be ran with an object instance bound to `this` and no arguments.
 
-Custom functions are extremly helpfull if you need to inject some methods common for the object type into its prototype.
+Custom functions are extremely helpful if you need to inject some methods common for the object type into its prototype.
 
 ## Synchronizers
 
 Synchronizers are object that keep sources work together by running hooks in the right order, as well as creating the final data that is used to update object.
 
-In most cases `$jsonapi.synchronizerSimple` is enought. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
+In most cases `$jsonapi.synchronizerSimple` is enough. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
 
 `$jsonapi.synchronizerSimple` constructor takes one argument - array of [sources] (#sources).
 
@@ -304,7 +304,7 @@ Sources places to store and fetch data. At the moment two sources types are supp
 
 ### SourceLocal
 
-Saves data in the local store and loads them each time you visit the site, in this way your users can access data immidiately even if they are offline. All the data are cleared when the users logs out.
+Saves data in the local store and loads them each time you visit the site, in this way your users can access data immediately even if they are offline. All the data are cleared when the users logs out.
 
 Date is saved each time it changes and loaded during initialization of the module.
 
@@ -319,8 +319,8 @@ var localeSynchro = $jsonapi.sourceLocal.create('AngularJsonAPI');
 
 ### SourceRest
 
-Is a simple synchronizator with the RESTAPI supporting JSON API format. It performs following operations:
-`remove`, `unlink`, `link`, `update`, `add`, `all`, `get`. Everytime the data changes the suitable request is made to keep your data synchronized.
+Is a simple synchronizer with the RESTAPI supporting JSON API format. It performs following operations:
+`remove`, `unlink`, `link`, `update`, `add`, `all`, `get`. Every time the data changes the suitable request is made to keep your data synchronized.
 
 To use this source you must include `angular-jsonapi-rest` in your module dependencies.
 
@@ -337,7 +337,7 @@ todo
 
 ## Wrap up
 
-After performing `$jsonapi.addResource(schema, synchronizer);` the resource is accesible by `$jsonapi.getResource(type);`. The easiest way to use it is to create `angular.factory` for each model and then inject it to your controllers.
+After performing `$jsonapi.addResource(schema, synchronizer);` the resource is accessible by `$jsonapi.getResource(type);`. The easiest way to use it is to create `angular.factory` for each model and then inject it to your controllers.
 
 All in all configuration of the factory for novels can look like this:
 
@@ -386,7 +386,7 @@ All in all configuration of the factory for novels can look like this:
 
 ## `$jsonapi`
 
-`$jsonapi` as the main factory of the package  has few methods that will help you with creating and managing resources.
+`$jsonapi` as the main factory of the package has few methods that will help you with creating and managing resources.
 
 ### Adding resource
 
@@ -398,7 +398,7 @@ You can read about the method at [configuration section](#configuration).
 
 `$jsonapi.getResource(type)`
 
-Returns a resource with the given `type`. If no resource with `type` has beed added before returns `undefined`.
+Returns a resource with the given `type`. If no resource with `type` has been added before returns `undefined`.
 
 ### All resources
 
@@ -426,13 +426,13 @@ Adds validator to validates object schema. [Read more](#custom-validators)
 
 ## Resource
 
-After configuration phase resources are the main object your application will oparete with. They represent one class of objects (e.g. Users or Comments). They are cappable of most operation that you expect REST API to perform.
+After configuration phase resources are the main object your application will operate with. They represent one class of objects (e.g. Users or Comments). They are capable of most operation that you expect REST API to perform.
 
 ### Properties
 
 Each resource let you access following attributes:
 
-* **initialized** - states the resource has been already initialized. Usable if `init` synchronization of resource is asynchronouse. Read more (todo)
+* **initialized** - states the resource has been already initialized. Usable if `init` synchronization of resource is asynchronous. Read more (todo)
 * **type** - type of the resource
 * **schema** - resource schema
 
@@ -452,7 +452,7 @@ Params may be be an object that can contain keys:
 
 Include key supported explicitly, but other keys will also be passed to the synchronization.
 
-**If params are ommited `undefined` default params (taken from schema) are used.**
+**If params are omitted `undefined` default params (taken from schema) are used.**
 
 ### All objects
 
@@ -469,7 +469,7 @@ Params must be an object that can contain keys:
 
 Those two keys are supported explicitly, but other keys will also be passed to the synchronization.
 
-**If params are ommited `undefined` default params (taken from schema) are used.**
+**If params are omitted `undefined` default params (taken from schema) are used.**
 
 ### Removing object
 
@@ -501,7 +501,7 @@ Collection is a bucket of objects it is returned by `all` method of Resource. Ea
 * **type** - type of the collection objects
 * **params** - params of the collection (filters, includes)
 * **errors** - errors of the collection [(read more)](#errors)
-* **data** - arrays of objects holded by collection
+* **data** - arrays of objects held by a collection
 * **loading** - boolean marking if collection is loading
 * **loadingCount** - number of different synchronizations that are loading the collection
 * **pristine** - marks if collection hasn't been loaded from cache (it is being loaded for the first time)
@@ -535,10 +535,10 @@ Object is a final wrapper for data returned by your API. All of the asynchronous
 ### Properties
 
 * **new** - marks if the object is new (has just been initialized)
-* **stable** - marks if the object is surely present on the server (at least one synchronization has been succesfuly resolved during this session)
-* **synchronized** - marks if the object is synchrinized with server (at least one `get`, `add` or `update` synchronization has been succesfuly resolved during this session)
+* **stable** - marks if the object is surely present on the server (at least one synchronization has been successfully resolved during this session)
+* **synchronized** - marks if the object is synchronized with server (at least one `get`, `add` or `update` synchronization has been successfully resolved during this session)
 * **pristine** - marks if the resource has just been requested and is not present in the memory, nor localstore
-* **removed** - marks if the object has been removed. Removed object are also (after succesful synchronization) cleared from collections, but you can use this just in case.
+* **removed** - marks if the object has been removed. Removed object are also (after successful synchronization) cleared from collections, but you can use this just in case.
 * **loading** - marks if the object has some loading synchronizations ongoing
 * **saving** - marks if the object has some saving synchronizations ongoing
 * **updatedAt** -timestamp of last synchronization that updated the object
@@ -567,7 +567,7 @@ Object form is similar to the object itself and it should be used to update its 
 
 It validates form and returns promise that is either resolved or rejected, depending on the outcome of the validation. If `attributeKey` is not specified all attributes are validated.
 
-You don't need to run `validate` before `save` as it is runned automaticly.
+You don't need to run `validate` before `save` as it is automatically ran.
 
 #### Saving object
 
@@ -575,7 +575,7 @@ You don't need to run `validate` before `save` as it is runned automaticly.
 
 Saves objects: validates the form, synchronizes new values with synchronizations and finally updates the actual object attributes.
 
-#### Reseting object form
+#### Resetting object form
 
 `object.reset()` or `object.form.reset()`
 
@@ -583,7 +583,7 @@ Resets form to the values of the object attributes.
 
 ### Object relationships
 
-Getting an managing object relationships with ease was the primary motivation to create this package. each object has `object.relationships` proparty that is a key-value store of its relationships. Each relationship can be retrived by `object.relationships[key]` the return value depends on the relationship type:
+Getting an managing object relationships with ease was the primary motivation to create this package. each object has `object.relationships` property that is a key-value store of its relationships. Each relationship can be retrieved by `object.relationships[key]` the return value depends on the relationship type:
 
 * `hasOne`
     * `undefined` - if object relationships hasn't been fetched from the server yet
@@ -611,7 +611,7 @@ If you do not want to make relationship affect the target form you can set oneWa
 
 `object.link(key, target)`
 
-Object relationship with `key` gets linked to the target. New relationship state is synchronized immidiately with `link` synchronization.
+Object relationship with `key` gets linked to the target. New relationship state is synchronized immediately with `link` synchronization.
 
 #### Unlinking object relationship through form
 
@@ -625,7 +625,7 @@ If you do not want to make unlinked relationship affect the target form you can 
 
 `object.unlink(key, target)`
 
-Object relationship with `key` gets unlinked from the target. New relationship state is synchronized immidiately with `unlink` synchronization.
+Object relationship with `key` gets unlinked from the target. New relationship state is synchronized immediately with `unlink` synchronization.
 
 ### Refreshing object
 
@@ -637,7 +637,7 @@ Refreshes object using [same params as get](#getting-object).
 
 `object.hasErrors()`
 
-Returns true or false wether object has errors or not, they can be handled as any other error. [Read more](#errors)
+Returns true or false whether object has errors or not, they can be handled as any other error. [Read more](#errors)
 
 ### Serializing object
 
@@ -732,7 +732,7 @@ Adds each error to `errorsObject.errors[key]`.
 * [ ] features/improvements from the survey
 
 ## 1.0.0
-* [ ] finall bug fixes and improvements
+* [ ] final bug fixes and improvements
 * [ ] even more unit tests
 * [ ] performance / memory leaks tests
 
