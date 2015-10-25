@@ -796,7 +796,10 @@
 
       reflectionSchema = target.schema.relationships[reflectionKey];
 
-      if (reflectionSchema.type === 'hasOne') {
+      if (reflectionSchema === undefined) {
+        __addHasMany(object, key, target, form);
+        return [__wrapResults(target, reflectionKey, object)];
+      } else if (reflectionSchema.type === 'hasOne') {
         return __swapResults(
           __wrapResults(object, key, target),
           __wrapResults(target, reflectionKey, object),
@@ -821,25 +824,28 @@
       if (oldReflection !== undefined && oldReflection !== null) {
         oldReflectionSchema = oldReflection.schema.relationships[reflectionKey];
 
-        if (oldReflectionSchema.type === 'hasOne') {
-          __removeHasOne(oldReflection, reflectionKey, object, form);
-        } else if (oldReflectionSchema.type === 'hasMany') {
-          __removeHasMany(oldReflection, reflectionKey, object, form);
-        }
+        if (oldReflectionSchema !== undefined) {
+          if (oldReflectionSchema.type === 'hasOne') {
+            __removeHasOne(oldReflection, reflectionKey, object, form);
+          } else if (oldReflectionSchema.type === 'hasMany') {
+            __removeHasMany(oldReflection, reflectionKey, object, form);
+          }
 
-        result.push(__wrapResults(oldReflection, reflectionKey, object));
+          result.push(__wrapResults(oldReflection, reflectionKey, object));
+        }
       }
 
       if (target !== undefined && target !== null && reflectionKey !== false) {
         reflectionSchema = target.schema.relationships[reflectionKey];
+        if (reflectionSchema !== undefined) {
+          if (reflectionSchema.type === 'hasOne') {
+            __addHasOne(target, reflectionKey, object, form);
+          } else if (reflectionSchema.type === 'hasMany') {
+            __addHasMany(target, reflectionKey, object, form);
+          }
 
-        if (reflectionSchema.type === 'hasOne') {
-          __addHasOne(target, reflectionKey, object, form);
-        } else if (reflectionSchema.type === 'hasMany') {
-          __addHasMany(target, reflectionKey, object, form);
+          result.push(__wrapResults(target, reflectionKey, object));
         }
-
-        result.push(__wrapResults(target, reflectionKey, object));
       }
 
       return result;
@@ -862,10 +868,14 @@
 
       reflectionSchema = target.schema.relationships[reflectionKey];
 
-      if (reflectionSchema.type === 'hasOne') {
-        __removeHasOne(target, reflectionKey, object, form);
-      } else if (reflectionSchema.type === 'hasMany') {
-        __removeHasMany(target, reflectionKey, object, form);
+      if (reflectionSchema !== undefined) {
+        if (reflectionSchema.type === 'hasOne') {
+          __removeHasOne(target, reflectionKey, object, form);
+        } else if (reflectionSchema.type === 'hasMany') {
+          __removeHasMany(target, reflectionKey, object, form);
+        }
+      } else {
+        return [];
       }
 
       return [__wrapResults(target, reflectionKey, object)];
@@ -1983,6 +1993,38 @@
   'use strict';
 
   angular.module('angular-jsonapi')
+  .factory('AngularJsonAPIModelSourceError', AngularJsonAPIModelSourceErrorWrapper);
+
+  function AngularJsonAPIModelSourceErrorWrapper() {
+    SourceError.prototype = Object.create(Error.prototype);
+    SourceError.prototype.constructor = SourceError;
+    SourceError.prototype.name = 'SourceError';
+
+    return {
+      create: SourceErrorFactory
+    };
+
+    function SourceErrorFactory(message, source, code, action) {
+      return new SourceError(message, source, code, action);
+    }
+
+    function SourceError(message, source, code, action) {
+      var _this = this;
+
+      _this.message = message;
+      _this.context = {
+        source: source,
+        code: code,
+        action: action
+      };
+    }
+  }
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
   .factory('AngularJsonAPIModelErrorsManager', AngularJsonAPIModelErrorsManagerWrapper);
 
   function AngularJsonAPIModelErrorsManagerWrapper() {
@@ -2056,38 +2098,6 @@
       } else {
         return _this.errors[key] !== undefined && _this.errors[key].length > 0;
       }
-    }
-  }
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIModelSourceError', AngularJsonAPIModelSourceErrorWrapper);
-
-  function AngularJsonAPIModelSourceErrorWrapper() {
-    SourceError.prototype = Object.create(Error.prototype);
-    SourceError.prototype.constructor = SourceError;
-    SourceError.prototype.name = 'SourceError';
-
-    return {
-      create: SourceErrorFactory
-    };
-
-    function SourceErrorFactory(message, source, code, action) {
-      return new SourceError(message, source, code, action);
-    }
-
-    function SourceError(message, source, code, action) {
-      var _this = this;
-
-      _this.message = message;
-      _this.context = {
-        source: source,
-        code: code,
-        action: action
-      };
     }
   }
 })();
