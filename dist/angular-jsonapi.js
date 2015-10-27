@@ -220,13 +220,12 @@
       angular.forEach(params, function(value, key) {
         var objectKeyStart = key.indexOf('[');
         value = value.split(',');
-        value = value.length === 1 ? value[0] : value;
 
         if (objectKeyStart > -1) {
           var objectKey = key.substr(0, objectKeyStart);
           var objectElementKey = key.substr(objectKeyStart + 1, key.indexOf(']') - objectKeyStart - 1);
 
-          decodedParams[objectKey] = {};
+          decodedParams[objectKey] = decodedParams[objectKey] || {};
           decodedParams[objectKey][objectElementKey] = value;
         } else {
           decodedParams[key] = value;
@@ -258,6 +257,174 @@
     return $jsonapi;
   }
   decorator.$inject = ["$delegate", "AngularJsonAPISourceRest"];
+})();
+
+(function() {
+  'use strict';
+
+  /* global Parse: false */
+  angular.module('angular-jsonapi-parse', ['angular-jsonapi'])
+    .constant('Parse', Parse);
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi-parse')
+  .factory('AngularJsonAPISourceParse', AngularJsonAPISourceParseWrapper);
+
+  function AngularJsonAPISourceParseWrapper(
+    AngularJsonAPIModelSourceError,
+    AngularJsonAPISourcePrototype,
+    AngularJsonAPIModelLinkerService,
+    pluralize,
+    Parse,
+    $log,
+    $q
+  ) {
+
+    AngularJsonAPISourceParse.prototype = Object.create(AngularJsonAPISourcePrototype.prototype);
+    AngularJsonAPISourceParse.prototype.constructor = AngularJsonAPISourceParse;
+    AngularJsonAPISourceParse.prototype.initialize = initialize;
+
+    return {
+      create: AngularJsonAPISourceParseFactory
+    };
+
+    function AngularJsonAPISourceParseFactory(name, table) {
+      return new AngularJsonAPISourceParse(name, table);
+    }
+
+    function AngularJsonAPISourceParse(name, table) {
+      var _this = this;
+
+      _this.ParseObject = Parse.Object.extend(table);
+      _this.type = pluralize(table).charAt(0).toLowerCase() + pluralize(table).slice(1);
+
+      AngularJsonAPISourcePrototype.apply(_this, arguments);
+
+      _this.synchronization('remove', remove);
+      _this.synchronization('update', update);
+      _this.synchronization('add', update);
+      _this.synchronization('all', all);
+      _this.synchronization('get', get);
+      _this.synchronization('refresh', get);
+
+      function all(config) {
+        var query = new Parse.Query(_this.ParseObject);
+
+        if (config.params.limit !== undefined) {
+          query.limit(config.params.limit);
+        }
+
+        angular.forEach(config.params.filter, function(filter) {
+          query.equalTo(filter.key, filter.value);
+        });
+
+        return query.find().then(resolveParse, rejectParse.bind(null, 'all'));
+      }
+
+      function get(config) {
+        var query = new Parse.Query(_this.ParseObject);
+        return query.get(config.object.data.id).then(resolveParse, rejectParse.bind(null, 'get'));
+      }
+
+      function remove(config) {
+        var object = new _this.ParseObject();
+        object.set('id', config.object.data.id);
+        return object.destroy().then(resolveParse, rejectParse.bind(null, 'remove'));
+      }
+
+      function update(config) {
+        var object = toParseObject(config.object);
+        return object.save(null).then(resolveParse, rejectParse.bind(null, 'update'));
+      }
+
+      function toParseObject(object) {
+        var parseObject = new _this.ParseObject();
+        angular.forEach(object.form.data.attributes, function(attribute, key) {
+          parseObject.set(key, attribute);
+        });
+
+        angular.forEach(object.schema.relationships, function(relationship, key) {
+          if (relationship.type === 'hasOne'
+            && object.form.data.relationships[key].data !== null
+            && object.form.data.relationships[key].data !== undefined
+          ) {
+            var table = pluralize(key, 1).charAt(0).toUpperCase() + pluralize(key, 1).slice(1);
+            var parsePointer = new (Parse.Object.extend(table))();
+            parsePointer.set('id', object.form.data.relationships[key].data.id);
+            parseObject.set(key, parsePointer);
+          }
+        });
+
+        return parseObject;
+      }
+
+      function fromParseObject(object) {
+        var relationships = _this.synchronizer.resource.schema.relationships;
+        object.type = _this.type;
+        object.relationships = object.relationships || [];
+        angular.forEach(relationships, function(relationship, key) {
+          if (object.attributes[key] && relationship.type === 'hasOne') {
+            object.relationships[key] = {
+              data: {
+                type: relationship.model,
+                id: object.attributes[key].id
+              }
+            };
+          }
+        });
+
+        return object;
+      }
+
+      function resolveParse(response) {
+        if (angular.isArray(response)) {
+          angular.forEach(response, function(elem, key) {
+            response[key] = fromParseObject(elem);
+          });
+        } else if (angular.isObject(response)) {
+          response = fromParseObject(response);
+        }
+
+        return $q.resolve({
+          data: response
+        });
+      }
+
+      function rejectParse(action, response) {
+        $log.error('Parse error for', action, response);
+        return $q.reject(response);
+      }
+    }
+
+    function initialize(appId, jsKey) {
+      Parse.initialize(appId, jsKey);
+    }
+  }
+  AngularJsonAPISourceParseWrapper.$inject = ["AngularJsonAPIModelSourceError", "AngularJsonAPISourcePrototype", "AngularJsonAPIModelLinkerService", "pluralize", "Parse", "$log", "$q"];
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi-parse')
+  .config(provide);
+
+  function provide($provide) {
+    $provide.decorator('$jsonapi', decorator);
+  }
+  provide.$inject = ["$provide"];
+
+  function decorator($delegate, AngularJsonAPISourceParse) {
+    var $jsonapi = $delegate;
+
+    $jsonapi.sourceLocal = AngularJsonAPISourceParse;
+
+    return $jsonapi;
+  }
+  decorator.$inject = ["$delegate", "AngularJsonAPISourceParse"];
 })();
 
 (function() {
@@ -797,7 +964,11 @@
 
       reflectionSchema = target.schema.relationships[reflectionKey];
 
-      if (reflectionSchema.type === 'hasOne') {
+      if (reflectionSchema === undefined) {
+        $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+        $log.error('For one side relationships set schema.reflection to false');
+        return [];
+      } else if (reflectionSchema.type === 'hasOne') {
         return __swapResults(
           __wrapResults(object, key, target),
           __wrapResults(target, reflectionKey, object),
@@ -819,28 +990,41 @@
 
       __addHasOne(object, key, target, form);
 
+      if (reflectionKey === false) {
+        return [];
+      }
+
       if (oldReflection !== undefined && oldReflection !== null) {
         oldReflectionSchema = oldReflection.schema.relationships[reflectionKey];
 
-        if (oldReflectionSchema.type === 'hasOne') {
-          __removeHasOne(oldReflection, reflectionKey, object, form);
-        } else if (oldReflectionSchema.type === 'hasMany') {
-          __removeHasMany(oldReflection, reflectionKey, object, form);
-        }
+        if (oldReflectionSchema !== undefined) {
+          if (oldReflectionSchema.type === 'hasOne') {
+            __removeHasOne(oldReflection, reflectionKey, object, form);
+          } else if (oldReflectionSchema.type === 'hasMany') {
+            __removeHasMany(oldReflection, reflectionKey, object, form);
+          }
 
-        result.push(__wrapResults(oldReflection, reflectionKey, object));
+          result.push(__wrapResults(oldReflection, reflectionKey, object));
+        } else {
+          $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+          $log.error('For one side relationships set schema.reflection to false');
+        }
       }
 
       if (target !== undefined && target !== null && reflectionKey !== false) {
         reflectionSchema = target.schema.relationships[reflectionKey];
+        if (reflectionSchema !== undefined) {
+          if (reflectionSchema.type === 'hasOne') {
+            __addHasOne(target, reflectionKey, object, form);
+          } else if (reflectionSchema.type === 'hasMany') {
+            __addHasMany(target, reflectionKey, object, form);
+          }
 
-        if (reflectionSchema.type === 'hasOne') {
-          __addHasOne(target, reflectionKey, object, form);
-        } else if (reflectionSchema.type === 'hasMany') {
-          __addHasMany(target, reflectionKey, object, form);
+          result.push(__wrapResults(target, reflectionKey, object));
+        } else {
+          $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+          $log.error('For one side relationships set schema.reflection to false');
         }
-
-        result.push(__wrapResults(target, reflectionKey, object));
       }
 
       return result;
@@ -863,10 +1047,16 @@
 
       reflectionSchema = target.schema.relationships[reflectionKey];
 
-      if (reflectionSchema.type === 'hasOne') {
-        __removeHasOne(target, reflectionKey, object, form);
-      } else if (reflectionSchema.type === 'hasMany') {
-        __removeHasMany(target, reflectionKey, object, form);
+      if (reflectionSchema !== undefined) {
+        if (reflectionSchema.type === 'hasOne') {
+          __removeHasOne(target, reflectionKey, object, form);
+        } else if (reflectionSchema.type === 'hasMany') {
+          __removeHasMany(target, reflectionKey, object, form);
+        }
+      } else {
+        $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+        $log.error('For one side relationships set schema.reflection to false');
+        return [];
       }
 
       return [__wrapResults(target, reflectionKey, object)];
@@ -1971,7 +2161,6 @@
 
     function ValidationError(message, attribute) {
       var _this = this;
-      Error.captureStackTrace(_this, _this.constructor);
 
       _this.message = message;
       _this.context = {
@@ -2002,7 +2191,6 @@
 
     function SourceError(message, source, code, action) {
       var _this = this;
-      Error.captureStackTrace(_this, _this.constructor);
 
       _this.message = message;
       _this.context = {
@@ -2998,6 +3186,7 @@
 
         _this.updatedAt = Date.now();
         _this.synchronized = true;
+        _this.pristine = false;
 
         _this.resource.cache.setIndexIds(_this.data);
         response.finish();

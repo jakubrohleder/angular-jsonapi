@@ -1,13 +1,14 @@
 {
   "name": "angular-jsonapi",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.7",
   "main": "dist/angular-jsonapi.js",
   "dependencies": {
     "angular": "1.4.x",
     "angular-uuid4": "~0.3.0",
     "moment": "~2.10.6",
     "pluralize": "~1.1.5",
-    "validate": "~0.8.0"
+    "validate": "~0.9.0",
+    "parse": "~1.6.7"
   },
   "ignore": [
     "demo/",

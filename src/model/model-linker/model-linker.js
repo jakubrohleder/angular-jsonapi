@@ -145,7 +145,11 @@
 
       reflectionSchema = target.schema.relationships[reflectionKey];
 
-      if (reflectionSchema.type === 'hasOne') {
+      if (reflectionSchema === undefined) {
+        $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+        $log.error('For one side relationships set schema.reflection to false');
+        return [];
+      } else if (reflectionSchema.type === 'hasOne') {
         return __swapResults(
           __wrapResults(object, key, target),
           __wrapResults(target, reflectionKey, object),
@@ -167,28 +171,41 @@
 
       __addHasOne(object, key, target, form);
 
+      if (reflectionKey === false) {
+        return [];
+      }
+
       if (oldReflection !== undefined && oldReflection !== null) {
         oldReflectionSchema = oldReflection.schema.relationships[reflectionKey];
 
-        if (oldReflectionSchema.type === 'hasOne') {
-          __removeHasOne(oldReflection, reflectionKey, object, form);
-        } else if (oldReflectionSchema.type === 'hasMany') {
-          __removeHasMany(oldReflection, reflectionKey, object, form);
-        }
+        if (oldReflectionSchema !== undefined) {
+          if (oldReflectionSchema.type === 'hasOne') {
+            __removeHasOne(oldReflection, reflectionKey, object, form);
+          } else if (oldReflectionSchema.type === 'hasMany') {
+            __removeHasMany(oldReflection, reflectionKey, object, form);
+          }
 
-        result.push(__wrapResults(oldReflection, reflectionKey, object));
+          result.push(__wrapResults(oldReflection, reflectionKey, object));
+        } else {
+          $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+          $log.error('For one side relationships set schema.reflection to false');
+        }
       }
 
       if (target !== undefined && target !== null && reflectionKey !== false) {
         reflectionSchema = target.schema.relationships[reflectionKey];
+        if (reflectionSchema !== undefined) {
+          if (reflectionSchema.type === 'hasOne') {
+            __addHasOne(target, reflectionKey, object, form);
+          } else if (reflectionSchema.type === 'hasMany') {
+            __addHasMany(target, reflectionKey, object, form);
+          }
 
-        if (reflectionSchema.type === 'hasOne') {
-          __addHasOne(target, reflectionKey, object, form);
-        } else if (reflectionSchema.type === 'hasMany') {
-          __addHasMany(target, reflectionKey, object, form);
+          result.push(__wrapResults(target, reflectionKey, object));
+        } else {
+          $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+          $log.error('For one side relationships set schema.reflection to false');
         }
-
-        result.push(__wrapResults(target, reflectionKey, object));
       }
 
       return result;
@@ -211,10 +228,16 @@
 
       reflectionSchema = target.schema.relationships[reflectionKey];
 
-      if (reflectionSchema.type === 'hasOne') {
-        __removeHasOne(target, reflectionKey, object, form);
-      } else if (reflectionSchema.type === 'hasMany') {
-        __removeHasMany(target, reflectionKey, object, form);
+      if (reflectionSchema !== undefined) {
+        if (reflectionSchema.type === 'hasOne') {
+          __removeHasOne(target, reflectionKey, object, form);
+        } else if (reflectionSchema.type === 'hasMany') {
+          __removeHasMany(target, reflectionKey, object, form);
+        }
+      } else {
+        $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+        $log.error('For one side relationships set schema.reflection to false');
+        return [];
       }
 
       return [__wrapResults(target, reflectionKey, object)];

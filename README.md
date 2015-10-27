@@ -2,19 +2,19 @@
 
 [![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)
 
-## Use with caution it's only 1.0.0-alpha.6
+## Use with caution it's only 1.0.0-alpha.7
 
 *This module is still in a WIP state, many things work fine but it lacks tests and API may change, also documentation can not reflect the real state*
 
 *To see all of the features in action run and study the demo.*
 
-Simple and lightweight, yet powerfull ORM for your frontend that seamlessly integrates with your JsonAPI server.
+Simple and lightweight, yet powerful ORM for your frontend that seamlessly integrates with your JsonAPI server.
 
 # [Live demo](http://jakubrohleder.github.io/angular-jsonapi)
 
 This module provides the following features:
 
-* Converting JsonApi resonses into data objects
+* Converting JsonApi responses into data objects
 * Creating new objects
 * Removing existing objects
 * Synchronizing objects with multiple sources (currently local-store and RESTApi)
@@ -40,6 +40,8 @@ The future development plan involves:
   - [Schema](#schema)
   - [Synchronizers](#synchronizers)
   - [Sources](#sources)
+  - [Encoding params](#encoding-params)
+  - [Decoding params](#decoding-params)
   - [Wrap up](#wrap-up)
 - [API](#api)
   - [`$jsonapi`](#jsonapi)
@@ -54,6 +56,7 @@ The future development plan involves:
   - [1.0.0-alpha.4 (done)](#100-alpha4-done)
   - [1.0.0-alpha.5 (done)](#100-alpha5-done)
   - [1.0.0-alpha.6 (done)](#100-alpha6-done)
+  - [1.0.0-alpha.7 (done)](#100-alpha7-done)
   - [1.0.0-alpha.*](#100-alpha)
   - [1.0.0-beta.1](#100-beta1)
   - [1.0.0-beta.2](#100-beta2)
@@ -96,20 +99,21 @@ gulp serve
 bower install angular-jsonapi --save
 ~~~
 
-* Include `angular-jsonapi` and sources modules (`angular-jsonapi-rest`, `angular-jsonapi-local`) in your module's dependencies:
+* Include `angular-jsonapi` and sources modules (available: `angular-jsonapi-rest`, `angular-jsonapi-local`, `angular-jsonapi-parse`) in your module's dependencies:
 
 ~~~javascript
 // in your js app's module definition
 angular.module('myApp', [
   'angular-jsonapi',
   'angular-jsonapi-rest',
-  'angular-jsonapi-local'
+  'angular-jsonapi-local',
+  'angular-jsonapi-parse'
 ]);
 ~~~
 
 # Configuration
 
-Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any confiuration options. All the configuration shoud be made in the `run` phase using `$jsonapi`. The only option as the moment is `$jsonapi.addResource`, it takes two arguments: [schema](#schema) and [synchronizer](#synchronizers).
+Although `$jsonapiProvider` is injected during app configuration phase currently it does not have any configuration options. All the configuration should be made in the `run` phase using `$jsonapi`. The only option as the moment is `$jsonapi.addResource`, it takes two arguments: [schema](#schema) and [synchronizer](#synchronizers).
 
 ## Schema
 
@@ -118,7 +122,7 @@ First step is to provide data schema, that is used later on to create objects, v
 | field | description |
 |---|---|
 | **type** | Type of an object must be the same as the one in the JSON API response. Should be in plural. |
-| **id** | Type of id field, supported types are: `'uuid4'`, `'int'`, `'string'` and custom, any other type defaults to `'string'`. Custom id type should be an object with two methods: `validate(id)` and `generate()`. If ids cannot be generated in the front you can ommit `generate()`. |
+| **id** | Type of id field, supported types are: `'uuid4'`, `'int'`, `'string'` and custom, any other type defaults to `'string'`. Custom id type should be an object with two methods: `validate(id)` and `generate()`. If ids cannot be generated in the front you can omit `generate()`. |
 | **attributes** | Object with the model attributes names as keys and [validation constraints](#validators) as values. |
 | **relationships** | Object with the model relationships names as keys and [relationship schema](#relationship-schema) as values. |
 | **include** | Object with extra values that should be included in the `get` or `all` request. |
@@ -143,7 +147,7 @@ var novelsSchema = {
     characters: {
       included: true,
       type: 'hasMany',
-      reflection: 'apearences'
+      reflection: 'appearances'
     }
   },
   include: {
@@ -187,7 +191,7 @@ You can also write your own validator, for more information read [Custom Validat
 
 #### Custom validators
 
-If you need more complex validation method, you can use your own function as a validator. As whole validator module it utilies `validate.js` library.
+If you need more complex validation method, you can use your own function as a validator. As whole validator module it utilizes `validate.js` library.
 
 ##### Normal
 
@@ -238,12 +242,12 @@ For more information read [http://validatejs.org/#custom-validator-async](http:/
 
 ### Relationship schema
 
-Each relationship is decribed by separate schema with following properties:
+Each relationship is described by separate schema with following properties:
 
 | property | default value | description |
 |---|---|---|
 | `type ` | **required**  | Type of the relationship, either `hasMany` or `hasOne`. |
-| `model` | pluralized raltionship name  | Type of the model that this relationship can be linked to, not checked if `polymorphic` is set `true`. |
+| `model` | pluralized relationship name  | Type of the model that this relationship can be linked to, not checked if `polymorphic` is set `true`. |
 | `polymorphic ` | `false`  | Can the relationship link to objects with different type? |
 | `reflection ` | object type  | Name of the inversed relationship in the related object. If set to `false` the relationship will not update inversed relationship in the related object. |
 | `included ` | `true` for `hasOne`, `false` for `hasMany`  | Should the related resource be returned in the `GET` request as well. **Does not affect `ALL` requests!** If you want to extra resources to be returned with `ALL` request use [include schema](#include-schema).  |
@@ -276,20 +280,20 @@ Accept: application/vnd.api+json
 
 ### Custom functions schema
 
-Custom functions schema is nothing more they just simple object with function names as keys and functions as a value. All of the functions will be runned with an object instance binded to `this` and no arguments.
+Custom functions schema is nothing more than just a simple object with function names as keys and functions as a value. All of the functions will be ran with an object instance bound to `this` and no arguments.
 
-Custom functions are extremly helpfull if you need to inject some methods common for the object type into its prototype.
+Custom functions are extremely helpful if you need to inject some methods common for the object type into its prototype.
 
 ## Synchronizers
 
 Synchronizers are object that keep sources work together by running hooks in the right order, as well as creating the final data that is used to update object.
 
-In most cases `AngularJsonAPISynchronizerSimple` is enought. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
+In most cases `$jsonapi.synchronizerSimple` is enough. But if for example, you synchronize data with two REST sources at the same time and have to figure out which of the responses is up-to-date, you should write your own synchronizer.
 
-`AngularJsonAPISynchronizerSimple` constructor takes one argument - array of [sources] (#sources).
+`$jsonapi.synchronizerSimple` constructor takes one argument - array of [sources] (#sources).
 
 ~~~javascript
-    var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([
+    var novelsSynchronizer = $jsonapi.synchronizerSimple.create([
       localeSource, restSource
     ]);
 ~~~
@@ -302,9 +306,9 @@ todo
 
 Sources places to store and fetch data. At the moment two sources types are supported:
 
-### AngularJsonAPISourceLocal
+### SourceLocal
 
-Saves data in the local store and loads them each time you visit the site, in this way your users can access data immidiately even if they are offline. All the data are cleared when the users logs out.
+Saves data in the local store and loads them each time you visit the site, in this way your users can access data immediately even if they are offline. All the data are cleared when the users logs out.
 
 Date is saved each time it changes and loaded during initialization of the module.
 
@@ -313,21 +317,60 @@ To use this source you must include `angular-jsonapi-local` in your module depen
 Source constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
 
 ~~~javascript
-var localeSynchro = AngularJsonAPISourceLocal.create('AngularJsonAPI');
+var localSynchro = $jsonapi.sourceLocal.create('Local synchro', 'AngularJsonAPI');
 
 ~~~
 
-### AngularJsonAPISourceRest
+**Keep in mind that the localStorage size is limited to approx. 5MB on most devices. Exceeding this limit can cause unpredicted results.**
 
-Is a simple synchronizator with the RESTAPI supporting JSON API format. It performs following operations:
-`remove`, `unlink`, `link`, `update`, `add`, `all`, `get`. Everytime the data changes the suitable request is made to keep your data synchronized.
+### SourceRest
+
+Is a simple source with the RESTAPI supporting JSON API format. It performs following operations:
+`remove`, `unlink`, `link`, `update`, `add`, `all`, `get`. Every time the data changes the suitable request is made to keep your data synchronized.
 
 To use this source you must include `angular-jsonapi-rest` in your module dependencies.
 
 Source constructor takes 2 arguments: `name` and `url` of the resource, there is no default value.
 
 ~~~javascript
-var novelsSynchro = AngularJsonAPISourceRest.create('localhost:3000/novels');
+var restSynchro = $jsonapi.sourceRest.create('Rest synchro', 'localhost:3000/novels');
+
+~~~
+
+## Encoding params
+
+`$jsonapi.sourceRest.encodeParams(params)`
+
+Encodes params object into `jsonapi` url params schema. Returned object can be then sent as `params` attribute of `$http` request configuration object.
+
+## Decoding params
+
+`$jsonapi.sourceRest.decodeParams(params)`
+
+Decodes params from `jsonapi` url schema (e.g. obtained by `$location.search()).
+
+### SourceParse
+
+**alpha stage, not all options are supported**
+
+If you like the way object are managed by this package, but still you want to use awesome Parse.com API possibilities I got something for you!
+
+SourceParse maps [parse.com](https://parse.com) js sdk to angular-jsonapi schema. It performs following operations:
+`remove`, `update`, `add`, `all`, `get`. Every time the data changes the suitable request is made to keep your data synchronized.
+
+`unlink`, `link` operations for hasOne relationship can be made by setting appropriate key to the linked object Id. HasMany relationships are not supported yet.
+
+To use this source you must include `angular-jsonapi-parse` in your module dependencies.
+
+Source constructor takes 2 arguments: `name`, `table` there is no default value. `table` is a name of the mapped object table in [parse.com](https://parse.com) API (usually starts with the capital letter and is singular)
+
+**If you do not use [parse.com](https://parse.com) sdk in other project parts, you have to initialize the source first by calling `parseSynchro.initialize(appId, jsKey)`**
+
+~~~javascript
+var parseSynchro = $jsonapi.sourceParse.create('Parse synchro', 'Novel');
+
+//Only if you do not call Parse.initialize somewhere else
+parseSource.initialize('JZjOE9MApKqihwZhtOuxs6YkGpXLshUiat63fiCq', '96GQW1YD1J1nG7jesEkA9e9y2ngguzhiXJXYoO2E');
 
 ~~~
 
@@ -337,7 +380,7 @@ todo
 
 ## Wrap up
 
-After performing `$jsonapi.addResource(schema, synchronizer);` the resource is accesible by `$jsonapi.getResource(type);`. The easiest way to use it is to create `angular.factory` for each model and then inject it to your controllers.
+After performing `$jsonapi.addResource(schema, synchronizer);` the resource is accessible by `$jsonapi.getResource(type);`. The easiest way to use it is to create `angular.factory` for each model and then inject it to your controllers.
 
 All in all configuration of the factory for novels can look like this:
 
@@ -348,10 +391,7 @@ All in all configuration of the factory for novels can look like this:
   angular.module('angularJsonapiExample')
 
   .run(function(
-    $jsonapi,
-    AngularJsonAPISourceLocal,
-    AngularJsonAPISourceRest,
-    AngularJsonAPISynchronizerSimple
+    $jsonapi
   ) {
     var novelsSchema = {
       type: 'novels',
@@ -369,9 +409,9 @@ All in all configuration of the factory for novels can look like this:
       }
     };
 
-    var localeSource = AngularJsonAPISourceLocal.create('LocalStore source', 'AngularJsonAPI');
-    var restSource = AngularJsonAPISourceRest.create('Rest source', '/novels');
-    var novelsSynchronizer = AngularJsonAPISynchronizerSimple.create([localeSource, restSource]);
+    var localeSource = $jsonapi.sourceLocal.create('LocalStore source', 'AngularJsonAPI');
+    var restSource = $jsonapi.sourceRest.create('Rest source', '/novels');
+    var novelsSynchronizer = $jsonapi.synchronizerSimple.create([localeSource, restSource]);
 
     $jsonapi.addResource(novelsSchema, novelsSynchronizer);
   })
@@ -389,7 +429,7 @@ All in all configuration of the factory for novels can look like this:
 
 ## `$jsonapi`
 
-`$jsonapi` as the main factory of the package  has few methods that will help you with creating and managing resources.
+`$jsonapi` as the main factory of the package has few methods that will help you with creating and managing resources.
 
 ### Adding resource
 
@@ -401,7 +441,7 @@ You can read about the method at [configuration section](#configuration).
 
 `$jsonapi.getResource(type)`
 
-Returns a resource with the given `type`. If no resource with `type` has beed added before returns `undefined`.
+Returns a resource with the given `type`. If no resource with `type` has been added before returns `undefined`.
 
 ### All resources
 
@@ -429,13 +469,13 @@ Adds validator to validates object schema. [Read more](#custom-validators)
 
 ## Resource
 
-After configuration phase resources are the main object your application will oparete with. They represent one class of objects (e.g. Users or Comments). They are cappable of most operation that you expect REST API to perform.
+After configuration phase resources are the main object your application will operate with. They represent one class of objects (e.g. Users or Comments). They are capable of most operation that you expect REST API to perform.
 
 ### Properties
 
 Each resource let you access following attributes:
 
-* **initialized** - states the resource has been already initialized. Usable if `init` synchronization of resource is asynchronouse. Read more (todo)
+* **initialized** - states the resource has been already initialized. Usable if `init` synchronization of resource is asynchronous. Read more (todo)
 * **type** - type of the resource
 * **schema** - resource schema
 
@@ -455,7 +495,7 @@ Params may be be an object that can contain keys:
 
 Include key supported explicitly, but other keys will also be passed to the synchronization.
 
-**If params are ommited `undefined` default params (taken from schema) are used.**
+**If params are omitted `undefined` default params (taken from schema) are used.**
 
 ### All objects
 
@@ -468,11 +508,12 @@ All object can be accessed by resource using `resource.all(params)`. It returns 
 Params must be an object that can contain keys:
 
 * **include** - string with comma delimited relationships that will override schema settings.
-* **filter** - object with `attribute: value` values. Filters are used as 'exact match' (only objects with `attribute` value same as `value` are returned).
+* **filter** - object with `attribute: value` values. Filters are used as 'exact match' (only objects with `attribute` value same as `value` are returned). `value` can also be an array, then only objects with same `attribute` value as one of `values` array elements are returned.
+* **limit** - sets quota limit for [parse.com source](#SourceParse).
 
 Those two keys are supported explicitly, but other keys will also be passed to the synchronization.
 
-**If params are ommited `undefined` default params (taken from schema) are used.**
+**If params are omitted `undefined` default params (taken from schema) are used.**
 
 ### Removing object
 
@@ -504,7 +545,7 @@ Collection is a bucket of objects it is returned by `all` method of Resource. Ea
 * **type** - type of the collection objects
 * **params** - params of the collection (filters, includes)
 * **errors** - errors of the collection [(read more)](#errors)
-* **data** - arrays of objects holded by collection
+* **data** - arrays of objects held by a collection
 * **loading** - boolean marking if collection is loading
 * **loadingCount** - number of different synchronizations that are loading the collection
 * **pristine** - marks if collection hasn't been loaded from cache (it is being loaded for the first time)
@@ -538,10 +579,10 @@ Object is a final wrapper for data returned by your API. All of the asynchronous
 ### Properties
 
 * **new** - marks if the object is new (has just been initialized)
-* **stable** - marks if the object is surely present on the server (at least one synchronization has been succesfuly resolved during this session)
-* **synchronized** - marks if the object is synchrinized with server (at least one `get`, `add` or `update` synchronization has been succesfuly resolved during this session)
+* **stable** - marks if the object is surely present on the server (at least one synchronization has been successfully resolved during this session)
+* **synchronized** - marks if the object is synchronized with server (at least one `get`, `add` or `update` synchronization has been successfully resolved during this session)
 * **pristine** - marks if the resource has just been requested and is not present in the memory, nor localstore
-* **removed** - marks if the object has been removed. Removed object are also (after succesful synchronization) cleared from collections, but you can use this just in case.
+* **removed** - marks if the object has been removed. Removed object are also (after successful synchronization) cleared from collections, but you can use this just in case.
 * **loading** - marks if the object has some loading synchronizations ongoing
 * **saving** - marks if the object has some saving synchronizations ongoing
 * **updatedAt** -timestamp of last synchronization that updated the object
@@ -570,7 +611,7 @@ Object form is similar to the object itself and it should be used to update its 
 
 It validates form and returns promise that is either resolved or rejected, depending on the outcome of the validation. If `attributeKey` is not specified all attributes are validated.
 
-You don't need to run `validate` before `save` as it is runned automaticly.
+You don't need to run `validate` before `save` as it is automatically ran.
 
 #### Saving object
 
@@ -578,7 +619,7 @@ You don't need to run `validate` before `save` as it is runned automaticly.
 
 Saves objects: validates the form, synchronizes new values with synchronizations and finally updates the actual object attributes.
 
-#### Reseting object form
+#### Resetting object form
 
 `object.reset()` or `object.form.reset()`
 
@@ -586,7 +627,7 @@ Resets form to the values of the object attributes.
 
 ### Object relationships
 
-Getting an managing object relationships with ease was the primary motivation to create this package. each object has `object.relationships` proparty that is a key-value store of its relationships. Each relationship can be retrived by `object.relationships[key]` the return value depends on the relationship type:
+Getting an managing object relationships with ease was the primary motivation to create this package. each object has `object.relationships` property that is a key-value store of its relationships. Each relationship can be retrieved by `object.relationships[key]` the return value depends on the relationship type:
 
 * `hasOne`
     * `undefined` - if object relationships hasn't been fetched from the server yet
@@ -614,7 +655,7 @@ If you do not want to make relationship affect the target form you can set oneWa
 
 `object.link(key, target)`
 
-Object relationship with `key` gets linked to the target. New relationship state is synchronized immidiately with `link` synchronization.
+Object relationship with `key` gets linked to the target. New relationship state is synchronized immediately with `link` synchronization.
 
 #### Unlinking object relationship through form
 
@@ -628,7 +669,7 @@ If you do not want to make unlinked relationship affect the target form you can 
 
 `object.unlink(key, target)`
 
-Object relationship with `key` gets unlinked from the target. New relationship state is synchronized immidiately with `unlink` synchronization.
+Object relationship with `key` gets unlinked from the target. New relationship state is synchronized immediately with `unlink` synchronization.
 
 ### Refreshing object
 
@@ -640,7 +681,7 @@ Refreshes object using [same params as get](#getting-object).
 
 `object.hasErrors()`
 
-Returns true or false wether object has errors or not, they can be handled as any other error. [Read more](#errors)
+Returns true or false whether object has errors or not, they can be handled as any other error. [Read more](#errors)
 
 ### Serializing object
 
@@ -716,10 +757,15 @@ Adds each error to `errorsObject.errors[key]`.
 ## 1.0.0-alpha.6 (done)
 * [x] Fix bugs introduced by previous version
 
+## 1.0.0-alpha.7 (done)
+* [x] fix for one side relationships
+* [x] fix for collection.pristine
+* [x] Parse.com source alpha
+
 ## 1.0.0-alpha.*
+* [ ] Parse.com source full support
 * [ ] I18n support (medium)
 * [ ] File source
-* [ ] Parse.com source
 * [ ] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
 * [ ] readonly attributes (can't be changed)
@@ -735,7 +781,7 @@ Adds each error to `errorsObject.errors[key]`.
 * [ ] features/improvements from the survey
 
 ## 1.0.0
-* [ ] finall bug fixes and improvements
+* [ ] final bug fixes and improvements
 * [ ] even more unit tests
 * [ ] performance / memory leaks tests
 
