@@ -353,9 +353,9 @@ Decodes params from `jsonapi` url schema (e.g. obtained by `$location.search()).
 
 **alpha stage, not all options are supported**
 
-If you like the way object are managed by this package, but still you want to use awesome Parse.com API possibilities I got something for you!
+If you like the way object are managed by this package, but still want to use awesome Parse.com API possibilities, I got something for you!
 
-SourceParse maps [parse.com](https://parse.com) js sdk to angular-jsonapi schema. It performs following operations:
+SourceParse maps [parse.com](https://parse.com) JS SDK to angular-jsonapi schema. It performs following operations:
 `remove`, `update`, `add`, `all`, `get`. Every time the data changes the suitable request is made to keep your data synchronized.
 
 `unlink`, `link` operations for hasOne relationship can be made by setting appropriate key to the linked object Id. HasMany relationships are not supported yet.
