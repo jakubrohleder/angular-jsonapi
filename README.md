@@ -99,14 +99,15 @@ gulp serve
 bower install angular-jsonapi --save
 ~~~
 
-* Include `angular-jsonapi` and sources modules (`angular-jsonapi-rest`, `angular-jsonapi-local`) in your module's dependencies:
+* Include `angular-jsonapi` and sources modules (available: `angular-jsonapi-rest`, `angular-jsonapi-local`, `angular-jsonapi-parse`) in your module's dependencies:
 
 ~~~javascript
 // in your js app's module definition
 angular.module('myApp', [
   'angular-jsonapi',
   'angular-jsonapi-rest',
-  'angular-jsonapi-local'
+  'angular-jsonapi-local',
+  'angular-jsonapi-parse'
 ]);
 ~~~
 
@@ -316,7 +317,7 @@ To use this source you must include `angular-jsonapi-local` in your module depen
 Source constructor takes one argument - prefix for local store objects, default value is `AngularJsonAPI`.
 
 ~~~javascript
-var localeSynchro = $jsonapi.sourceLocal.create('AngularJsonAPI');
+var localSynchro = $jsonapi.sourceLocal.create('Local synchro', 'AngularJsonAPI');
 
 ~~~
 
@@ -324,7 +325,7 @@ var localeSynchro = $jsonapi.sourceLocal.create('AngularJsonAPI');
 
 ### SourceRest
 
-Is a simple synchronizer with the RESTAPI supporting JSON API format. It performs following operations:
+Is a simple source with the RESTAPI supporting JSON API format. It performs following operations:
 `remove`, `unlink`, `link`, `update`, `add`, `all`, `get`. Every time the data changes the suitable request is made to keep your data synchronized.
 
 To use this source you must include `angular-jsonapi-rest` in your module dependencies.
@@ -332,7 +333,7 @@ To use this source you must include `angular-jsonapi-rest` in your module depend
 Source constructor takes 2 arguments: `name` and `url` of the resource, there is no default value.
 
 ~~~javascript
-var novelsSynchro = $jsonapi.sourceRest.create('localhost:3000/novels');
+var restSynchro = $jsonapi.sourceRest.create('Rest synchro', 'localhost:3000/novels');
 
 ~~~
 
@@ -347,6 +348,31 @@ Encodes params object into `jsonapi` url params schema. Returned object can be t
 `$jsonapi.sourceRest.decodeParams(params)`
 
 Decodes params from `jsonapi` url schema (e.g. obtained by `$location.search()).
+
+### SourceParse
+
+**alpha stage, not all options are supported**
+
+If you like the way object are managed by this package, but still you want to use awesome Parse.com API possibilities I got something for you!
+
+SourceParse maps [parse.com](https://parse.com) js sdk to angular-jsonapi schema. It performs following operations:
+`remove`, `update`, `add`, `all`, `get`. Every time the data changes the suitable request is made to keep your data synchronized.
+
+`unlink`, `link` operations for hasOne relationship can be made by setting appropriate key to the linked object Id. HasMany relationships are not supported yet.
+
+To use this source you must include `angular-jsonapi-parse` in your module dependencies.
+
+Source constructor takes 2 arguments: `name`, `table` there is no default value. `table` is a name of the mapped object table in [parse.com](https://parse.com) API (usually starts with the capital letter and is singular)
+
+**If you do not use [parse.com](https://parse.com) sdk in other project parts, you have to initialize the source first by calling `parseSynchro.initialize(appId, jsKey)`**
+
+~~~javascript
+var parseSynchro = $jsonapi.sourceParse.create('Parse synchro', 'Novel');
+
+//Only if you do not call Parse.initialize somewhere else
+parseSource.initialize('JZjOE9MApKqihwZhtOuxs6YkGpXLshUiat63fiCq', '96GQW1YD1J1nG7jesEkA9e9y2ngguzhiXJXYoO2E');
+
+~~~
 
 ### Custom Sources
 
@@ -483,6 +509,7 @@ Params must be an object that can contain keys:
 
 * **include** - string with comma delimited relationships that will override schema settings.
 * **filter** - object with `attribute: value` values. Filters are used as 'exact match' (only objects with `attribute` value same as `value` are returned). `value` can also be an array, then only objects with same `attribute` value as one of `values` array elements are returned.
+* **limit** - sets quota limit for [parse.com source](#SourceParse).
 
 Those two keys are supported explicitly, but other keys will also be passed to the synchronization.
 
@@ -733,11 +760,12 @@ Adds each error to `errorsObject.errors[key]`.
 ## 1.0.0-alpha.7 (in progress)
 * [x] fix for one side relationships
 * [x] fix for collection.pristine
+* [x] Parse.com source alpha
 
 ## 1.0.0-alpha.*
+* [ ] Parse.com source full support
 * [ ] I18n support (medium)
 * [ ] File source
-* [ ] Parse.com source
 * [ ] Add objects for hasMany/hasOne relationship (medium)
 * [ ] Protect object attributes from being edited explicitly (without form -> save) (medium)
 * [ ] readonly attributes (can't be changed)
