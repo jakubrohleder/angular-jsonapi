@@ -56,6 +56,7 @@ The future development plan involves:
   - [1.0.0-alpha.4 (done)](#100-alpha4-done)
   - [1.0.0-alpha.5 (done)](#100-alpha5-done)
   - [1.0.0-alpha.6 (done)](#100-alpha6-done)
+  - [1.0.0-alpha.7 (in progress)](#100-alpha7-in-progress)
   - [1.0.0-alpha.*](#100-alpha)
   - [1.0.0-beta.1](#100-beta1)
   - [1.0.0-beta.2](#100-beta2)
@@ -318,6 +319,8 @@ Source constructor takes one argument - prefix for local store objects, default 
 var localeSynchro = $jsonapi.sourceLocal.create('AngularJsonAPI');
 
 ~~~
+
+**Keep in mind that the localStorage size is limited to approx. 5MB on most devices. Exceeding this limit can cause unpredicted results.**
 
 ### SourceRest
 
@@ -726,6 +729,10 @@ Adds each error to `errorsObject.errors[key]`.
 
 ## 1.0.0-alpha.6 (done)
 * [x] Fix bugs introduced by previous version
+
+## 1.0.0-alpha.7 (in progress)
+* [x] fix for one side relationships
+* [x] fix for collection.pristine
 
 ## 1.0.0-alpha.*
 * [ ] I18n support (medium)
