@@ -797,8 +797,9 @@
       reflectionSchema = target.schema.relationships[reflectionKey];
 
       if (reflectionSchema === undefined) {
-        __addHasMany(object, key, target, form);
-        return [__wrapResults(target, reflectionKey, object)];
+        $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+        $log.error('For one side relationships set schema.reflection to false');
+        return [];
       } else if (reflectionSchema.type === 'hasOne') {
         return __swapResults(
           __wrapResults(object, key, target),
@@ -821,6 +822,10 @@
 
       __addHasOne(object, key, target, form);
 
+      if (reflectionKey === false) {
+        return [];
+      }
+
       if (oldReflection !== undefined && oldReflection !== null) {
         oldReflectionSchema = oldReflection.schema.relationships[reflectionKey];
 
@@ -832,6 +837,9 @@
           }
 
           result.push(__wrapResults(oldReflection, reflectionKey, object));
+        } else {
+          $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+          $log.error('For one side relationships set schema.reflection to false');
         }
       }
 
@@ -845,6 +853,9 @@
           }
 
           result.push(__wrapResults(target, reflectionKey, object));
+        } else {
+          $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+          $log.error('For one side relationships set schema.reflection to false');
         }
       }
 
@@ -875,6 +886,8 @@
           __removeHasMany(target, reflectionKey, object, form);
         }
       } else {
+        $log.error('Cannot find reflection of', key, 'relationship for', object.data.type, 'in', target.data.type);
+        $log.error('For one side relationships set schema.reflection to false');
         return [];
       }
 
@@ -1963,36 +1976,6 @@
   'use strict';
 
   angular.module('angular-jsonapi')
-  .factory('AngularJsonAPIModelValidationError', AngularJsonAPIModelValidationErrorWrapper);
-
-  function AngularJsonAPIModelValidationErrorWrapper() {
-    ValidationError.prototype = Object.create(Error.prototype);
-    ValidationError.prototype.constructor = ValidationError;
-    ValidationError.prototype.name = 'ValidationError';
-
-    return {
-      create: ValidationErrorFactory
-    };
-
-    function ValidationErrorFactory(message, attribute) {
-      return new ValidationError(message, attribute);
-    }
-
-    function ValidationError(message, attribute) {
-      var _this = this;
-
-      _this.message = message;
-      _this.context = {
-        attribute: attribute
-      };
-    }
-  }
-})();
-
-(function() {
-  'use strict';
-
-  angular.module('angular-jsonapi')
   .factory('AngularJsonAPIModelSourceError', AngularJsonAPIModelSourceErrorWrapper);
 
   function AngularJsonAPIModelSourceErrorWrapper() {
@@ -2016,6 +1999,36 @@
         source: source,
         code: code,
         action: action
+      };
+    }
+  }
+})();
+
+(function() {
+  'use strict';
+
+  angular.module('angular-jsonapi')
+  .factory('AngularJsonAPIModelValidationError', AngularJsonAPIModelValidationErrorWrapper);
+
+  function AngularJsonAPIModelValidationErrorWrapper() {
+    ValidationError.prototype = Object.create(Error.prototype);
+    ValidationError.prototype.constructor = ValidationError;
+    ValidationError.prototype.name = 'ValidationError';
+
+    return {
+      create: ValidationErrorFactory
+    };
+
+    function ValidationErrorFactory(message, attribute) {
+      return new ValidationError(message, attribute);
+    }
+
+    function ValidationError(message, attribute) {
+      var _this = this;
+
+      _this.message = message;
+      _this.context = {
+        attribute: attribute
       };
     }
   }
