@@ -3018,6 +3018,7 @@
 
         _this.updatedAt = Date.now();
         _this.synchronized = true;
+        _this.pristine = false;
 
         _this.resource.cache.setIndexIds(_this.data);
         response.finish();
