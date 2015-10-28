@@ -2,6 +2,7 @@ languages:
    JavaScript: true
 exclude_paths:
 - "dist/*"
+- "dist-demo/*"
 - "demo/*"
 - "gulp/*"
 - "karma.conf.js"
