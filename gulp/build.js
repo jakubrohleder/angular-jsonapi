@@ -5,28 +5,37 @@ var gulp = require('gulp');
 var conf = require('./conf');
 
 var $ = require('gulp-load-plugins')({
-  pattern: ['gulp-*', 'main-bower-files', 'uglify-save-license', 'del']
+  pattern: ['gulp-*', 'main-bower-files', 'uglify-save-license', 'del', 'merge-stream']
 });
-
-gulp.task('build:lib', function() {
-  return gulp.src([
+function build(skipParse){
+  var srcs = [
     path.join(conf.paths.lib, '/**/*.js'),
     path.join('!' + conf.paths.lib, '/**/*.spec.js'),
     path.join('!' + conf.paths.lib, '/**/*.mock.js')
-  ])
+  ], parseFileName = skipParse ? '-without-parse' : '';
+  if(skipParse){
+      srcs.push(path.join('!' + conf.paths.lib, '/sources/parse/*'))
+  }
+
+  return gulp.src(srcs)
   .pipe($.sourcemaps.init())
   .pipe($.ngAnnotate())
   .pipe($.angularFilesort())
-  .pipe($.concat('angular-jsonapi.js'))
+  .pipe($.concat('angular-jsonapi' + parseFileName + '.js'))
   .pipe($.sourcemaps.write('./'))
   .pipe(gulp.dest(conf.paths.dist.lib + '/'))
-  .pipe($.filter('angular-jsonapi.js'))
-  .pipe($.rename('angular-jsonapi.min.js'))
+  .pipe($.filter('angular-jsonapi' + parseFileName + '.js'))
+  .pipe($.rename('angular-jsonapi' + parseFileName + '.min.js'))
 
   .pipe($.uglify({ preserveComments: $.uglifySaveLicense })).on('error', conf.errorHandler('Uglify'))
   .pipe($.sourcemaps.write('./'))
   .pipe(gulp.dest(conf.paths.dist.lib + '/'))
   .pipe($.size({ title: conf.paths.dist.lib + '/', showFiles: true }));
+}
+
+gulp.task('build:lib', function(){
+  console.log($, $.mergeStream);
+  return $.mergeStream(build(true), build(false))
 });
 
 gulp.task('partials', function() {
