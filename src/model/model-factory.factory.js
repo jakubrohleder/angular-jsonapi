@@ -17,7 +17,9 @@
     };
 
     function createModelFactory(schemaObj, resource) {
-      var constructorName = pluralize.plural(schemaObj.type, 1);
+      var constructorName = pluralize.plural(schemaObj.type, 1).replace(/(?:^|[-_])(\w)/g, function (_, c) {
+        return c ? c.toUpperCase () : '';
+      });
 
       var Model = namedFunction(constructorName, function(data, config, updatedAt) {
         var _this = this;
