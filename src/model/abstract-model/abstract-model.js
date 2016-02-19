@@ -145,7 +145,7 @@
 
         response.finish();
         _this.errors.synchronization.concat(response.errors);
-        deferred.resolve(response.data.meta);
+        deferred.resolve(_this);
       }
 
       function reject(response) {
