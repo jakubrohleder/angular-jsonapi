@@ -12,7 +12,14 @@
   },
   "ignore": [
     "demo/",
-    "demo-dist/"
+    "demo-dist/",
+    "gulp",
+    "src",
+    "**/.*",
+    "gulpfile.js",
+    "karma.conf.js",
+    "package.json",
+    "protractor.conf.js"
   ],
   "devDependencies": {
     "angular-recursion": "~1.0.5",
