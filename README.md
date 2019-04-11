@@ -1,3 +1,5 @@
+# ARCHIVED and no longer maintained
+
 # Angular JsonAPI
 
 [![Code Climate](https://codeclimate.com/github/jakubrohleder/angular-jsonapi/badges/gpa.svg)](https://codeclimate.com/github/jakubrohleder/angular-jsonapi)
