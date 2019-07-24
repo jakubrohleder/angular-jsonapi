@@ -87,7 +87,7 @@
         } else if (schema.type === 'hasMany') {
           if (config.target === undefined) {
             $http({
-              method: 'PUT',
+              method: 'PATCH',
               headers: headers,
               data: {data: []},
               url: url + '/' + config.object.data.id + '/relationships/' + config.key
@@ -114,7 +114,7 @@
           deferred.reject({errors: [{status: 0, statusText: 'Can\'t link object without id through rest call'}]});
         } else if (schema.type === 'hasOne') {
           $http({
-            method: 'PUT',
+            method: 'PATCH',
             headers: headers,
             data: {data: AngularJsonAPIModelLinkerService.toLinkData(config.target)},
             url: url + '/' + config.object.data.id + '/relationships/' + config.key
@@ -133,7 +133,7 @@
 
       function update(config) {
         return $http({
-          method: 'PUT',
+          method: 'PATCH',
           headers: headers,
           url: url + '/' + config.object.data.id,
           data: config.object.form.toJson()
