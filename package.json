@@ -11,7 +11,7 @@
     "chalk": "~1.1.1",
     "del": "~2.0.1",
     "eslint-plugin-angular": "~0.11.0",
-    "gulp": "~3.9.0",
+    "gulp": "^3.9.1",
     "gulp-angular-filesort": "~1.1.1",
     "gulp-angular-templatecache": "~1.7.0",
     "gulp-autoprefixer": "~3.0.1",

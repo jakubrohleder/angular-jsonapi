@@ -17,6 +17,7 @@
   "devDependencies": {
     "angular-recursion": "~1.0.5",
     "angular-ui-router": "~0.2.15",
+    "angular-mocks": "1.4.x",
     "faker": "https://github.com/Marak/faker.js.git#~2.1.2",
     "jquery": "~2.1.4",
     "json-formatter": "~0.2.7",

@@ -234,7 +234,7 @@
             }
           });
 
-          deferred.resolve(response.data.meta);
+          deferred.resolve(_this);
         }
       }
 
