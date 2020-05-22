@@ -24,7 +24,7 @@
         return null;
       }
 
-      return {type: object.data.type, id: object.data.id};
+      return {type: object.data.type, id: object.data.id, meta: object.meta};
     }
 
     /**
